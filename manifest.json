@@ -1,0 +1,18 @@
+{
+  "name": "RutaObra MGI",
+  "short_name": "RutaObra",
+  "description": "Registro de visitas a obra · MGI Insumos Eléctricos",
+  "start_url": "/rutaobra/",
+  "scope": "/rutaobra/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0e0f12",
+  "theme_color": "#f0a93a",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
