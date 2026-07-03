@@ -1222,17 +1222,24 @@ function buildImportCandidates(contactos){
     }];
     personas.forEach(p=>{
       if(!p.nombre && !p.telefono && !c.estudio) return;
-      const isDup = localStore.some(e=>
+      const match = localStore.find(e=>
         normImp(e.estudio)===normImp(c.estudio) &&
         (normImp(e.telefono)===normImp(p.telefono) || normImp(e.nombre)===normImp(p.nombre))
       );
+      const isDup = !!match;
       let notas = c.notas || '';
-      if(Array.isArray(c.interacciones) && c.interacciones.length){
-        const extra = c.interacciones.filter(h=>!h.auto).map(h=>'['+h.fecha+'] '+h.texto).join('\n');
+      const interaccionesManual = (Array.isArray(c.interacciones) ? c.interacciones.filter(h=>!h.auto) : [])
+        .map(h=>({fecha:h.fecha, texto:h.texto, auto:false}));
+      if(interaccionesManual.length){
+        const extra = interaccionesManual.map(h=>'['+h.fecha+'] '+h.texto).join('\n');
         if(extra) notas = (notas ? notas+'\n\n' : '') + '— Interacciones importadas —\n'+extra;
       }
       rows.push({
-        selected: !isDup, isDup,
+        selected: true, isDup, matchId: match ? match.id : null,
+        action: isDup ? 'update' : 'create',
+        c_contactado: !!c.contactado, c_contactado_fecha: c.contactadoFecha || null,
+        c_bitrix: !!c.bitrix, c_bitrix_fecha: c.bitrixFecha || null,
+        c_interacciones: interaccionesManual,
         entry:{
           id: Date.now()+Math.floor(Math.random()*100000),
           fecha:new Date().toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit',year:'numeric'}),
@@ -1246,7 +1253,10 @@ function buildImportCandidates(contactos){
           proveedor:c.proveedor||'', followup:c.followup||'',
           catalogos:c.catalogos||[], notas:notas, photo:c.photo||null,
           lat:null, lng:null,
-          historial:[{fecha:new Date().toLocaleDateString('es-UY'),nota:'Importado desde app de Contactos Arquitectos'}]
+          historial:[{fecha:new Date().toLocaleDateString('es-UY'),nota:'Importado desde app de Contactos Arquitectos'}],
+          contactado: !!c.contactado, contactado_fecha: c.contactadoFecha || null,
+          bitrix: !!c.bitrix, bitrix_fecha: c.bitrixFecha || null,
+          interacciones: interaccionesManual
         }
       });
     });
@@ -1259,12 +1269,15 @@ function renderImportPreview(){
   const wrap = document.getElementById('import-preview-list');
   wrap.innerHTML = importCandidates.map((row,i)=>{
     const e = row.entry;
+    const estadoTxt = row.c_contactado ? '✓ Contactado' : 'Sin contactar';
+    const bxTxt = row.c_bitrix ? '⬛ En Bitrix' : 'Falta pasar a Bitrix';
     return '<div class="import-row '+(row.isDup?'dup':'')+'">'
       +'<input type="checkbox" data-idx="'+i+'" '+(row.selected?'checked':'')+'>'
       +'<div class="ir-body">'
       +'<div class="ir-title">'+esc(e.nombre||'(sin nombre)')+'</div>'
       +'<div class="ir-meta">'+esc(e.estudio)+(e.cargo?' · '+esc(e.cargo):'')+(e.telefono?' · '+esc(e.telefono):'')+(e.email?' · '+esc(e.email):'')+'</div>'
-      +(row.isDup?'<div class="ir-dupbadge">Parece que ya existe en RutaObra</div>':'')
+      +'<div class="ir-meta">'+estadoTxt+' · '+bxTxt+'</div>'
+      +(row.isDup?'<div class="ir-dupbadge">Ya existe en RutaObra — se va a ACTUALIZAR su estado (no se crea copia)</div>':'<div class="ir-dupbadge" style="color:#3ecf73;background:rgba(62,207,115,.14)">Contacto nuevo — se va a crear</div>')
       +'</div></div>';
   }).join('');
   wrap.querySelectorAll('input[type=checkbox]').forEach(cb=>{
@@ -1279,18 +1292,36 @@ document.getElementById('import-select-new').addEventListener('click', ()=>{ imp
 document.getElementById('import-run-btn').addEventListener('click', async ()=>{
   const toImport = importCandidates.filter(r=>r.selected);
   if(!toImport.length){ toast('No seleccionaste ningún contacto', true); return; }
-  if(!confirm('Se van a crear '+toImport.length+' entrada(s) nueva(s) en RutaObra. No se borra ni se modifica nada existente. ¿Continuar?')) return;
+  const nuevos = toImport.filter(r=>r.action==='create').length;
+  const actualizados = toImport.filter(r=>r.action==='update').length;
+  if(!confirm('Se van a crear '+nuevos+' contacto(s) nuevo(s) y actualizar el estado (contactado/Bitrix) de '+actualizados+' contacto(s) que ya existían. No se borra nada. ¿Continuar?')) return;
   setLoading(true);
   let ok=0, fail=0;
   for(const row of toImport){
-    try{ await saveEntry(row.entry); ok++; }
-    catch(e){ fail++; }
+    try{
+      if(row.action==='update' && row.matchId){
+        const item = localStore.find(x=>x.id===row.matchId);
+        if(item){
+          if(row.c_contactado && !item.contactado){ item.contactado=true; item.contactado_fecha=row.c_contactado_fecha||new Date().toISOString(); }
+          if(row.c_bitrix && !item.bitrix){ item.bitrix=true; item.bitrix_fecha=row.c_bitrix_fecha||new Date().toISOString(); }
+          if(!Array.isArray(item.interacciones)) item.interacciones=[];
+          if(row.c_interacciones && row.c_interacciones.length){
+            const existentes = new Set(item.interacciones.map(h=>h.fecha+'|'+h.texto));
+            row.c_interacciones.forEach(h=>{ if(!existentes.has(h.fecha+'|'+h.texto)) item.interacciones.unshift(h); });
+          }
+          await saveEntry(item); ok++;
+        } else fail++;
+      } else {
+        await saveEntry(row.entry); ok++;
+      }
+    } catch(e){ fail++; }
   }
   setLoading(false);
-  toast(ok+' importado(s)'+(fail?', '+fail+' con error':''), fail>0);
+  toast(ok+' procesado(s)'+(fail?', '+fail+' con error':''), fail>0);
   importCandidates = importCandidates.filter(r=>!r.selected);
   renderImportPreview();
   renderList();
+  if(document.getElementById('view-contactos').classList.contains('active')) renderContactos();
 });
 
 // ============================================================
@@ -1465,4 +1496,4 @@ document.getElementById('ag-next').addEventListener('click',()=>{calMonth.setMon
 checkSession();
 </script>
 </body>
-</html> 
+</html>
