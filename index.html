@@ -69,11 +69,13 @@ header::after{content:"";position:absolute;bottom:-1px;left:0;right:0;height:3px
 .user-avatar{width:32px;height:32px;border-radius:50%;border:2px solid var(--acc);object-fit:cover;cursor:pointer}
 .user-avatar-placeholder{width:32px;height:32px;border-radius:50%;border:2px solid var(--acc);background:var(--acc-dim);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer}
 .admin-badge{font-size:10px;font-weight:800;background:var(--acc);color:#1a1300;padding:2px 7px;border-radius:20px;text-transform:uppercase}
-.tabs{display:flex;gap:3px;overflow-x:auto;scrollbar-width:none}
-.tabs::-webkit-scrollbar{display:none}
-.tabs .tab{flex:0 0 auto;padding-left:12px;padding-right:12px;white-space:nowrap}
-.tab{flex:1;text-align:center;padding:10px 0 9px;border-radius:8px 8px 0 0;font-size:12px;font-weight:800;color:var(--muted);cursor:pointer;transition:.15s;text-transform:uppercase;letter-spacing:.4px}
+.bell-btn{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--line);background:var(--panel2);color:var(--muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.bell-btn.on{border-color:var(--acc);color:var(--acc);background:var(--acc-dim)}
+.tabs{display:flex;gap:3px;width:100%}
+.tabs .tab{flex:1 1 0;padding-left:4px;padding-right:4px;white-space:nowrap;min-width:0}
+.tab{flex:1;text-align:center;padding:10px 0 9px;border-radius:8px 8px 0 0;font-size:11.5px;font-weight:800;color:var(--muted);cursor:pointer;transition:.15s;text-transform:uppercase;letter-spacing:.3px;overflow:hidden;text-overflow:ellipsis}
 .tab.active{color:var(--acc);background:var(--bg)}
+@media (max-width:480px){.tab{font-size:10px;letter-spacing:.1px}}
 
 /* ── MAIN ── */
 main{flex:1;overflow:hidden;position:relative;z-index:1}
@@ -82,10 +84,12 @@ main{flex:1;overflow:hidden;position:relative;z-index:1}
 #view-map.active{padding:0;overflow:hidden}
 
 /* ── ADMIN FILTER BAR ── */
-.admin-filter{background:var(--panel);border-bottom:1px solid var(--line);padding:10px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0}
-.admin-filter label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
-.admin-filter select{flex:1;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink);border-radius:8px;padding:8px 10px;font-size:13px;font-family:inherit}
-.admin-filter select:focus{outline:none;border-color:var(--acc)}
+.admin-filter{background:var(--panel);border-bottom:1px solid var(--line);padding:10px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.admin-filter label{font-size:11px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.6px;white-space:nowrap;display:flex;align-items:center;gap:5px}
+.nice-select{flex:1;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink);border-radius:20px;padding:9px 34px 9px 14px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--acc) 50%),linear-gradient(135deg,var(--acc) 50%,transparent 50%);background-position:calc(100% - 18px) center,calc(100% - 13px) center;background-size:5px 5px;background-repeat:no-repeat;transition:.15s}
+.nice-select:hover{border-color:var(--acc)}
+.nice-select:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-dim)}
+.admin-filter select{flex:1}
 #admin-filter-bar{display:none}
 
 /* ── GROUPS / FIELDS ── */
@@ -262,6 +266,10 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .ct-int-list{max-height:110px;overflow-y:auto;margin-bottom:6px}
 .ct-int-item{font-size:11px;color:var(--ink-soft);background:var(--panel2);border-radius:6px;padding:5px 8px;margin-bottom:4px}
 .ct-int-item .m{font-size:9.5px;color:var(--muted);font-family:monospace;display:block;margin-bottom:1px}
+.obra-row{display:flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:7px 9px;margin-bottom:6px;font-size:11.5px}
+.obra-row .txt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.obra-row button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;flex-shrink:0}
+.obra-row button:hover{color:#ff4d4d}
 
 /* ===== AGENDA TAB ===== */
 .ag-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
@@ -291,6 +299,44 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .ag-addbtns .actividad{background:var(--cold);color:#08131f}
 .ag-form{margin-top:12px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:10px}
 .ag-form input,.ag-form textarea{width:100%;background:var(--panel);border:1.5px solid var(--line);color:var(--ink);border-radius:7px;padding:9px 10px;font-size:13px;font-family:inherit;margin-bottom:8px}
+
+/* ===== ACTIVIDADES ===== */
+.act-section-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:800;margin:16px 0 8px}
+.act-row{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--cold);border-radius:9px;padding:12px 14px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start}
+.act-row.vencida{border-left-color:#ff4d4d}
+.act-row.completada{border-left-color:#3ecf73;opacity:.6}
+.act-check{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line);background:var(--panel2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.act-check.on{background:#3ecf73;border-color:#3ecf73}
+.act-check svg{opacity:0}.act-check.on svg{opacity:1}
+.act-body{flex:1;min-width:0}
+.act-top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.act-estudio{font-weight:800;font-size:13.5px;color:#fff;cursor:pointer}
+.act-estudio:hover{color:var(--acc)}
+.act-when{font-size:11px;color:var(--muted);font-family:monospace;white-space:nowrap}
+.act-when.vencida{color:#ff4d4d;font-weight:700}
+.act-texto{font-size:12.5px;color:var(--ink-soft);margin-top:3px;white-space:pre-wrap}
+.act-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;flex-shrink:0}
+.act-del:hover{color:#ff4d4d}
+.act-form-box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:16px}
+.act-empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px}
+
+/* ===== CHAT ASISTENTE ===== */
+.chat-fab{position:fixed;right:18px;bottom:18px;z-index:500;width:56px;height:56px;border-radius:50%;background:var(--acc);border:none;font-size:24px;cursor:pointer;box-shadow:0 8px 24px var(--acc-glow);display:flex;align-items:center;justify-content:center}
+.chat-panel{position:fixed;right:18px;bottom:86px;z-index:500;width:min(340px,calc(100vw - 36px));height:min(480px,calc(100vh - 140px));background:var(--panel);border:1px solid var(--line);border-radius:16px;display:none;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.chat-panel.show{display:flex}
+.chat-header{background:linear-gradient(180deg,#16181d,#0e0f12);padding:14px 16px;font-weight:800;font-size:13px;color:#fff;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
+.chat-header button{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer}
+.chat-body{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.chat-msg{max-width:88%;padding:9px 12px;border-radius:12px;font-size:12.5px;line-height:1.45;white-space:pre-wrap}
+.chat-msg.bot{background:var(--panel2);color:var(--ink-soft);align-self:flex-start;border-bottom-left-radius:3px}
+.chat-msg.user{background:var(--acc);color:#1a1300;align-self:flex-end;font-weight:600;border-bottom-right-radius:3px}
+.chat-suggestions{display:flex;gap:6px;flex-wrap:wrap;padding:0 12px 10px;flex-shrink:0}
+.chat-suggestions button{font-size:10.5px;background:var(--panel2);border:1px solid var(--line);color:var(--ink-soft);padding:6px 9px;border-radius:20px;cursor:pointer;font-family:inherit}
+.chat-suggestions button:hover{border-color:var(--acc);color:var(--acc)}
+.chat-input-row{display:flex;gap:6px;padding:10px;border-top:1px solid var(--line);flex-shrink:0}
+.chat-input-row input{flex:1;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink);border-radius:20px;padding:9px 14px;font-size:12.5px;font-family:inherit}
+.chat-input-row input:focus{outline:none;border-color:var(--acc)}
+.chat-input-row button{width:36px;height:36px;border-radius:50%;background:var(--acc);border:none;color:#1a1300;font-weight:900;cursor:pointer;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -329,24 +375,25 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       </div>
     </div>
     <div class="user-menu">
+      <button class="bell-btn" id="bell-btn" title="Activar recordatorios de actividades">🔔</button>
       <span class="admin-badge" id="role-badge" style="display:none">Admin</span>
       <div class="user-avatar-placeholder" id="user-avatar-btn">👤</div>
     </div>
   </div>
   <div class="tabs">
     <div class="tab active" data-tab="form">＋ Nuevo</div>
-    <div class="tab" data-tab="list">Visitas</div>
-    <div class="tab" data-tab="map">Mapa</div>
     <div class="tab" data-tab="contactos">Contactos</div>
     <div class="tab" data-tab="agenda">Agenda</div>
+    <div class="tab" data-tab="actividades">Actividades</div>
+    <div class="tab" data-tab="map">Mapa</div>
     <div class="tab" data-tab="importar">Importar</div>
   </div>
 </header>
 
 <!-- ADMIN FILTER BAR -->
-<div id="admin-filter-bar">
-  <label>Vendedor:</label>
-  <select id="vendedor-filter">
+<div id="admin-filter-bar" class="admin-filter">
+  <label>👤 Vendedor</label>
+  <select id="vendedor-filter" class="nice-select">
     <option value="all">Todos los vendedores</option>
   </select>
 </div>
@@ -429,19 +476,11 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
   </div>
 </section>
 
-<!-- LIST -->
-<section class="view" id="view-list">
-  <div class="list-header">
-    <span class="list-count" id="list-count">0 visitas</span>
-    <span class="export-btn" id="export-btn">CSV</span>
-  </div>
-  <div id="list-container"></div>
-</section>
-
 <!-- MAP -->
 <section class="view" id="view-map">
   <div class="map-wrap">
     <div class="map-topbar">
+      <select id="map-contact-filter" class="nice-select"><option value="all">Todos los contactos</option></select>
       <button class="map-tb-btn" id="btn-draw-zone">✏️ Marcar zona</button>
       <button class="map-tb-btn danger" id="btn-clear-zones">🗑️ Borrar zonas</button>
     </div>
@@ -466,6 +505,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       <button class="ct-fbtn bx" data-ctbx="yes">En Bitrix</button>
       <button class="ct-fbtn bx" data-ctbx="no">Falta pasar</button>
     </div>
+    <button class="io-btn" id="ct-export-btn">⬇ CSV</button>
   </div>
   <div class="ct-grid" id="ct-grid"></div>
 </section>
@@ -481,6 +521,23 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
   <div class="ag-grid" id="ag-grid" style="margin-top:5px"></div>
   <div class="ag-daypanel" id="ag-daypanel"></div>
   <datalist id="ag-estudios-list"></datalist>
+</section>
+
+<!-- ACTIVIDADES -->
+<section class="view" id="view-actividades">
+  <div class="ct-toolbar">
+    <input type="text" class="ct-search" id="act-search" placeholder="Buscar por estudio o texto...">
+    <div class="ct-fgroup">
+      <button class="ct-fbtn active" data-actf="pendientes">Pendientes</button>
+      <button class="ct-fbtn" data-actf="vencidas">Vencidas</button>
+      <button class="ct-fbtn" data-actf="completadas">Completadas</button>
+      <button class="ct-fbtn" data-actf="todas">Todas</button>
+    </div>
+    <button class="add-btn" id="act-new-btn">+ Nueva actividad</button>
+  </div>
+  <div id="act-form-wrap"></div>
+  <div id="act-list"></div>
+  <datalist id="act-estudios-list"></datalist>
 </section>
 
 <!-- IMPORTAR -->
@@ -570,9 +627,17 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       <select id="m-followup"><option value="">Seleccionar...</option><option>Enviar cotización</option><option>Llamar la próxima semana</option><option>Visitar de nuevo en 2 semanas</option><option>Esperar que avance la obra</option><option>Cerrado - sin interés</option></select>
     </div>
     <div class="field"><label>Notas</label><textarea id="m-notas" placeholder="Detalles adicionales..."></textarea></div>
+    <div class="field"><label>Obras / ubicaciones vinculadas</label>
+      <div id="m-obras-list"></div>
+      <button type="button" class="ct-int-savebtn" id="m-obra-add" style="background:var(--cold)">📍 Agregar obra en el mapa</button>
+    </div>
     <div class="field"><label>Interacciones / Actividad</label>
       <div class="ct-int-list" id="m-int-list"></div>
       <textarea id="m-int-text" placeholder="¿Qué hiciste o qué tenés que hacer con este contacto?" style="min-height:44px;margin-bottom:6px;"></textarea>
+      <div class="row2" style="margin-bottom:6px">
+        <input type="date" id="m-int-fecha" title="Agendar (opcional)" style="flex:1">
+        <input type="time" id="m-int-hora" title="Hora (opcional)" style="flex:1">
+      </div>
       <button type="button" class="ct-int-savebtn" id="m-int-save">+ Agregar interacción</button>
     </div>
     <div class="field"><label>Foto de la obra</label>
@@ -589,6 +654,28 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 
 <div class="sync-indicator" id="sync-indicator"><div class="sync-dot"></div>Sincronizando...</div>
 <div class="toast" id="toast"></div>
+
+<!-- CHAT ASISTENTE (consultas locales sobre tus datos) -->
+<button class="chat-fab" id="chat-fab">💬</button>
+<div class="chat-panel" id="chat-panel">
+  <div class="chat-header">
+    <span>Asistente de RutaObra</span>
+    <button id="chat-close">✕</button>
+  </div>
+  <div class="chat-body" id="chat-body">
+    <div class="chat-msg bot">Hola 👋 Puedo responderte sobre lo que ya tenés cargado: actividades pendientes, contactos urgentes, obras sin pin en el mapa, y más. Preguntame o tocá una sugerencia.</div>
+  </div>
+  <div class="chat-suggestions" id="chat-suggestions">
+    <button data-q="¿Tengo actividades pendientes hoy?">Actividades de hoy</button>
+    <button data-q="¿Qué contactos debo llamar urgente?">Contactos urgentes</button>
+    <button data-q="¿Qué obras no tienen pin en el mapa?">Obras sin ubicar</button>
+    <button data-q="¿Qué actividades tengo vencidas?">Actividades vencidas</button>
+  </div>
+  <div class="chat-input-row">
+    <input type="text" id="chat-input" placeholder="Escribí tu consulta...">
+    <button id="chat-send">➤</button>
+  </div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
@@ -760,8 +847,10 @@ async function loadAll() {
     if (isAdmin) buildVendedorFilter();
     renderList();
     if (mapInitialized) refreshMapMarkers();
+    if(typeof checkRecordatorios==='function') checkRecordatorios();
   } catch(e) {
-    toast('Error de conexión', true);
+    console.error('Error en loadAll:', e);
+    toast('Error de conexión: '+String(e).slice(0,150), true);
     dbReady = false;
   } finally { setLoading(false); }
 }
@@ -842,7 +931,7 @@ function attachInputSparks(){ document.querySelectorAll('input,textarea').forEac
 // ============================================================
 // UTILS
 // ============================================================
-function toast(msg,isError){const t=document.getElementById('toast');t.textContent=msg;t.classList.toggle('err',!!isError);t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+function toast(msg,isError){const t=document.getElementById('toast');t.textContent=msg;t.classList.toggle('err',!!isError);t.classList.add('show');setTimeout(()=>t.classList.remove('show'),isError?7000:2000);}
 function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
 
 // ============================================================
@@ -854,6 +943,7 @@ let drawingZone=false,zonePoints=[],zoneTempMarkers=[],zonePoly=null;
 let modalTempSelected='',mPhotoDataUrl=null,editingId=null;
 let modalContactado=false,modalBitrix=false,modalInteracciones=[];
 let pickedLatLng=null,pickedAddress='',pickerMap=null,geocodeTimeout=null,pendingNewLatLng=null;
+let modalObras=[],pickingObraMode=false;
 
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click',()=>{
@@ -863,10 +953,10 @@ document.querySelectorAll('.tab').forEach(tab=>{
     document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
     document.getElementById('view-'+t).classList.add('active');
     document.getElementById('save-bar').style.display=t==='form'?'block':'none';
-    if(t==='list') renderList();
-    if(t==='map') setTimeout(()=>{if(!mapInitialized)initMap();else refreshMapMarkers();map.invalidateSize();},80);
+    if(t==='map') setTimeout(()=>{if(!mapInitialized)initMap();else refreshMapMarkers();map.invalidateSize();buildMapContactFilter();},80);
     if(t==='contactos') renderContactos();
     if(t==='agenda') renderAgendaTab();
+    if(t==='actividades') renderActividades();
   });
 });
 
@@ -923,54 +1013,31 @@ function reverseGeocode(lat,lng,cb){
 // ============================================================
 // LISTA
 // ============================================================
-function renderList(){
-  const store=getFilteredStore();
-  document.getElementById('list-count').textContent=store.length+(store.length===1?' visita':' visitas')+' guardadas';
-  const c=document.getElementById('list-container');
-  if(!store.length){c.innerHTML='<div class="empty"><div class="ic">⚡</div><p>No hay visitas registradas.</p></div>';attachButtonSparks();return;}
-  c.innerHTML=store.map(e=>{
-    const bc=e.temp==='cold'?'badge-cold':e.temp==='warm'?'badge-warm':e.temp==='hot'?'badge-hot':'';
-    const bi=e.temp==='cold'?'Frío':e.temp==='warm'?'Tibio':e.temp==='hot'?'Caliente':'';
-    let html='<div class="card">';
-    html+='<div class="card-top"><div>';
-    if(bi) html+='<span class="card-badge '+bc+'">'+bi+'</span><br>';
-    html+='<span class="card-empresa">'+esc(e.empresa)+'</span></div>';
-    html+='<span class="card-date">'+e.fecha+'<br>'+e.hora+'</span></div>';
-    if(isAdmin&&e.user_name) html+='<div class="card-vendedor">👤 '+esc(e.user_name)+'</div>';
-    if(e.estudio) html+='<div class="card-row">🏛️ '+esc(e.estudio)+'</div>';
-    if(e.direccion) html+='<div class="card-row">📍 '+esc(e.direccion)+(e.zona?' · '+esc(e.zona):'')+'</div>';
-    if(e.tipo) html+='<div class="card-row">🏗️ '+esc(e.tipo)+(e.estado?' — '+esc(e.estado):'')+'</div>';
-    if(e.nombre) html+='<div class="card-row">📞 <b>'+esc(e.nombre)+'</b>'+(e.cargo?' — '+esc(e.cargo):'')+'</div>';
-    if(e.telefono) html+='<div class="card-row">☎️ '+esc(e.telefono)+'</div>';
-    if(e.proveedor) html+='<div class="card-row">🔧 '+esc(e.proveedor)+'</div>';
-    if(e.followup) html+='<div class="card-row">📌 '+esc(e.followup)+'</div>';
-    if(e.notas) html+='<div class="card-row">📝 '+esc(e.notas)+'</div>';
-    if(e.catalogos&&e.catalogos.length) html+='<div class="card-tags">'+e.catalogos.map(cat=>'<span class="card-tag">'+esc(cat)+'</span>').join('')+'</div>';
-    if(e.photo) html+='<img class="card-img" src="'+e.photo+'" alt="Foto">';
-    html+='<div class="card-actions">';
-    if(isAdmin||e.user_id===currentUser?.id){
-      html+='<button class="edit" onclick="openPinModal(localStore.find(x=>x.id==='+e.id+'))">✏️ Editar</button>';
-      html+='<button class="del" onclick="deleteEntry('+e.id+')">🗑️</button>';
-    }
-    if(e.telefono) html+='<button class="call" onclick="window.location.href=\'tel:'+e.telefono.replace(/\s/g,'')+'\'">📞</button>';
-    if(e.lat) html+='<button onclick="goToPin('+e.id+')">🗺️</button>';
-    html+='</div></div>';
-    return html;
-  }).join('');
-  attachButtonSparks();
+function refreshActiveView(){
+  const active = document.querySelector('.tab.active');
+  const t = active ? active.dataset.tab : '';
+  if(t==='contactos') renderContactos();
+  else if(t==='agenda') renderAgendaTab();
+  else if(t==='actividades') renderActividades();
+  else if(t==='map' && mapInitialized) refreshMapMarkers();
 }
+function renderList(){ refreshActiveView(); }
 
 function goToPin(id){
-  const entry=localStore.find(e=>e.id===id);if(!entry||!entry.lat)return;
+  const entry=localStore.find(e=>e.id===id);
+  let lat=null,lng=null;
+  if(entry && entry.lat && entry.lng){ lat=entry.lat; lng=entry.lng; }
+  else if(entry && Array.isArray(entry.obras) && entry.obras.length){ lat=entry.obras[0].lat; lng=entry.obras[0].lng; }
+  if(!entry||lat==null)return;
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.tab')[2].classList.add('active');
+  document.querySelector('.tab[data-tab="map"]').classList.add('active');
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-map').classList.add('active');
   document.getElementById('save-bar').style.display='none';
-  setTimeout(()=>{if(!mapInitialized)initMap();map.invalidateSize();map.setView([entry.lat,entry.lng],17);refreshMapMarkers();setTimeout(()=>markersLayer.eachLayer(m=>{if(m._entryId===id)m.openPopup();}),200);},100);
+  setTimeout(()=>{if(!mapInitialized)initMap();map.invalidateSize();map.setView([lat,lng],17);refreshMapMarkers();setTimeout(()=>markersLayer.eachLayer(m=>{if(m._entryId===id)m.openPopup();}),200);},100);
 }
 
-document.getElementById('export-btn').addEventListener('click',()=>{
+document.getElementById('ct-export-btn').addEventListener('click',()=>{
   const store=getFilteredStore();if(!store.length){toast('No hay datos',true);return;}
   const headers=['Fecha','Hora','Vendedor','Temperatura','Empresa','Estudio','Tipo Obra','Estado','Contacto','Cargo','Teléfono','Email','Dirección','Zona','Web','Proveedor','Próxima Acción','Catálogos','Notas'];
   const rows=store.map(e=>[e.fecha,e.hora,e.user_name,e.temp==='cold'?'Frío':e.temp==='warm'?'Tibio':e.temp==='hot'?'Caliente':'',e.empresa,e.estudio,e.tipo,e.estado,e.nombre,e.cargo,e.telefono,e.email,e.direccion,e.zona,e.web,e.proveedor,e.followup,(e.catalogos||[]).join(' | '),e.notas].map(v=>'"'+(v||'').toString().replace(/"/g,'""')+'"'));
@@ -988,14 +1055,15 @@ function pinIcon(temp,isOwn){
   return L.divIcon({className:'',html:'<div style="width:24px;height:24px;background:'+color+';border:2.5px solid '+border+';border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 3px 10px rgba(0,0,0,.5)"></div>',iconSize:[24,24],iconAnchor:[12,24]});
 }
 
-function buildPopup(e){
+function buildPopup(e,direccionObra){
   const color=e.temp==='cold'?'#4a9eff':e.temp==='hot'?'#ff4d4d':'#f0a93a';
   const bl=e.temp==='cold'?'Frío':e.temp==='warm'?'Tibio':e.temp==='hot'?'Caliente':'';
   let html='';
   if(bl) html+='<div class="pop-badge" style="background:'+color+'22;color:'+color+'">'+bl+'</div>';
   html+='<div class="pop-title">'+esc(e.empresa)+'</div>';
   if(isAdmin&&e.user_name) html+='<div class="pop-row" style="font-size:11px;color:#888">👤 '+esc(e.user_name)+'</div>';
-  if(e.direccion) html+='<div class="pop-row"><span>📍</span> '+esc(e.direccion)+'</div>';
+  const dirMostrar = direccionObra || e.direccion;
+  if(dirMostrar) html+='<div class="pop-row"><span>📍</span> '+esc(dirMostrar)+'</div>';
   if(e.tipo) html+='<div class="pop-row"><span>Obra:</span> '+esc(e.tipo)+'</div>';
   if(e.estado) html+='<div class="pop-row"><span>Estado:</span> '+esc(e.estado)+'</div>';
   if(e.nombre) html+='<div class="pop-row"><span>Contacto:</span> <b>'+esc(e.nombre)+'</b>'+(e.cargo?' · '+esc(e.cargo):'')+'</div>';
@@ -1009,14 +1077,29 @@ function buildPopup(e){
   return html;
 }
 
+let mapContactFilter='all';
+
+function buildMapContactFilter(){
+  const sel=document.getElementById('map-contact-filter');
+  if(!sel) return;
+  const current=sel.value;
+  const opts = localStore.filter(e=>e.estudio).map(e=>'<option value="'+e.id+'">'+esc(e.estudio)+'</option>').join('');
+  sel.innerHTML = '<option value="all">Todos los contactos</option>'+opts;
+  if(current && Array.from(sel.options).some(o=>o.value===current)) sel.value=current;
+}
+
 function refreshMapMarkers(){
   if(!markersLayer)return;markersLayer.clearLayers();
   getFilteredStore().forEach(e=>{
-    if(e.lat&&e.lng){
-      const isOwn=e.user_id===currentUser?.id;
-      const m=L.marker([e.lat,e.lng],{icon:pinIcon(e.temp,isOwn)}).bindPopup(buildPopup(e),{maxWidth:280});
+    if(mapContactFilter!=='all' && String(e.id)!==String(mapContactFilter)) return;
+    const isOwn=e.user_id===currentUser?.id;
+    const puntos=[];
+    if(e.lat&&e.lng) puntos.push({lat:e.lat,lng:e.lng,direccion:e.direccion});
+    if(Array.isArray(e.obras)) e.obras.forEach(o=>{ if(o.lat&&o.lng) puntos.push({lat:o.lat,lng:o.lng,direccion:o.direccion}); });
+    puntos.forEach(p=>{
+      const m=L.marker([p.lat,p.lng],{icon:pinIcon(e.temp,isOwn)}).bindPopup(buildPopup(e,p.direccion),{maxWidth:280});
       m._entryId=e.id;m.addTo(markersLayer);
-    }
+    });
   });
 }
 
@@ -1030,7 +1113,21 @@ function initMap(){
   map=L.map('map',{zoomControl:true,attributionControl:false}).setView([-34.938,-54.943],13);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:19}).addTo(map);
   markersLayer=L.layerGroup().addTo(map);zonesLayer=L.layerGroup().addTo(map);
-  renderZones();refreshMapMarkers();map.on('click',onMapClick);
+  renderZones();buildMapContactFilter();refreshMapMarkers();map.on('click',onMapClick);
+  document.getElementById('map-contact-filter').addEventListener('change', function(){
+    mapContactFilter=this.value;
+    refreshMapMarkers();
+    if(mapContactFilter!=='all'){
+      const pts=[];
+      const item=localStore.find(x=>String(x.id)===String(mapContactFilter));
+      if(item){
+        if(item.lat&&item.lng) pts.push([item.lat,item.lng]);
+        if(Array.isArray(item.obras)) item.obras.forEach(o=>{ if(o.lat&&o.lng) pts.push([o.lat,o.lng]); });
+      }
+      if(pts.length===1) map.setView(pts[0],16);
+      else if(pts.length>1) map.fitBounds(pts,{padding:[40,40]});
+    }
+  });
 }
 
 function onMapClick(e){
@@ -1079,25 +1176,62 @@ function onPickerMove(){
   clearTimeout(geocodeTimeout);
   geocodeTimeout=setTimeout(()=>{if(!pickerMap)return;reverseGeocode(c.lat,c.lng,addr=>{if(!pickerMap)return;pickedAddress=addr;document.getElementById('picker-addr-label').classList.remove('busy');document.getElementById('picker-addr-text').textContent=addr||'Dirección no encontrada';});},600);
 }
-document.getElementById('picker-cancel').addEventListener('click',closePinPicker);
-document.getElementById('picker-confirm').addEventListener('click',()=>{if(!pickedLatLng){toast('Esperá que cargue el mapa',true);return;}closePinPicker();openPinModal(null,{lat:pickedLatLng.lat,lng:pickedLatLng.lng,direccion:pickedAddress});});
+document.getElementById('picker-cancel').addEventListener('click',()=>{
+  closePinPicker();
+  if(pickingObraMode){ pickingObraMode=false; document.getElementById('pin-modal').classList.add('show'); }
+});
+document.getElementById('picker-confirm').addEventListener('click',()=>{
+  if(!pickedLatLng){toast('Esperá que cargue el mapa',true);return;}
+  closePinPicker();
+  if(pickingObraMode){
+    pickingObraMode=false;
+    modalObras.push({id:Date.now(), lat:pickedLatLng.lat, lng:pickedLatLng.lng, direccion:pickedAddress});
+    document.getElementById('pin-modal').classList.add('show');
+    renderModalObras();
+    toast('Obra agregada a la ficha ✓');
+    return;
+  }
+  openPinModal(null,{lat:pickedLatLng.lat,lng:pickedLatLng.lng,direccion:pickedAddress});
+});
 
 // MODAL PIN
 document.querySelectorAll('#modal-temp-chips .temp-chip').forEach(c=>{c.addEventListener('click',()=>{document.querySelectorAll('#modal-temp-chips .temp-chip').forEach(x=>x.classList.remove('selected'));c.classList.add('selected');modalTempSelected=c.dataset.val;});});
 document.getElementById('m-photo-input').addEventListener('change',function(){const file=this.files[0];if(!file)return;const r=new FileReader();r.onload=e=>{mPhotoDataUrl=e.target.result;document.getElementById('m-photo-preview').src=mPhotoDataUrl;document.getElementById('m-photo-preview').style.display='block';};r.readAsDataURL(file);});
 document.getElementById('modal-contactado-chip').addEventListener('click',function(){modalContactado=!modalContactado;this.classList.toggle('selected',modalContactado);});
+function renderModalObras(){
+  const wrap=document.getElementById('m-obras-list');
+  if(!modalObras.length){ wrap.innerHTML='<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Sin obras vinculadas todavía.</div>'; return; }
+  wrap.innerHTML = modalObras.map((o,i)=>'<div class="obra-row"><span class="txt">📍 '+esc(o.direccion||(o.lat.toFixed(4)+', '+o.lng.toFixed(4)))+'</span><button type="button" data-delobra="'+i+'">✕</button></div>').join('');
+  wrap.querySelectorAll('[data-delobra]').forEach(b=>b.addEventListener('click', ()=>{ modalObras.splice(parseFloat(b.dataset.delobra),1); renderModalObras(); }));
+}
+document.getElementById('m-obra-add').addEventListener('click', ()=>{
+  pickingObraMode=true;
+  document.getElementById('pin-modal').classList.remove('show');
+  openPinPicker();
+});
 document.getElementById('modal-bitrix-chip').addEventListener('click',function(){modalBitrix=!modalBitrix;this.classList.toggle('selected',modalBitrix);});
 function renderModalInteracciones(){
   const wrap=document.getElementById('m-int-list');
   wrap.innerHTML = modalInteracciones.length ? modalInteracciones.map(h=>'<div class="ct-int-item"><span class="m">'+esc(h.fecha)+(h.auto?' · automático':'')+'</span>'+esc(h.texto)+'</div>').join('') : '<div style="font-size:11px;color:var(--muted)">Sin interacciones registradas.</div>';
 }
-document.getElementById('m-int-save').addEventListener('click',()=>{
+document.getElementById('m-int-save').addEventListener('click', async ()=>{
   const ta=document.getElementById('m-int-text');
   const texto=ta.value.trim();
   if(!texto)return;
   modalInteracciones.unshift({fecha:new Date().toLocaleDateString('es-UY')+' '+new Date().toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'}),texto,auto:false});
   ta.value='';
   renderModalInteracciones();
+  const fechaAg = document.getElementById('m-int-fecha').value;
+  if(fechaAg){
+    if(editingId){
+      const item = localStore.find(x=>x.id===editingId);
+      const res = await crearActividadAgenda({fecha:fechaAg, hora:document.getElementById('m-int-hora').value, tipo:'actividad', texto, estudioTxt: item ? item.estudio : ''});
+      if(res.ok) toast('Interacción agendada ✓'); else toast(res.msg, true);
+    } else {
+      toast('Guardá el contacto primero para poder agendar la actividad', true);
+    }
+  }
+  document.getElementById('m-int-fecha').value=''; document.getElementById('m-int-hora').value='';
 });
 
 function openPinModal(entry,newLocation){
@@ -1109,9 +1243,12 @@ function openPinModal(entry,newLocation){
   modalTempSelected='';mPhotoDataUrl=null;document.getElementById('m-photo-preview').style.display='none';
   modalContactado=!!(entry&&entry.contactado);modalBitrix=!!(entry&&entry.bitrix);
   modalInteracciones=entry&&Array.isArray(entry.interacciones)?entry.interacciones.slice():[];
+  modalObras=entry&&Array.isArray(entry.obras)?entry.obras.slice():[];
+  renderModalObras();
   document.getElementById('modal-contactado-chip').classList.toggle('selected',modalContactado);
   document.getElementById('modal-bitrix-chip').classList.toggle('selected',modalBitrix);
   document.getElementById('m-int-text').value='';
+  document.getElementById('m-int-fecha').value=''; document.getElementById('m-int-hora').value='';
   renderModalInteracciones();
   if(entry){
     document.getElementById('m-empresa').value=entry.empresa||'';document.getElementById('m-estudio').value=entry.estudio||'';
@@ -1152,6 +1289,7 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
       if(!modalBitrix) item.bitrix_fecha=null;
       item.bitrix=modalBitrix;
       item.interacciones=modalInteracciones;
+      item.obras=modalObras;
       await saveEntry(item);toast('Actualizado ✓');
     }
   }else{
@@ -1168,7 +1306,8 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
       historial:[{fecha:new Date().toLocaleDateString('es-UY'),nota:'Pin creado por '+currentUser.name}],
       contactado:modalContactado,contactado_fecha:modalContactado?new Date().toISOString():null,
       bitrix:modalBitrix,bitrix_fecha:modalBitrix?new Date().toISOString():null,
-      interacciones:modalInteracciones
+      interacciones:modalInteracciones,
+      obras:modalObras
     };
     await saveEntry(entry);toast('Pin guardado ✓');
   }
@@ -1370,6 +1509,7 @@ function renderContactos(){
       +'<div class="ct-int-box">'
       +'<div class="ct-int-list">'+(ints.length? ints.slice(0,4).map(h=>'<div class="ct-int-item"><span class="m">'+esc(h.fecha)+(h.auto?' · automático':'')+'</span>'+esc(h.texto)+'</div>').join('') : '<div style="font-size:11px;color:var(--muted)">Sin interacciones.</div>')+'</div>'
       +'<textarea placeholder="¿Qué hiciste o qué tenés que hacer?" data-inttext="'+e.id+'"></textarea>'
+      +'<div class="row2" style="margin-bottom:6px"><input type="date" data-intfecha="'+e.id+'" style="flex:1"><input type="time" data-inthora="'+e.id+'" style="flex:1"></div>'
       +'<button class="ct-int-savebtn" data-intsave="'+e.id+'">+ Guardar interacción</button>'
       +'</div>'
       +'</div>';
@@ -1400,7 +1540,14 @@ function renderContactos(){
       const item=localStore.find(x=>x.id===id); if(!item) return;
       if(!Array.isArray(item.interacciones)) item.interacciones=[];
       item.interacciones.unshift({fecha:new Date().toLocaleDateString('es-UY')+' '+new Date().toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'}),texto,auto:false});
-      await saveEntry(item); renderContactos();
+      await saveEntry(item);
+      const fechaEl = wrap.querySelector('[data-intfecha="'+id+'"]');
+      const horaEl = wrap.querySelector('[data-inthora="'+id+'"]');
+      if(fechaEl && fechaEl.value){
+        const res = await crearActividadAgenda({fecha:fechaEl.value, hora:horaEl.value, tipo:'actividad', texto, estudioTxt:item.estudio});
+        if(res.ok) toast('Interacción guardada y agendada ✓'); else toast(res.msg, true);
+      }
+      renderContactos();
     });
   });
 }
@@ -1410,6 +1557,7 @@ document.querySelectorAll('[data-ctbx]').forEach(b=>b.addEventListener('click',(
 
 // ============================================================
 // TAB AGENDA (calendario: visitas pautadas + actividades)
+// + TAB ACTIVIDADES (lista, conectada con Agenda y con cada contacto)
 // ============================================================
 let calMonth=new Date(); calMonth.setDate(1);
 let agSelectedDay=fmtYMD(new Date());
@@ -1417,7 +1565,63 @@ function fmtYMD(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2
 
 function buildAgendaEstudiosList(){
   const set=new Set(); localStore.forEach(e=>{ if(e.estudio) set.add(e.estudio); });
-  document.getElementById('ag-estudios-list').innerHTML=Array.from(set).sort().map(n=>'<option value="'+esc(n)+'">').join('');
+  const opts = Array.from(set).sort().map(n=>'<option value="'+esc(n)+'">').join('');
+  document.getElementById('ag-estudios-list').innerHTML = opts;
+  const actList = document.getElementById('act-estudios-list');
+  if(actList) actList.innerHTML = opts;
+}
+
+// Función única para crear una actividad/visita en agenda, usada desde
+// la pestaña Agenda, la pestaña Actividades, y desde la ficha de cada contacto.
+async function crearActividadAgenda({fecha, hora, tipo, texto, estudioTxt}){
+  if(!texto || !texto.trim()) return {ok:false, msg:'Escribí un texto para el evento.'};
+  let estudioId=null, estudioNombre='';
+  if(estudioTxt && estudioTxt.trim()){
+    const match=localStore.find(e=>(e.estudio||'').toLowerCase().trim()===estudioTxt.toLowerCase().trim());
+    if(match){ estudioId=match.id; estudioNombre=match.estudio; } else { estudioNombre=estudioTxt.trim(); }
+  }
+  const ev={ id:Date.now()+Math.floor(Math.random()*1000), fecha, hora:hora||'', tipo, texto:texto.trim(), estudio_id:estudioId, estudio_nombre:estudioNombre, completada:false, completada_fecha:null };
+  try{
+    await sbUpsert('agenda', {...ev, user_id:currentUser.id, user_email:currentUser.email, user_name:currentUser.name}, currentUser.token);
+    agendaStore.push(ev);
+    if(estudioId){
+      const item=localStore.find(x=>x.id===estudioId);
+      if(item){
+        if(!Array.isArray(item.interacciones)) item.interacciones=[];
+        item.interacciones.unshift({fecha:new Date().toLocaleDateString('es-UY'),texto:(tipo==='visita'?'[Visita agendada] ':'[Actividad agendada] ')+ev.texto,auto:false});
+        await saveEntry(item);
+      }
+    }
+    programarRecordatorios();
+    return {ok:true, ev};
+  }catch(err){ console.error('Error creando en agenda:', err); return {ok:false, msg:'Error al guardar en la agenda.'}; }
+}
+
+async function toggleActividadCompletada(id){
+  const ev = agendaStore.find(e=>e.id===id); if(!ev) return;
+  ev.completada = !ev.completada;
+  ev.completada_fecha = ev.completada ? new Date().toISOString() : null;
+  try{
+    await sbUpsert('agenda', {id:ev.id, fecha:ev.fecha, hora:ev.hora, tipo:ev.tipo, texto:ev.texto, estudio_id:ev.estudio_id, estudio_nombre:ev.estudio_nombre, completada:ev.completada, completada_fecha:ev.completada_fecha, user_id:currentUser.id, user_email:currentUser.email, user_name:currentUser.name}, currentUser.token);
+  }catch(err){ toast('Error al actualizar', true); }
+  refreshActiveView();
+}
+
+async function eliminarActividad(id){
+  try{ await sbDelete('agenda', id, currentUser.token); agendaStore=agendaStore.filter(e=>e.id!==id); refreshActiveView(); }
+  catch(err){ toast('Error al eliminar', true); }
+}
+
+function jumpToContactFromActivity(estudioId){
+  if(!estudioId) return;
+  const item = localStore.find(x=>x.id===estudioId);
+  if(!item) return;
+  item.expanded = true;
+  document.querySelector('.tab[data-tab="contactos"]').click();
+  setTimeout(()=>{
+    const cardEl = document.querySelector('.ct-card[data-id="'+estudioId+'"]');
+    if(cardEl) cardEl.scrollIntoView({behavior:'smooth', block:'center'});
+  }, 80);
 }
 
 function renderAgendaTab(){
@@ -1445,14 +1649,12 @@ function renderAgDayPanel(){
   const el=document.getElementById('ag-daypanel');
   const nice=new Date(agSelectedDay+'T00:00:00').toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'});
   el.innerHTML = '<div class="ag-dayheader">'+nice+'</div>'
-    + (evs.length ? evs.map(e=>'<div class="ag-event '+e.tipo+'"><div class="ag-evtop '+e.tipo+'"><span>'+(e.tipo==='visita'?'🏗️ Visita de obra':'📌 Actividad')+'</span>'+(e.hora?'<span style="color:var(--muted);font-family:monospace">'+esc(e.hora)+'</span>':'')+'</div><div class="ag-evtext">'+esc(e.texto)+'</div>'+(e.estudio_nombre?'<div style="font-size:11px;color:var(--muted);margin-top:3px">→ '+esc(e.estudio_nombre)+'</div>':'')+'<button class="del" style="margin-top:6px" data-delag="'+e.id+'">🗑️ Eliminar</button></div>').join('') : '<div style="font-size:11.5px;color:var(--muted);padding:6px 0">Sin eventos este día.</div>')
+    + (evs.length ? evs.map(e=>'<div class="ag-event '+e.tipo+'" style="'+(e.completada?'opacity:.55':'')+'"><div class="ag-evtop '+e.tipo+'"><span>'+(e.tipo==='visita'?'🏗️ Visita de obra':'📌 Actividad')+(e.completada?' · ✓ completada':'')+'</span>'+(e.hora?'<span style="color:var(--muted);font-family:monospace">'+esc(e.hora)+'</span>':'')+'</div><div class="ag-evtext">'+esc(e.texto)+'</div>'+(e.estudio_nombre?'<div style="font-size:11px;color:var(--muted);margin-top:3px;cursor:pointer" data-jumpact="'+e.estudio_id+'">→ '+esc(e.estudio_nombre)+'</div>':'')+'<div style="display:flex;gap:8px;margin-top:6px;">'+(e.tipo==='actividad'?'<button class="del" data-toggleact="'+e.id+'">'+(e.completada?'↺ Marcar pendiente':'✓ Marcar completada')+'</button>':'')+'<button class="del" data-delag="'+e.id+'">🗑️ Eliminar</button></div></div>').join('') : '<div style="font-size:11.5px;color:var(--muted);padding:6px 0">Sin eventos este día.</div>')
     + '<div class="ag-addbtns"><button class="visita" data-newag="visita">+ Visita de obra</button><button class="actividad" data-newag="actividad">+ Actividad</button></div>'
     + '<div id="ag-form-wrap"></div>';
-  el.querySelectorAll('[data-delag]').forEach(b=>b.addEventListener('click', async ()=>{
-    const id=parseFloat(b.dataset.delag);
-    try{ await sbDelete('agenda', id, currentUser.token); agendaStore=agendaStore.filter(e=>e.id!==id); renderAgendaTab(); }
-    catch(err){ toast('Error al eliminar', true); }
-  }));
+  el.querySelectorAll('[data-delag]').forEach(b=>b.addEventListener('click', ()=> eliminarActividad(parseFloat(b.dataset.delag))));
+  el.querySelectorAll('[data-toggleact]').forEach(b=>b.addEventListener('click', ()=> toggleActividadCompletada(parseFloat(b.dataset.toggleact))));
+  el.querySelectorAll('[data-jumpact]').forEach(b=>b.addEventListener('click', ()=> jumpToContactFromActivity(parseFloat(b.dataset.jumpact))));
   el.querySelectorAll('[data-newag]').forEach(b=>b.addEventListener('click',()=>showAgForm(b.dataset.newag)));
 }
 
@@ -1466,36 +1668,225 @@ function showAgForm(tipo){
     + '</div>';
   document.getElementById('ag-save').addEventListener('click', async ()=>{
     const texto=document.getElementById('ag-texto').value.trim();
-    if(!texto){ toast('Escribí un texto para el evento', true); return; }
     const hora=document.getElementById('ag-hora').value;
     const estudioTxt=document.getElementById('ag-estudio').value.trim();
-    let estudioId=null, estudioNombre='';
-    if(estudioTxt){
-      const match=localStore.find(e=>(e.estudio||'').toLowerCase().trim()===estudioTxt.toLowerCase());
-      if(match){ estudioId=match.id; estudioNombre=match.estudio; } else { estudioNombre=estudioTxt; }
-    }
-    const ev={ id:Date.now(), fecha:agSelectedDay, hora, tipo, texto, estudio_id:estudioId, estudio_nombre:estudioNombre };
-    try{
-      await sbUpsert('agenda', {...ev, user_id:currentUser.id, user_email:currentUser.email, user_name:currentUser.name}, currentUser.token);
-      agendaStore.push(ev);
-      if(estudioId){
-        const item=localStore.find(x=>x.id===estudioId);
-        if(item){
-          if(!Array.isArray(item.interacciones)) item.interacciones=[];
-          item.interacciones.unshift({fecha:new Date().toLocaleDateString('es-UY'),texto:(tipo==='visita'?'[Visita agendada] ':'[Actividad agendada] ')+texto,auto:false});
-          await saveEntry(item);
-        }
-      }
-      toast('Guardado en la agenda ✓');
-      renderAgendaTab();
-    }catch(err){ toast('Error al guardar en la agenda', true); }
+    const res = await crearActividadAgenda({fecha:agSelectedDay, hora, tipo, texto, estudioTxt});
+    if(res.ok){ toast('Guardado en la agenda ✓'); renderAgendaTab(); }
+    else toast(res.msg, true);
   });
 }
 
 document.getElementById('ag-prev').addEventListener('click',()=>{calMonth.setMonth(calMonth.getMonth()-1);renderAgendaTab();});
 document.getElementById('ag-next').addEventListener('click',()=>{calMonth.setMonth(calMonth.getMonth()+1);renderAgendaTab();});
 
+// ---- ACTIVIDADES (lista plana, conectada con Agenda y con las fichas) ----
+let actFilter='pendientes', actSearch='';
+
+function renderActividades(){
+  buildAgendaEstudiosList();
+  const wrap=document.getElementById('act-list');
+  const hoy = fmtYMD(new Date());
+  let items = agendaStore.filter(e=>e.tipo==='actividad');
+  if(actSearch){
+    const s=actSearch.toLowerCase();
+    items = items.filter(e=>(e.texto||'').toLowerCase().includes(s) || (e.estudio_nombre||'').toLowerCase().includes(s));
+  }
+  items = items.map(e=>({...e, vencida: !e.completada && e.fecha < hoy}));
+  if(actFilter==='pendientes') items = items.filter(e=>!e.completada);
+  else if(actFilter==='vencidas') items = items.filter(e=>e.vencida);
+  else if(actFilter==='completadas') items = items.filter(e=>e.completada);
+  items.sort((a,b)=> (a.fecha+((a.hora)||'99:99')).localeCompare(b.fecha+((b.hora)||'99:99')));
+
+  if(!items.length){ wrap.innerHTML='<div class="act-empty">No hay actividades para mostrar con este filtro.</div>'; return; }
+
+  wrap.innerHTML = items.map(e=>{
+    const niceDate = new Date(e.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit',year:'2-digit'});
+    return '<div class="act-row '+(e.vencida?'vencida':'')+' '+(e.completada?'completada':'')+'">'
+      + '<button class="act-check '+(e.completada?'on':'')+'" data-toggleact="'+e.id+'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>'
+      + '<div class="act-body">'
+      + '<div class="act-top">'
+      + (e.estudio_nombre ? '<div class="act-estudio" data-jumpact="'+e.estudio_id+'">'+esc(e.estudio_nombre)+'</div>' : '<div class="act-estudio" style="color:var(--muted)">(sin vincular)</div>')
+      + '<div class="act-when '+(e.vencida?'vencida':'')+'">'+niceDate+(e.hora?' · '+esc(e.hora):'')+'</div>'
+      + '</div>'
+      + '<div class="act-texto">'+esc(e.texto)+'</div>'
+      + '</div>'
+      + '<button class="act-del" data-delag="'+e.id+'">🗑️</button>'
+      + '</div>';
+  }).join('');
+  wrap.querySelectorAll('[data-toggleact]').forEach(b=>b.addEventListener('click', ()=> toggleActividadCompletada(parseFloat(b.dataset.toggleact))));
+  wrap.querySelectorAll('[data-delag]').forEach(b=>b.addEventListener('click', ()=>{ if(confirm('¿Eliminar esta actividad?')) eliminarActividad(parseFloat(b.dataset.delag)); }));
+  wrap.querySelectorAll('[data-jumpact]').forEach(b=>b.addEventListener('click', ()=> jumpToContactFromActivity(parseFloat(b.dataset.jumpact))));
+}
+
+document.getElementById('act-search').addEventListener('input', e=>{ actSearch=e.target.value; renderActividades(); });
+document.querySelectorAll('[data-actf]').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('[data-actf]').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); actFilter=b.dataset.actf; renderActividades();
+}));
+document.getElementById('act-new-btn').addEventListener('click', ()=>{
+  const wrap=document.getElementById('act-form-wrap');
+  if(wrap.innerHTML){ wrap.innerHTML=''; return; }
+  wrap.innerHTML = '<div class="act-form-box">'
+    + '<div class="row2"><input type="date" id="act-fecha" value="'+fmtYMD(new Date())+'"><input type="time" id="act-hora"></div>'
+    + '<textarea id="act-texto" placeholder="¿Qué tenés que hacer?" style="width:100%;min-height:60px;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink);border-radius:7px;padding:9px 10px;font-size:13px;font-family:inherit;margin:8px 0"></textarea>'
+    + '<input type="text" id="act-estudio" list="act-estudios-list" placeholder="Vincular a un estudio (opcional)" style="width:100%;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink);border-radius:7px;padding:9px 10px;font-size:13px;font-family:inherit;margin-bottom:8px">'
+    + '<button class="btn-primary" id="act-save" style="width:100%">Guardar actividad</button>'
+    + '</div>';
+  document.getElementById('act-save').addEventListener('click', async ()=>{
+    const fecha=document.getElementById('act-fecha').value || fmtYMD(new Date());
+    const hora=document.getElementById('act-hora').value;
+    const texto=document.getElementById('act-texto').value.trim();
+    const estudioTxt=document.getElementById('act-estudio').value.trim();
+    const res = await crearActividadAgenda({fecha, hora, tipo:'actividad', texto, estudioTxt});
+    if(res.ok){ toast('Actividad guardada ✓'); wrap.innerHTML=''; renderActividades(); }
+    else toast(res.msg, true);
+  });
+});
+
 checkSession();
+
+// ============================================================
+// RECORDATORIOS (notificaciones del navegador, 1h antes)
+// Nota: solo funcionan mientras esta pestaña esté abierta.
+// ============================================================
+let notifiedIds = new Set();
+try{ notifiedIds = new Set(JSON.parse(localStorage.getItem('rutaobra_notified')||'[]')); }catch(e){}
+function saveNotified(){ try{ localStorage.setItem('rutaobra_notified', JSON.stringify(Array.from(notifiedIds))); }catch(e){} }
+
+function checkRecordatorios(){
+  if(!('Notification' in window) || Notification.permission!=='granted') return;
+  const now=new Date();
+  agendaStore.forEach(e=>{
+    if(e.completada || !e.hora || !e.fecha) return;
+    if(notifiedIds.has(e.id)) return;
+    const dt=new Date(e.fecha+'T'+e.hora+':00');
+    const diffMin=(dt-now)/60000;
+    if(diffMin>0 && diffMin<=60){
+      try{
+        new Notification('⏰ En 1 hora: '+(e.tipo==='visita'?'Visita de obra':'Actividad'), {
+          body: e.texto+(e.estudio_nombre?' — '+e.estudio_nombre:'')+' · '+e.hora,
+          icon:'icon-192.png'
+        });
+      }catch(err){}
+      notifiedIds.add(e.id); saveNotified();
+    }
+  });
+}
+function programarRecordatorios(){ checkRecordatorios(); }
+setInterval(checkRecordatorios, 60000);
+
+document.getElementById('bell-btn').addEventListener('click', async ()=>{
+  if(!('Notification' in window)){ toast('Tu navegador no soporta notificaciones', true); return; }
+  if(Notification.permission==='granted'){
+    toast('Los recordatorios ya están activados ✓');
+    document.getElementById('bell-btn').classList.add('on');
+    return;
+  }
+  const perm = await Notification.requestPermission();
+  if(perm==='granted'){
+    document.getElementById('bell-btn').classList.add('on');
+    toast('Recordatorios activados — avisan 1h antes mientras tengas esta pestaña abierta ✓');
+    checkRecordatorios();
+  } else {
+    toast('No se activaron los recordatorios (permiso denegado)', true);
+  }
+});
+if('Notification' in window && Notification.permission==='granted'){
+  document.getElementById('bell-btn').classList.add('on');
+}
+
+// ============================================================
+// CHAT ASISTENTE — responde en base a lo que ya tenés cargado
+// (no es una IA real: busca patrones en tu propia info local)
+// ============================================================
+document.getElementById('chat-fab').addEventListener('click', ()=>{ document.getElementById('chat-panel').classList.add('show'); });
+document.getElementById('chat-close').addEventListener('click', ()=>{ document.getElementById('chat-panel').classList.remove('show'); });
+
+function chatAddMsg(texto, who){
+  const body=document.getElementById('chat-body');
+  const div=document.createElement('div');
+  div.className='chat-msg '+who;
+  div.textContent=texto;
+  body.appendChild(div);
+  body.scrollTop=body.scrollHeight;
+}
+
+function normChat(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+
+function listaActividadesTexto(items){
+  if(!items.length) return 'No encontré ninguna.';
+  return items.map(e=>{
+    const d=new Date(e.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit'});
+    return '• '+d+(e.hora?' '+e.hora:'')+' — '+e.texto+(e.estudio_nombre?' ('+e.estudio_nombre+')':'');
+  }).join('\n');
+}
+
+function responderChat(pregunta){
+  const q = normChat(pregunta);
+  const hoy = fmtYMD(new Date());
+  const ahora = new Date();
+
+  if(q.includes('actividad') && q.includes('hoy')){
+    const items = agendaStore.filter(e=>e.tipo==='actividad' && !e.completada && e.fecha===hoy);
+    return 'Actividades pendientes para hoy:\n\n'+listaActividadesTexto(items);
+  }
+  if(q.includes('vencid')){
+    const items = agendaStore.filter(e=>e.tipo==='actividad' && !e.completada && e.fecha<hoy);
+    return 'Actividades vencidas (sin completar):\n\n'+listaActividadesTexto(items);
+  }
+  if(q.includes('urgente') || (q.includes('llamar') && !q.includes('actividad'))){
+    const calientes = localStore.filter(e=>e.temp==='hot' && !e.contactado);
+    const vencidas = agendaStore.filter(e=>e.tipo==='actividad' && !e.completada && e.fecha<hoy);
+    let out='';
+    if(calientes.length) out += '🔥 Contactos "calientes" sin contactar todavía:\n'+calientes.map(e=>'• '+(e.estudio||e.empresa)+(e.nombre?' — '+e.nombre:'')+(e.telefono?' ('+e.telefono+')':'')).join('\n')+'\n\n';
+    if(vencidas.length) out += '⏰ Actividades vencidas:\n'+listaActividadesTexto(vencidas);
+    return out || 'No encontré contactos urgentes ni actividades vencidas. ¡Vas al día!';
+  }
+  if(q.includes('pendiente') && q.includes('actividad')){
+    const items = agendaStore.filter(e=>e.tipo==='actividad' && !e.completada).sort((a,b)=>(a.fecha+(a.hora||'')).localeCompare(b.fecha+(b.hora||'')));
+    return 'Todas tus actividades pendientes:\n\n'+listaActividadesTexto(items.slice(0,15))+(items.length>15?'\n\n(y '+(items.length-15)+' más — mirá la pestaña Actividades)':'');
+  }
+  if((q.includes('mapa') || q.includes('pin') || q.includes('ubicar') || q.includes('ubicacion')) ){
+    const sinPin = localStore.filter(e=>!(e.lat&&e.lng) && !(Array.isArray(e.obras)&&e.obras.length));
+    if(!sinPin.length) return 'Todos tus contactos tienen al menos una obra ubicada en el mapa 👍';
+    return 'Contactos sin ninguna obra pineada en el mapa:\n\n'+sinPin.map(e=>'• '+(e.estudio||e.empresa)).join('\n');
+  }
+  if(q.includes('bitrix')){
+    const falta = localStore.filter(e=>!e.bitrix);
+    return 'Contactos que faltan pasar a Bitrix ('+falta.length+'):\n\n'+falta.slice(0,15).map(e=>'• '+(e.estudio||e.empresa)).join('\n')+(falta.length>15?'\n\n(y '+(falta.length-15)+' más)':'');
+  }
+  if(q.includes('sin contactar') || (q.includes('contactar') && q.includes('falta'))){
+    const falta = localStore.filter(e=>!e.contactado);
+    return 'Contactos sin contactar todavía ('+falta.length+'):\n\n'+falta.slice(0,15).map(e=>'• '+(e.estudio||e.empresa)).join('\n')+(falta.length>15?'\n\n(y '+(falta.length-15)+' más)':'');
+  }
+  if(q.includes('esta semana') || q.includes('proxim')){
+    const en7=new Date(); en7.setDate(en7.getDate()+7);
+    const items = agendaStore.filter(e=>!e.completada && e.fecha>=hoy && e.fecha<=fmtYMD(en7)).sort((a,b)=>(a.fecha+(a.hora||'')).localeCompare(b.fecha+(b.hora||'')));
+    return 'Actividades y visitas de los próximos 7 días:\n\n'+listaActividadesTexto(items);
+  }
+  if(q.includes('cuant') && q.includes('contacto')){
+    return 'Tenés '+localStore.length+' contactos cargados: '+localStore.filter(e=>e.contactado).length+' contactados, '+localStore.filter(e=>e.bitrix).length+' pasados a Bitrix.';
+  }
+  return 'No estoy seguro de haber entendido bien 🙂 Puedo responder cosas como:\n\n• ¿Tengo actividades pendientes hoy?\n• ¿Qué actividades tengo vencidas?\n• ¿Qué contactos debo llamar urgente?\n• ¿Qué obras no tienen pin en el mapa?\n• ¿Qué contactos faltan pasar a Bitrix?\n• ¿Cuántos contactos tengo?';
+}
+
+function chatEnviar(){
+  const input=document.getElementById('chat-input');
+  const texto=input.value.trim();
+  if(!texto) return;
+  chatAddMsg(texto,'user');
+  input.value='';
+  setTimeout(()=>{ chatAddMsg(responderChat(texto),'bot'); }, 300);
+}
+document.getElementById('chat-send').addEventListener('click', chatEnviar);
+document.getElementById('chat-input').addEventListener('keydown', e=>{ if(e.key==='Enter') chatEnviar(); });
+document.querySelectorAll('#chat-suggestions button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    chatAddMsg(b.dataset.q,'user');
+    setTimeout(()=>{ chatAddMsg(responderChat(b.dataset.q),'bot'); }, 300);
+  });
+});
+
 </script>
 </body>
 </html>
