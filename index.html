@@ -69,7 +69,9 @@ header::after{content:"";position:absolute;bottom:-1px;left:0;right:0;height:3px
 .user-avatar{width:32px;height:32px;border-radius:50%;border:2px solid var(--acc);object-fit:cover;cursor:pointer}
 .user-avatar-placeholder{width:32px;height:32px;border-radius:50%;border:2px solid var(--acc);background:var(--acc-dim);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer}
 .admin-badge{font-size:10px;font-weight:800;background:var(--acc);color:#1a1300;padding:2px 7px;border-radius:20px;text-transform:uppercase}
-.tabs{display:flex;gap:3px}
+.tabs{display:flex;gap:3px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs .tab{flex:0 0 auto;padding-left:12px;padding-right:12px;white-space:nowrap}
 .tab{flex:1;text-align:center;padding:10px 0 9px;border-radius:8px 8px 0 0;font-size:12px;font-weight:800;color:var(--muted);cursor:pointer;transition:.15s;text-transform:uppercase;letter-spacing:.4px}
 .tab.active{color:var(--acc);background:var(--bg)}
 
@@ -224,7 +226,71 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .import-row .ir-body{flex:1;min-width:0}
 .import-row .ir-title{font-weight:800;font-size:13.5px;color:var(--ink)}
 .import-row .ir-meta{font-size:11.5px;color:var(--muted);margin-top:2px}
-.import-row .ir-dupbadge{display:inline-block;font-size:10px;font-weight:800;color:var(--acc);background:var(--acc-dim);padding:2px 7px;border-radius:20px;margin-top:5px}
+
+/* ===== CONTACTOS TAB (estilo tarjetas con contactado/bitrix) ===== */
+.ct-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.ct-search{flex:1;min-width:160px;background:var(--panel);border:1.5px solid var(--line);border-radius:9px;padding:10px 12px;color:var(--ink);font-size:13px;font-family:inherit}
+.ct-search:focus{outline:none;border-color:var(--acc)}
+.ct-fgroup{display:flex;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:3px}
+.ct-fbtn{padding:7px 10px;background:transparent;border:none;border-radius:6px;color:var(--muted);font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+.ct-fbtn.active{background:var(--acc-dim);color:var(--acc)}
+.ct-fbtn.bx.active{background:rgba(74,158,255,.16);color:var(--cold)}
+.ct-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.ct-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;position:relative}
+.ct-card.contacted{border-color:rgba(62,207,115,.5)}
+.ct-card.contacted::before{content:'';position:absolute;left:0;top:12px;bottom:12px;width:3px;background:#3ecf73;border-radius:0 3px 3px 0}
+.ct-card.inbitrix{box-shadow:inset 0 0 0 1px rgba(74,158,255,.5)}
+.ct-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px}
+.ct-empresa{font-size:15px;font-weight:800;color:#fff;word-break:break-word}
+.ct-nombre{font-size:12px;color:var(--muted);margin-top:2px}
+.ct-toggles{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.ct-tgl{width:30px;height:30px;border-radius:8px;border:1.5px solid var(--line);background:var(--panel2);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.ct-tgl.on.ok{background:#3ecf73;border-color:#3ecf73}
+.ct-tgl.on.bx{background:var(--cold);border-color:var(--cold)}
+.ct-tgl svg{opacity:0}.ct-tgl.on svg{opacity:1}
+.ct-status{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.ct-pill{font-size:10.5px;padding:3px 8px;border-radius:20px;font-weight:700;background:var(--panel2);color:var(--muted);border:1px solid var(--line)}
+.ct-pill.ok{background:rgba(62,207,115,.14);color:#3ecf73;border-color:rgba(62,207,115,.5)}
+.ct-pill.bx{background:rgba(74,158,255,.14);color:var(--cold);border-color:rgba(74,158,255,.5)}
+.ct-tel{display:flex;align-items:center;gap:7px;font-family:monospace;font-size:13px;margin-bottom:10px;padding:8px 10px;background:var(--panel2);border-radius:8px;border:1px solid var(--line)}
+.ct-tel a{color:#3ecf73;text-decoration:none;margin-left:auto;font-weight:700;font-size:11.5px}
+.ct-editbtn{width:100%;padding:9px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--muted);font-size:11.5px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.4px;font-family:inherit;margin-bottom:8px}
+.ct-editbtn:hover{border-color:var(--acc);color:var(--acc)}
+.ct-int-box{border-top:1px dashed var(--line);padding-top:8px;margin-top:4px}
+.ct-int-box textarea{width:100%;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink);border-radius:7px;padding:8px 9px;font-size:12px;font-family:inherit;min-height:44px;resize:vertical;margin-bottom:6px}
+.ct-int-savebtn{width:100%;padding:8px;background:var(--acc);border:none;border-radius:7px;color:#1a1300;font-weight:800;font-size:11.5px;cursor:pointer}
+.ct-int-list{max-height:110px;overflow-y:auto;margin-bottom:6px}
+.ct-int-item{font-size:11px;color:var(--ink-soft);background:var(--panel2);border-radius:6px;padding:5px 8px;margin-bottom:4px}
+.ct-int-item .m{font-size:9.5px;color:var(--muted);font-family:monospace;display:block;margin-bottom:1px}
+
+/* ===== AGENDA TAB ===== */
+.ag-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.ag-nav{background:var(--panel);border:1px solid var(--line);color:var(--ink);width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:16px}
+.ag-title{font-size:15px;font-weight:800;text-transform:capitalize;color:#fff}
+.ag-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.ag-dow-cell{text-align:center;font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase}
+.ag-cell{aspect-ratio:1;background:var(--panel);border:1.5px solid var(--line);border-radius:8px;padding:6px;cursor:pointer;display:flex;flex-direction:column}
+.ag-cell.empty{background:transparent;border-color:transparent;cursor:default}
+.ag-cell.today{border-color:var(--acc)}
+.ag-cell.selected{background:var(--acc-dim);border-color:var(--acc)}
+.ag-daynum{font-size:12px;font-weight:700;color:var(--ink-soft)}
+.ag-dots{display:flex;gap:3px;margin-top:auto;flex-wrap:wrap}
+.ag-dot{width:6px;height:6px;border-radius:50%}
+.ag-dot.visita{background:var(--acc)}.ag-dot.actividad{background:var(--cold)}
+.ag-daypanel{margin-top:16px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.ag-dayheader{font-size:14px;font-weight:800;color:#fff;text-transform:capitalize;margin-bottom:10px}
+.ag-event{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px 10px;margin-bottom:8px}
+.ag-event.visita{border-left:3px solid var(--acc)}
+.ag-event.actividad{border-left:3px solid var(--cold)}
+.ag-evtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;font-size:10.5px;font-weight:800}
+.ag-evtop.visita{color:var(--acc)}.ag-evtop.actividad{color:var(--cold)}
+.ag-evtext{font-size:12.5px;color:var(--ink-soft);white-space:pre-wrap}
+.ag-addbtns{display:flex;gap:8px;margin-top:10px}
+.ag-addbtns button{flex:1;padding:10px;border:none;border-radius:9px;font-weight:800;font-size:12px;cursor:pointer;font-family:inherit;color:#1a1300}
+.ag-addbtns .visita{background:var(--acc)}
+.ag-addbtns .actividad{background:var(--cold);color:#08131f}
+.ag-form{margin-top:12px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:10px}
+.ag-form input,.ag-form textarea{width:100%;background:var(--panel);border:1.5px solid var(--line);color:var(--ink);border-radius:7px;padding:9px 10px;font-size:13px;font-family:inherit;margin-bottom:8px}
 </style>
 </head>
 <body>
@@ -271,6 +337,8 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
     <div class="tab active" data-tab="form">＋ Nuevo</div>
     <div class="tab" data-tab="list">Visitas</div>
     <div class="tab" data-tab="map">Mapa</div>
+    <div class="tab" data-tab="contactos">Contactos</div>
+    <div class="tab" data-tab="agenda">Agenda</div>
     <div class="tab" data-tab="importar">Importar</div>
   </div>
 </header>
@@ -384,6 +452,37 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
   </div>
 </section>
 
+<!-- CONTACTOS (estilo tarjetas, contactado + bitrix) -->
+<section class="view" id="view-contactos">
+  <div class="ct-toolbar">
+    <input type="text" class="ct-search" id="ct-search" placeholder="Buscar estudio, nombre, teléfono, zona...">
+    <div class="ct-fgroup">
+      <button class="ct-fbtn active" data-ctf="all">Todos</button>
+      <button class="ct-fbtn" data-ctf="pending">Sin contactar</button>
+      <button class="ct-fbtn" data-ctf="done">Contactados</button>
+    </div>
+    <div class="ct-fgroup">
+      <button class="ct-fbtn bx active" data-ctbx="all">Bitrix: Todos</button>
+      <button class="ct-fbtn bx" data-ctbx="yes">En Bitrix</button>
+      <button class="ct-fbtn bx" data-ctbx="no">Falta pasar</button>
+    </div>
+  </div>
+  <div class="ct-grid" id="ct-grid"></div>
+</section>
+
+<!-- AGENDA -->
+<section class="view" id="view-agenda">
+  <div class="ag-header">
+    <button class="ag-nav" id="ag-prev">‹</button>
+    <div class="ag-title" id="ag-title"></div>
+    <button class="ag-nav" id="ag-next">›</button>
+  </div>
+  <div class="ag-grid" id="ag-dow"></div>
+  <div class="ag-grid" id="ag-grid" style="margin-top:5px"></div>
+  <div class="ag-daypanel" id="ag-daypanel"></div>
+  <datalist id="ag-estudios-list"></datalist>
+</section>
+
 <!-- IMPORTAR -->
 <section class="view" id="view-importar">
   <div class="group">
@@ -448,6 +547,10 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       <div class="temp-chip warm" data-val="warm">🌤️ Tibio</div>
       <div class="temp-chip hot" data-val="hot">🔥 Caliente</div>
     </div>
+    <div class="temp-chips" id="modal-status-chips" style="grid-template-columns:1fr 1fr">
+      <div class="temp-chip" id="modal-contactado-chip">✓ Contactado</div>
+      <div class="temp-chip" id="modal-bitrix-chip">⬛ En Bitrix</div>
+    </div>
     <div class="field"><label>Dirección</label><input id="m-direccion" type="text" placeholder="Se completa al ubicar el pin"></div>
     <div class="field"><label>Empresa constructora *</label><input id="m-empresa" type="text" placeholder="Nombre de la empresa"></div>
     <div class="field"><label>Estudio / Desarrolladora</label><input id="m-estudio" type="text" placeholder="Arquitectos o desarrolladora"></div>
@@ -467,6 +570,11 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       <select id="m-followup"><option value="">Seleccionar...</option><option>Enviar cotización</option><option>Llamar la próxima semana</option><option>Visitar de nuevo en 2 semanas</option><option>Esperar que avance la obra</option><option>Cerrado - sin interés</option></select>
     </div>
     <div class="field"><label>Notas</label><textarea id="m-notas" placeholder="Detalles adicionales..."></textarea></div>
+    <div class="field"><label>Interacciones / Actividad</label>
+      <div class="ct-int-list" id="m-int-list"></div>
+      <textarea id="m-int-text" placeholder="¿Qué hiciste o qué tenés que hacer con este contacto?" style="min-height:44px;margin-bottom:6px;"></textarea>
+      <button type="button" class="ct-int-savebtn" id="m-int-save">+ Agregar interacción</button>
+    </div>
     <div class="field"><label>Foto de la obra</label>
       <img id="m-photo-preview" class="photo-preview" alt="">
       <div class="photo-area" onclick="document.getElementById('m-photo-input').click()"><div class="icon">📷</div><div>Tocá para adjuntar foto</div></div>
@@ -498,6 +606,7 @@ let currentUser = null;
 let isAdmin = false;
 let localStore = [];
 let localZones = [];
+let agendaStore = [];
 let dbReady = false;
 let filterVendedor = 'all';
 
@@ -642,9 +751,10 @@ async function loadAll() {
   try {
     let params = '';
     if (!isAdmin) params = 'user_id=eq.'+currentUser.id;
-    [localStore, localZones] = await Promise.all([
+    [localStore, localZones, agendaStore] = await Promise.all([
       sbGet('visitas', params, currentUser.token),
-      sbGet('zonas', '', currentUser.token)
+      sbGet('zonas', '', currentUser.token),
+      sbGet('agenda', '', currentUser.token).catch(()=>[])
     ]);
     dbReady = true;
     if (isAdmin) buildVendedorFilter();
@@ -742,6 +852,7 @@ let zonaSelected='',tempSelected='',catalogosSelected=new Set(),photoDataUrl=nul
 let mapInitialized=false,map,markersLayer,zonesLayer;
 let drawingZone=false,zonePoints=[],zoneTempMarkers=[],zonePoly=null;
 let modalTempSelected='',mPhotoDataUrl=null,editingId=null;
+let modalContactado=false,modalBitrix=false,modalInteracciones=[];
 let pickedLatLng=null,pickedAddress='',pickerMap=null,geocodeTimeout=null,pendingNewLatLng=null;
 
 document.querySelectorAll('.tab').forEach(tab=>{
@@ -754,6 +865,8 @@ document.querySelectorAll('.tab').forEach(tab=>{
     document.getElementById('save-bar').style.display=t==='form'?'block':'none';
     if(t==='list') renderList();
     if(t==='map') setTimeout(()=>{if(!mapInitialized)initMap();else refreshMapMarkers();map.invalidateSize();},80);
+    if(t==='contactos') renderContactos();
+    if(t==='agenda') renderAgendaTab();
   });
 });
 
@@ -972,6 +1085,20 @@ document.getElementById('picker-confirm').addEventListener('click',()=>{if(!pick
 // MODAL PIN
 document.querySelectorAll('#modal-temp-chips .temp-chip').forEach(c=>{c.addEventListener('click',()=>{document.querySelectorAll('#modal-temp-chips .temp-chip').forEach(x=>x.classList.remove('selected'));c.classList.add('selected');modalTempSelected=c.dataset.val;});});
 document.getElementById('m-photo-input').addEventListener('change',function(){const file=this.files[0];if(!file)return;const r=new FileReader();r.onload=e=>{mPhotoDataUrl=e.target.result;document.getElementById('m-photo-preview').src=mPhotoDataUrl;document.getElementById('m-photo-preview').style.display='block';};r.readAsDataURL(file);});
+document.getElementById('modal-contactado-chip').addEventListener('click',function(){modalContactado=!modalContactado;this.classList.toggle('selected',modalContactado);});
+document.getElementById('modal-bitrix-chip').addEventListener('click',function(){modalBitrix=!modalBitrix;this.classList.toggle('selected',modalBitrix);});
+function renderModalInteracciones(){
+  const wrap=document.getElementById('m-int-list');
+  wrap.innerHTML = modalInteracciones.length ? modalInteracciones.map(h=>'<div class="ct-int-item"><span class="m">'+esc(h.fecha)+(h.auto?' · automático':'')+'</span>'+esc(h.texto)+'</div>').join('') : '<div style="font-size:11px;color:var(--muted)">Sin interacciones registradas.</div>';
+}
+document.getElementById('m-int-save').addEventListener('click',()=>{
+  const ta=document.getElementById('m-int-text');
+  const texto=ta.value.trim();
+  if(!texto)return;
+  modalInteracciones.unshift({fecha:new Date().toLocaleDateString('es-UY')+' '+new Date().toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'}),texto,auto:false});
+  ta.value='';
+  renderModalInteracciones();
+});
 
 function openPinModal(entry,newLocation){
   editingId=entry?entry.id:null;pendingNewLatLng=newLocation||null;
@@ -980,6 +1107,12 @@ function openPinModal(entry,newLocation){
   ['m-empresa','m-estudio','m-tipo','m-estado','m-nombre','m-cargo','m-telefono','m-proveedor','m-followup','m-notas','m-direccion'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.querySelectorAll('#modal-temp-chips .temp-chip').forEach(x=>x.classList.remove('selected'));
   modalTempSelected='';mPhotoDataUrl=null;document.getElementById('m-photo-preview').style.display='none';
+  modalContactado=!!(entry&&entry.contactado);modalBitrix=!!(entry&&entry.bitrix);
+  modalInteracciones=entry&&Array.isArray(entry.interacciones)?entry.interacciones.slice():[];
+  document.getElementById('modal-contactado-chip').classList.toggle('selected',modalContactado);
+  document.getElementById('modal-bitrix-chip').classList.toggle('selected',modalBitrix);
+  document.getElementById('m-int-text').value='';
+  renderModalInteracciones();
   if(entry){
     document.getElementById('m-empresa').value=entry.empresa||'';document.getElementById('m-estudio').value=entry.estudio||'';
     document.getElementById('m-tipo').value=entry.tipo||'';document.getElementById('m-estado').value=entry.estado||'';
@@ -1012,6 +1145,13 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
       item.direccion=direccion;if(mPhotoDataUrl)item.photo=mPhotoDataUrl;
       if(!item.historial)item.historial=[];
       item.historial.push({fecha:new Date().toLocaleDateString('es-UY'),nota:'Actualizado por '+currentUser.name});
+      if(modalContactado && !item.contactado) item.contactado_fecha=new Date().toISOString();
+      if(!modalContactado) item.contactado_fecha=null;
+      item.contactado=modalContactado;
+      if(modalBitrix && !item.bitrix) item.bitrix_fecha=new Date().toISOString();
+      if(!modalBitrix) item.bitrix_fecha=null;
+      item.bitrix=modalBitrix;
+      item.interacciones=modalInteracciones;
       await saveEntry(item);toast('Actualizado ✓');
     }
   }else{
@@ -1025,11 +1165,14 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
       proveedor:document.getElementById('m-proveedor').value.trim(),followup:document.getElementById('m-followup').value,
       catalogos:[],notas:document.getElementById('m-notas').value.trim(),photo:mPhotoDataUrl,
       lat:pendingNewLatLng?pendingNewLatLng.lat:null,lng:pendingNewLatLng?pendingNewLatLng.lng:null,
-      historial:[{fecha:new Date().toLocaleDateString('es-UY'),nota:'Pin creado por '+currentUser.name}]
+      historial:[{fecha:new Date().toLocaleDateString('es-UY'),nota:'Pin creado por '+currentUser.name}],
+      contactado:modalContactado,contactado_fecha:modalContactado?new Date().toISOString():null,
+      bitrix:modalBitrix,bitrix_fecha:modalBitrix?new Date().toISOString():null,
+      interacciones:modalInteracciones
     };
     await saveEntry(entry);toast('Pin guardado ✓');
   }
-  refreshMapMarkers();renderList();
+  refreshMapMarkers();renderList();if(document.getElementById('view-contactos').classList.contains('active'))renderContactos();
   document.getElementById('pin-modal').classList.remove('show');editingId=null;pendingNewLatLng=null;
 });
 
@@ -1149,6 +1292,175 @@ document.getElementById('import-run-btn').addEventListener('click', async ()=>{
   renderImportPreview();
   renderList();
 });
+
+// ============================================================
+// TAB CONTACTOS (tarjetas con contactado / bitrix)
+// ============================================================
+let ctSearch='',ctFilter='all',ctBitrixFilter='all';
+
+function waLink(tel){
+  const clean=(tel||'').split('/')[0].replace(/[^0-9+]/g,'');
+  return clean ? 'https://wa.me/598'+clean.replace(/^0/,'') : null;
+}
+function fmtCorta(iso){ if(!iso)return''; const d=new Date(iso); return d.toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit',year:'2-digit'}); }
+
+function renderContactos(){
+  const wrap=document.getElementById('ct-grid');
+  let list = getFilteredStore().filter(e=>{
+    if(ctFilter==='pending' && e.contactado) return false;
+    if(ctFilter==='done' && !e.contactado) return false;
+    if(ctBitrixFilter==='yes' && !e.bitrix) return false;
+    if(ctBitrixFilter==='no' && e.bitrix) return false;
+    if(ctSearch){
+      const hay=(e.estudio+' '+e.nombre+' '+e.telefono+' '+e.zona+' '+e.empresa).toLowerCase();
+      if(!hay.includes(ctSearch.toLowerCase())) return false;
+    }
+    return true;
+  });
+  if(!list.length){ wrap.innerHTML='<div class="empty"><div class="ic">⚡</div><p>No hay contactos para mostrar.</p></div>'; return; }
+  wrap.innerHTML = list.map(e=>{
+    const wa = waLink(e.telefono);
+    const ints = Array.isArray(e.interacciones) ? e.interacciones : [];
+    return '<div class="ct-card '+(e.contactado?'contacted':'')+' '+(e.bitrix?'inbitrix':'')+'" data-id="'+e.id+'">'
+      +'<div class="ct-top">'
+      +'<div><div class="ct-empresa">'+esc(e.estudio||e.empresa||'(sin nombre)')+'</div><div class="ct-nombre">'+esc(e.nombre||'')+(e.cargo?' · '+esc(e.cargo):'')+'</div></div>'
+      +'<div class="ct-toggles">'
+      +'<button class="ct-tgl ok '+(e.contactado?'on':'')+'" data-toggle="contactado" data-id="'+e.id+'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>'
+      +'<button class="ct-tgl bx '+(e.bitrix?'on':'')+'" data-toggle="bitrix" data-id="'+e.id+'"><svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></button>'
+      +'</div></div>'
+      +'<div class="ct-status">'
+      +'<span class="ct-pill '+(e.contactado?'ok':'')+'">'+(e.contactado?'✓ Contactado':'Sin contactar')+(e.contactado_fecha?' · '+fmtCorta(e.contactado_fecha):'')+'</span>'
+      +'<span class="ct-pill '+(e.bitrix?'bx':'')+'">'+(e.bitrix?'⬛ En Bitrix':'Falta pasar a Bitrix')+(e.bitrix_fecha?' · '+fmtCorta(e.bitrix_fecha):'')+'</span>'
+      +'</div>'
+      +(e.telefono ? '<div class="ct-tel">📞 '+esc(e.telefono)+(wa?'<a href="'+wa+'" target="_blank">↗ WhatsApp</a>':'')+'</div>' : '')
+      +'<button class="ct-editbtn" data-editfull="'+e.id+'">✏️ Editar ficha completa</button>'
+      +'<div class="ct-int-box">'
+      +'<div class="ct-int-list">'+(ints.length? ints.slice(0,4).map(h=>'<div class="ct-int-item"><span class="m">'+esc(h.fecha)+(h.auto?' · automático':'')+'</span>'+esc(h.texto)+'</div>').join('') : '<div style="font-size:11px;color:var(--muted)">Sin interacciones.</div>')+'</div>'
+      +'<textarea placeholder="¿Qué hiciste o qué tenés que hacer?" data-inttext="'+e.id+'"></textarea>'
+      +'<button class="ct-int-savebtn" data-intsave="'+e.id+'">+ Guardar interacción</button>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+
+  wrap.querySelectorAll('[data-toggle]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id=parseFloat(btn.dataset.id); const field=btn.dataset.toggle;
+      const item=localStore.find(x=>x.id===id); if(!item) return;
+      item[field]=!item[field];
+      item[field+'_fecha']=item[field]?new Date().toISOString():null;
+      if(!Array.isArray(item.interacciones)) item.interacciones=[];
+      item.interacciones.unshift({fecha:new Date().toLocaleDateString('es-UY')+' '+new Date().toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'}),texto:(item[field]?'Marcado':'Desmarcado')+' como '+(field==='contactado'?'contactado':'pasado a Bitrix'),auto:true});
+      await saveEntry(item); renderContactos();
+    });
+  });
+  wrap.querySelectorAll('[data-editfull]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const item=localStore.find(x=>x.id===parseFloat(btn.dataset.editfull));
+      if(item) openPinModal(item);
+    });
+  });
+  wrap.querySelectorAll('[data-intsave]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id=parseFloat(btn.dataset.intsave);
+      const ta=wrap.querySelector('[data-inttext="'+id+'"]');
+      const texto=ta.value.trim(); if(!texto) return;
+      const item=localStore.find(x=>x.id===id); if(!item) return;
+      if(!Array.isArray(item.interacciones)) item.interacciones=[];
+      item.interacciones.unshift({fecha:new Date().toLocaleDateString('es-UY')+' '+new Date().toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'}),texto,auto:false});
+      await saveEntry(item); renderContactos();
+    });
+  });
+}
+document.getElementById('ct-search').addEventListener('input', e=>{ ctSearch=e.target.value; renderContactos(); });
+document.querySelectorAll('[data-ctf]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-ctf]').forEach(x=>x.classList.remove('active'));b.classList.add('active');ctFilter=b.dataset.ctf;renderContactos();}));
+document.querySelectorAll('[data-ctbx]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-ctbx]').forEach(x=>x.classList.remove('active'));b.classList.add('active');ctBitrixFilter=b.dataset.ctbx;renderContactos();}));
+
+// ============================================================
+// TAB AGENDA (calendario: visitas pautadas + actividades)
+// ============================================================
+let calMonth=new Date(); calMonth.setDate(1);
+let agSelectedDay=fmtYMD(new Date());
+function fmtYMD(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+function buildAgendaEstudiosList(){
+  const set=new Set(); localStore.forEach(e=>{ if(e.estudio) set.add(e.estudio); });
+  document.getElementById('ag-estudios-list').innerHTML=Array.from(set).sort().map(n=>'<option value="'+esc(n)+'">').join('');
+}
+
+function renderAgendaTab(){
+  buildAgendaEstudiosList();
+  const y=calMonth.getFullYear(), m=calMonth.getMonth();
+  document.getElementById('ag-title').textContent=calMonth.toLocaleDateString('es-UY',{month:'long',year:'numeric'});
+  document.getElementById('ag-dow').innerHTML=['L','M','X','J','V','S','D'].map(d=>'<div class="ag-dow-cell">'+d+'</div>').join('');
+  const firstDow=(new Date(y,m,1).getDay()+6)%7;
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  let html='';
+  for(let i=0;i<firstDow;i++) html+='<div class="ag-cell empty"></div>';
+  for(let day=1; day<=daysInMonth; day++){
+    const ymd=fmtYMD(new Date(y,m,day));
+    const evs=agendaStore.filter(e=>e.fecha===ymd);
+    const isToday=ymd===fmtYMD(new Date()), isSel=ymd===agSelectedDay;
+    html+='<div class="ag-cell '+(isToday?'today':'')+' '+(isSel?'selected':'')+'" data-day="'+ymd+'"><div class="ag-daynum">'+day+'</div><div class="ag-dots">'+evs.slice(0,6).map(e=>'<span class="ag-dot '+e.tipo+'"></span>').join('')+'</div></div>';
+  }
+  document.getElementById('ag-grid').innerHTML=html;
+  document.querySelectorAll('.ag-cell[data-day]').forEach(c=>c.addEventListener('click',()=>{agSelectedDay=c.dataset.day;renderAgendaTab();}));
+  renderAgDayPanel();
+}
+
+function renderAgDayPanel(){
+  const evs=agendaStore.filter(e=>e.fecha===agSelectedDay).sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
+  const el=document.getElementById('ag-daypanel');
+  const nice=new Date(agSelectedDay+'T00:00:00').toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'});
+  el.innerHTML = '<div class="ag-dayheader">'+nice+'</div>'
+    + (evs.length ? evs.map(e=>'<div class="ag-event '+e.tipo+'"><div class="ag-evtop '+e.tipo+'"><span>'+(e.tipo==='visita'?'🏗️ Visita de obra':'📌 Actividad')+'</span>'+(e.hora?'<span style="color:var(--muted);font-family:monospace">'+esc(e.hora)+'</span>':'')+'</div><div class="ag-evtext">'+esc(e.texto)+'</div>'+(e.estudio_nombre?'<div style="font-size:11px;color:var(--muted);margin-top:3px">→ '+esc(e.estudio_nombre)+'</div>':'')+'<button class="del" style="margin-top:6px" data-delag="'+e.id+'">🗑️ Eliminar</button></div>').join('') : '<div style="font-size:11.5px;color:var(--muted);padding:6px 0">Sin eventos este día.</div>')
+    + '<div class="ag-addbtns"><button class="visita" data-newag="visita">+ Visita de obra</button><button class="actividad" data-newag="actividad">+ Actividad</button></div>'
+    + '<div id="ag-form-wrap"></div>';
+  el.querySelectorAll('[data-delag]').forEach(b=>b.addEventListener('click', async ()=>{
+    const id=parseFloat(b.dataset.delag);
+    try{ await sbDelete('agenda', id, currentUser.token); agendaStore=agendaStore.filter(e=>e.id!==id); renderAgendaTab(); }
+    catch(err){ toast('Error al eliminar', true); }
+  }));
+  el.querySelectorAll('[data-newag]').forEach(b=>b.addEventListener('click',()=>showAgForm(b.dataset.newag)));
+}
+
+function showAgForm(tipo){
+  const wrap=document.getElementById('ag-form-wrap');
+  wrap.innerHTML = '<div class="ag-form">'
+    + '<input type="time" id="ag-hora" placeholder="Hora (opcional)">'
+    + '<textarea id="ag-texto" placeholder="'+(tipo==='visita'?'Ej: Visita a obra Wave Arquitectura, Playa Brava...':'¿Qué tenés que hacer?')+'" style="min-height:60px"></textarea>'
+    + '<input type="text" id="ag-estudio" list="ag-estudios-list" placeholder="Vincular a un estudio (opcional)">'
+    + '<button class="btn-primary" id="ag-save" style="width:100%">Guardar en la agenda</button>'
+    + '</div>';
+  document.getElementById('ag-save').addEventListener('click', async ()=>{
+    const texto=document.getElementById('ag-texto').value.trim();
+    if(!texto){ toast('Escribí un texto para el evento', true); return; }
+    const hora=document.getElementById('ag-hora').value;
+    const estudioTxt=document.getElementById('ag-estudio').value.trim();
+    let estudioId=null, estudioNombre='';
+    if(estudioTxt){
+      const match=localStore.find(e=>(e.estudio||'').toLowerCase().trim()===estudioTxt.toLowerCase());
+      if(match){ estudioId=match.id; estudioNombre=match.estudio; } else { estudioNombre=estudioTxt; }
+    }
+    const ev={ id:Date.now(), fecha:agSelectedDay, hora, tipo, texto, estudio_id:estudioId, estudio_nombre:estudioNombre };
+    try{
+      await sbUpsert('agenda', {...ev, user_id:currentUser.id, user_email:currentUser.email, user_name:currentUser.name}, currentUser.token);
+      agendaStore.push(ev);
+      if(estudioId){
+        const item=localStore.find(x=>x.id===estudioId);
+        if(item){
+          if(!Array.isArray(item.interacciones)) item.interacciones=[];
+          item.interacciones.unshift({fecha:new Date().toLocaleDateString('es-UY'),texto:(tipo==='visita'?'[Visita agendada] ':'[Actividad agendada] ')+texto,auto:false});
+          await saveEntry(item);
+        }
+      }
+      toast('Guardado en la agenda ✓');
+      renderAgendaTab();
+    }catch(err){ toast('Error al guardar en la agenda', true); }
+  });
+}
+
+document.getElementById('ag-prev').addEventListener('click',()=>{calMonth.setMonth(calMonth.getMonth()-1);renderAgendaTab();});
+document.getElementById('ag-next').addEventListener('click',()=>{calMonth.setMonth(calMonth.getMonth()+1);renderAgendaTab();});
 
 checkSession();
 </script>
