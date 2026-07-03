@@ -218,6 +218,13 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .toast.show{transform:translateX(-50%) translateY(0)}
 .toast.err{border-color:var(--hot);color:var(--hot)}
 .mini-logo{height:14px;width:auto;opacity:.6;vertical-align:middle;margin-right:4px}
+.import-row{background:var(--panel);border:1.5px solid var(--line);border-radius:9px;padding:10px 12px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start}
+.import-row.dup{border-color:rgba(240,169,58,.4)}
+.import-row input[type=checkbox]{width:18px;height:18px;margin-top:2px;accent-color:var(--acc);flex-shrink:0}
+.import-row .ir-body{flex:1;min-width:0}
+.import-row .ir-title{font-weight:800;font-size:13.5px;color:var(--ink)}
+.import-row .ir-meta{font-size:11.5px;color:var(--muted);margin-top:2px}
+.import-row .ir-dupbadge{display:inline-block;font-size:10px;font-weight:800;color:var(--acc);background:var(--acc-dim);padding:2px 7px;border-radius:20px;margin-top:5px}
 </style>
 </head>
 <body>
@@ -264,6 +271,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
     <div class="tab active" data-tab="form">＋ Nuevo</div>
     <div class="tab" data-tab="list">Visitas</div>
     <div class="tab" data-tab="map">Mapa</div>
+    <div class="tab" data-tab="importar">Importar</div>
   </div>
 </header>
 
@@ -373,6 +381,36 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
     <div id="map"></div>
     <div class="map-fab"><button class="fab-btn" id="fab-pin">📍</button></div>
     <div class="zone-legend"><div class="zone-sw"></div>Zonas recorridas</div>
+  </div>
+</section>
+
+<!-- IMPORTAR -->
+<section class="view" id="view-importar">
+  <div class="group">
+    <div class="group-label">Importar desde la app de Contactos Arquitectos</div>
+    <p style="font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:14px;">
+      Subí el archivo JSON que exportaste de la app de <b>Contactos Arquitectos</b> (botón "⬇ EXPORTAR JSON" de esa app).
+      Vas a poder revisar cada contacto antes de traerlo — nada se importa automáticamente, y nada de lo que ya tenés
+      cargado en RutaObra se borra ni se pisa. Los que parezcan duplicados quedan destildados por las dudas.
+    </p>
+    <div class="photo-area" id="import-drop" onclick="document.getElementById('import-file-input').click()">
+      <div class="icon">📂</div><div>Tocá para elegir el archivo JSON exportado</div>
+    </div>
+    <input type="file" id="import-file-input" accept="application/json" style="display:none">
+    <div id="import-status" style="font-size:12px;color:var(--muted);margin-top:8px;"></div>
+  </div>
+
+  <div id="import-preview-wrap" style="display:none">
+    <div class="group">
+      <div class="group-label">Revisión antes de importar</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+        <button class="btn-secondary" id="import-select-all" style="flex:none;padding:8px 12px;font-size:11.5px;">Marcar todos</button>
+        <button class="btn-secondary" id="import-select-none" style="flex:none;padding:8px 12px;font-size:11.5px;">Desmarcar todos</button>
+        <button class="btn-secondary" id="import-select-new" style="flex:none;padding:8px 12px;font-size:11.5px;">Marcar solo nuevos</button>
+      </div>
+      <div id="import-preview-list"></div>
+    </div>
+    <button class="btn-primary" id="import-run-btn" style="width:100%;margin-bottom:30px;">⚡ Importar seleccionados a RutaObra</button>
   </div>
 </section>
 
@@ -1001,6 +1039,117 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
 attachButtonSparks();attachInputSparks();
 const observer=new MutationObserver(()=>{attachButtonSparks();attachInputSparks();});
 observer.observe(document.body,{childList:true,subtree:true});
+// ============================================================
+// IMPORTAR DESDE LA APP DE CONTACTOS ARQUITECTOS
+// ============================================================
+let importCandidates = [];
+
+document.getElementById('import-file-input').addEventListener('change', function(){
+  const file = this.files[0];
+  if(!file) return;
+  const status = document.getElementById('import-status');
+  status.textContent = 'Leyendo archivo...';
+  const reader = new FileReader();
+  reader.onload = evt=>{
+    try{
+      const parsed = JSON.parse(evt.target.result);
+      const contactos = Array.isArray(parsed) ? parsed : (parsed.contactos || []);
+      if(!Array.isArray(contactos) || !contactos.length){
+        status.textContent = 'El archivo no tiene contactos para importar.';
+        return;
+      }
+      importCandidates = buildImportCandidates(contactos);
+      status.textContent = importCandidates.length+' persona(s) encontradas en el archivo.';
+      renderImportPreview();
+    }catch(e){
+      status.textContent = 'No se pudo leer el archivo (¿es un JSON válido?).';
+    }
+  };
+  reader.readAsText(file);
+  this.value = '';
+});
+
+function normImp(s){ return (s||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
+
+function buildImportCandidates(contactos){
+  const rows = [];
+  contactos.forEach(c=>{
+    const personas = Array.isArray(c.contactos) && c.contactos.length ? c.contactos : [{
+      nombre: c.nombre||'', cargo: c.cargo||'', telefono: c.telefono||'', email: c.email||''
+    }];
+    personas.forEach(p=>{
+      if(!p.nombre && !p.telefono && !c.estudio) return;
+      const isDup = localStore.some(e=>
+        normImp(e.estudio)===normImp(c.estudio) &&
+        (normImp(e.telefono)===normImp(p.telefono) || normImp(e.nombre)===normImp(p.nombre))
+      );
+      let notas = c.notas || '';
+      if(Array.isArray(c.interacciones) && c.interacciones.length){
+        const extra = c.interacciones.filter(h=>!h.auto).map(h=>'['+h.fecha+'] '+h.texto).join('\n');
+        if(extra) notas = (notas ? notas+'\n\n' : '') + '— Interacciones importadas —\n'+extra;
+      }
+      rows.push({
+        selected: !isDup, isDup,
+        entry:{
+          id: Date.now()+Math.floor(Math.random()*100000),
+          fecha:new Date().toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit',year:'numeric'}),
+          hora:new Date().toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'}),
+          source:'import_contactos', temp:c.temp||'',
+          empresa:c.empresa||c.estudio||'', estudio:c.estudio||'',
+          tipo:c.tipo||'', estado:c.estadoObra||'',
+          nombre:p.nombre||'', cargo:p.cargo||'',
+          telefono:p.telefono||'', email:p.email||'',
+          direccion:c.direccion||'', zona:c.zona||'', web:c.web||'',
+          proveedor:c.proveedor||'', followup:c.followup||'',
+          catalogos:c.catalogos||[], notas:notas, photo:c.photo||null,
+          lat:null, lng:null,
+          historial:[{fecha:new Date().toLocaleDateString('es-UY'),nota:'Importado desde app de Contactos Arquitectos'}]
+        }
+      });
+    });
+  });
+  return rows;
+}
+
+function renderImportPreview(){
+  document.getElementById('import-preview-wrap').style.display = importCandidates.length ? 'block' : 'none';
+  const wrap = document.getElementById('import-preview-list');
+  wrap.innerHTML = importCandidates.map((row,i)=>{
+    const e = row.entry;
+    return '<div class="import-row '+(row.isDup?'dup':'')+'">'
+      +'<input type="checkbox" data-idx="'+i+'" '+(row.selected?'checked':'')+'>'
+      +'<div class="ir-body">'
+      +'<div class="ir-title">'+esc(e.nombre||'(sin nombre)')+'</div>'
+      +'<div class="ir-meta">'+esc(e.estudio)+(e.cargo?' · '+esc(e.cargo):'')+(e.telefono?' · '+esc(e.telefono):'')+(e.email?' · '+esc(e.email):'')+'</div>'
+      +(row.isDup?'<div class="ir-dupbadge">Parece que ya existe en RutaObra</div>':'')
+      +'</div></div>';
+  }).join('');
+  wrap.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.addEventListener('change', function(){ importCandidates[this.dataset.idx].selected = this.checked; });
+  });
+}
+
+document.getElementById('import-select-all').addEventListener('click', ()=>{ importCandidates.forEach(r=>r.selected=true); renderImportPreview(); });
+document.getElementById('import-select-none').addEventListener('click', ()=>{ importCandidates.forEach(r=>r.selected=false); renderImportPreview(); });
+document.getElementById('import-select-new').addEventListener('click', ()=>{ importCandidates.forEach(r=>r.selected=!r.isDup); renderImportPreview(); });
+
+document.getElementById('import-run-btn').addEventListener('click', async ()=>{
+  const toImport = importCandidates.filter(r=>r.selected);
+  if(!toImport.length){ toast('No seleccionaste ningún contacto', true); return; }
+  if(!confirm('Se van a crear '+toImport.length+' entrada(s) nueva(s) en RutaObra. No se borra ni se modifica nada existente. ¿Continuar?')) return;
+  setLoading(true);
+  let ok=0, fail=0;
+  for(const row of toImport){
+    try{ await saveEntry(row.entry); ok++; }
+    catch(e){ fail++; }
+  }
+  setLoading(false);
+  toast(ok+' importado(s)'+(fail?', '+fail+' con error':''), fail>0);
+  importCandidates = importCandidates.filter(r=>!r.selected);
+  renderImportPreview();
+  renderList();
+});
+
 checkSession();
 </script>
 </body>
