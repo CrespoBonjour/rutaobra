@@ -796,8 +796,8 @@ async function saveEntry(entry) {
   const idx = localStore.findIndex(e => e.id === entry.id);
   if (idx >= 0) localStore[idx] = entry; else localStore.unshift(entry);
   setLoading(true);
-  try { await sbUpsert('visitas', entry, currentUser.token); }
-  catch(e) { toast('Error al guardar', true); }
+  try { await sbUpsert('visitas', entry, currentUser.token); return true; }
+  catch(e) { console.error('Error guardando en Supabase:', e); toast('Error al guardar: '+String(e).slice(0,120), true); return false; }
   finally { setLoading(false); }
 }
 
@@ -1309,12 +1309,14 @@ document.getElementById('import-run-btn').addEventListener('click', async ()=>{
             const existentes = new Set(item.interacciones.map(h=>h.fecha+'|'+h.texto));
             row.c_interacciones.forEach(h=>{ if(!existentes.has(h.fecha+'|'+h.texto)) item.interacciones.unshift(h); });
           }
-          await saveEntry(item); ok++;
+          const okSave = await saveEntry(item);
+          if(okSave) ok++; else fail++;
         } else fail++;
       } else {
-        await saveEntry(row.entry); ok++;
+        const okSave = await saveEntry(row.entry);
+        if(okSave) ok++; else fail++;
       }
-    } catch(e){ fail++; }
+    } catch(e){ console.error('Error importando fila:', e); fail++; }
   }
   setLoading(false);
   toast(ok+' procesado(s)'+(fail?', '+fail+' con error':''), fail>0);
