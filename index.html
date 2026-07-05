@@ -333,19 +333,26 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .kpi-rank-val{width:34px;flex-shrink:0;text-align:right;font-size:12px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
 
 /* ===== AGENDA TAB ===== */
-.ag-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.ag-nav{background:var(--panel);border:1px solid var(--line);color:var(--ink);width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:16px}
-.ag-title{font-size:15px;font-weight:800;text-transform:capitalize;color:#fff}
-.ag-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
-.ag-dow-cell{text-align:center;font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase}
-.ag-cell{aspect-ratio:1;background:var(--panel);border:1.5px solid var(--line);border-radius:8px;padding:6px;cursor:pointer;display:flex;flex-direction:column}
+.ag-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.ag-nav{background:var(--panel);border:1px solid var(--line);color:var(--ink);width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:16px;flex-shrink:0}
+.ag-title{font-size:13.5px;font-weight:800;text-transform:capitalize;color:#fff;text-align:center;flex:1;padding:0 6px}
+.ag-viewtoggle{display:flex;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:3px;margin-bottom:12px}
+.ag-vbtn{flex:1;padding:7px 0;background:transparent;border:none;border-radius:6px;color:var(--muted);font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;text-transform:uppercase;letter-spacing:.3px}
+.ag-vbtn.active{background:var(--acc-dim);color:var(--acc-light)}
+.ag-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.ag-dow-cell{text-align:center;font-size:9.5px;color:var(--muted);font-weight:800;text-transform:uppercase;padding-bottom:4px}
+.ag-cell{min-height:50px;background:var(--panel);border:1.5px solid var(--line);border-radius:7px;padding:3px 3px 2px;cursor:pointer;display:flex;flex-direction:column;gap:1px;overflow:hidden}
 .ag-cell.empty{background:transparent;border-color:transparent;cursor:default}
 .ag-cell.today{border-color:var(--acc)}
 .ag-cell.selected{background:var(--acc-dim);border-color:var(--acc)}
-.ag-daynum{font-size:12px;font-weight:700;color:var(--ink-soft)}
-.ag-dots{display:flex;gap:3px;margin-top:auto;flex-wrap:wrap}
-.ag-dot{width:6px;height:6px;border-radius:50%}
-.ag-dot.visita{background:var(--acc)}.ag-dot.actividad{background:var(--cold)}
+.ag-daynum{font-size:11px;font-weight:700;color:var(--ink-soft);flex-shrink:0}
+.ag-chip{font-size:8px;line-height:1.35;padding:1px 3px;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;flex-shrink:0}
+.ag-chip.visita{background:var(--acc-dim);color:var(--acc-light)}
+.ag-chip.actividad{background:rgba(74,158,255,.18);color:var(--cold)}
+.ag-more{font-size:7.5px;color:var(--muted);font-weight:700;flex-shrink:0}
+/* Vista semanal: celdas mas altas, texto completo sin truncar */
+.ag-grid.week-mode .ag-cell{min-height:130px}
+.ag-grid.week-mode .ag-chip{white-space:normal;font-size:9.5px;padding:3px 5px;line-height:1.3}
 .ag-daypanel{margin-top:16px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
 .ag-dayheader{font-size:14px;font-weight:800;color:#fff;text-transform:capitalize;margin-bottom:10px}
 .ag-event{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px 10px;margin-bottom:8px}
@@ -575,6 +582,10 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 
 <!-- AGENDA -->
 <section class="view" id="view-agenda">
+  <div class="ag-viewtoggle">
+    <button class="ag-vbtn active" data-agview="month">Mes</button>
+    <button class="ag-vbtn" data-agview="week">Semana</button>
+  </div>
   <div class="ag-header">
     <button class="ag-nav" id="ag-prev">‹</button>
     <div class="ag-title" id="ag-title"></div>
@@ -1872,7 +1883,10 @@ function renderPanel(){
 // ============================================================
 let calMonth=new Date(); calMonth.setDate(1);
 let agSelectedDay=fmtYMD(new Date());
+let agViewMode='month';
 function fmtYMD(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function mondayOf(d){ const dt=new Date(d); const dow=(dt.getDay()+6)%7; dt.setDate(dt.getDate()-dow); dt.setHours(0,0,0,0); return dt; }
+let calWeekStart=mondayOf(new Date());
 
 function buildAgendaEstudiosList(){
   const set=new Set(); localStore.forEach(e=>{ if(e.estudio) set.add(e.estudio); });
@@ -1935,22 +1949,42 @@ function jumpToContactFromActivity(estudioId){
   }, 80);
 }
 
+function agCellHtml(ymd, dayLabel, weekMode){
+  const evs=agendaStore.filter(e=>e.fecha===ymd).sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
+  const isToday=ymd===fmtYMD(new Date()), isSel=ymd===agSelectedDay;
+  const maxChips = weekMode ? evs.length : 2;
+  const chips = evs.slice(0,maxChips).map(e=>'<span class="ag-chip '+e.tipo+'">'+(e.hora?esc(e.hora)+' · ':'')+esc(e.texto)+'</span>').join('');
+  const more = evs.length>maxChips ? '<span class="ag-more">+'+(evs.length-maxChips)+' más</span>' : '';
+  return '<div class="ag-cell '+(isToday?'today':'')+' '+(isSel?'selected':'')+'" data-day="'+ymd+'"><div class="ag-daynum">'+dayLabel+'</div>'+chips+more+'</div>';
+}
+
 function renderAgendaTab(){
   buildAgendaEstudiosList();
-  const y=calMonth.getFullYear(), m=calMonth.getMonth();
-  document.getElementById('ag-title').textContent=calMonth.toLocaleDateString('es-UY',{month:'long',year:'numeric'});
   document.getElementById('ag-dow').innerHTML=['L','M','X','J','V','S','D'].map(d=>'<div class="ag-dow-cell">'+d+'</div>').join('');
-  const firstDow=(new Date(y,m,1).getDay()+6)%7;
-  const daysInMonth=new Date(y,m+1,0).getDate();
-  let html='';
-  for(let i=0;i<firstDow;i++) html+='<div class="ag-cell empty"></div>';
-  for(let day=1; day<=daysInMonth; day++){
-    const ymd=fmtYMD(new Date(y,m,day));
-    const evs=agendaStore.filter(e=>e.fecha===ymd);
-    const isToday=ymd===fmtYMD(new Date()), isSel=ymd===agSelectedDay;
-    html+='<div class="ag-cell '+(isToday?'today':'')+' '+(isSel?'selected':'')+'" data-day="'+ymd+'"><div class="ag-daynum">'+day+'</div><div class="ag-dots">'+evs.slice(0,6).map(e=>'<span class="ag-dot '+e.tipo+'"></span>').join('')+'</div></div>';
+  const grid=document.getElementById('ag-grid');
+  if(agViewMode==='week'){
+    grid.classList.add('week-mode');
+    const start=new Date(calWeekStart);
+    const end=new Date(start); end.setDate(end.getDate()+6);
+    const fmtShort=d=>d.toLocaleDateString('es-UY',{day:'numeric',month:'short'});
+    document.getElementById('ag-title').textContent = fmtShort(start)+' – '+fmtShort(end)+' '+end.getFullYear();
+    let html='';
+    for(let i=0;i<7;i++){
+      const d=new Date(start); d.setDate(d.getDate()+i);
+      html+=agCellHtml(fmtYMD(d), d.getDate(), true);
+    }
+    grid.innerHTML=html;
+  } else {
+    grid.classList.remove('week-mode');
+    const y=calMonth.getFullYear(), m=calMonth.getMonth();
+    document.getElementById('ag-title').textContent=calMonth.toLocaleDateString('es-UY',{month:'long',year:'numeric'});
+    const firstDow=(new Date(y,m,1).getDay()+6)%7;
+    const daysInMonth=new Date(y,m+1,0).getDate();
+    let html='';
+    for(let i=0;i<firstDow;i++) html+='<div class="ag-cell empty"></div>';
+    for(let day=1; day<=daysInMonth; day++) html += agCellHtml(fmtYMD(new Date(y,m,day)), day, false);
+    grid.innerHTML=html;
   }
-  document.getElementById('ag-grid').innerHTML=html;
   document.querySelectorAll('.ag-cell[data-day]').forEach(c=>c.addEventListener('click',()=>{agSelectedDay=c.dataset.day;renderAgendaTab();}));
   renderAgDayPanel();
 }
@@ -1987,8 +2021,21 @@ function showAgForm(tipo){
   });
 }
 
-document.getElementById('ag-prev').addEventListener('click',()=>{calMonth.setMonth(calMonth.getMonth()-1);renderAgendaTab();});
-document.getElementById('ag-next').addEventListener('click',()=>{calMonth.setMonth(calMonth.getMonth()+1);renderAgendaTab();});
+document.getElementById('ag-prev').addEventListener('click',()=>{
+  if(agViewMode==='week'){ calWeekStart.setDate(calWeekStart.getDate()-7); } else { calMonth.setMonth(calMonth.getMonth()-1); }
+  renderAgendaTab();
+});
+document.getElementById('ag-next').addEventListener('click',()=>{
+  if(agViewMode==='week'){ calWeekStart.setDate(calWeekStart.getDate()+7); } else { calMonth.setMonth(calMonth.getMonth()+1); }
+  renderAgendaTab();
+});
+document.querySelectorAll('[data-agview]').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('[data-agview]').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  agViewMode=b.dataset.agview;
+  if(agViewMode==='week') calWeekStart=mondayOf(new Date(agSelectedDay+'T00:00:00'));
+  renderAgendaTab();
+}));
 
 // ---- ACTIVIDADES (lista plana, conectada con Agenda y con las fichas) ----
 let actFilter='pendientes', actSearch='';
