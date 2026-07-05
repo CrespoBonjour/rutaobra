@@ -388,6 +388,35 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .act-form-box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:16px}
 .act-empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px}
 
+/* ===== NEGOCIACIONES (kanban) ===== */
+.neg-toolbar{display:flex;justify-content:flex-end;margin-bottom:12px}
+.neg-form-box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px}
+.kan-board{display:flex;gap:12px;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.kan-col{flex:0 0 80vw;max-width:300px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);display:flex;flex-direction:column;scroll-snap-align:start;max-height:calc(100vh - 260px);min-height:220px}
+@media (min-width:1000px){.kan-col{flex:1 1 0;max-width:none}}
+.kan-col-header{padding:11px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.kan-col-title{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--ink-soft)}
+.kan-col-count{font-size:10.5px;font-weight:800;color:var(--muted);background:var(--panel2);border-radius:20px;padding:1px 8px}
+.kan-col.dragover{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc-dim)}
+.kan-col.ganada .kan-col-title{color:#3ecf73}
+.kan-col.perdida .kan-col-title{color:var(--hot)}
+.kan-cards{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
+.kan-card{background:var(--panel2);border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 11px;touch-action:pan-y;user-select:none;transition:box-shadow .15s var(--ease)}
+.kan-card.dragging{opacity:.35}
+.kan-card-ghost{position:fixed;z-index:3000;pointer-events:none;box-shadow:var(--shadow-lift);border-radius:var(--r-sm);transform:rotate(-2deg);opacity:.96}
+.kan-card-empresa{font-size:13px;font-weight:800;color:#fff;cursor:pointer}
+.kan-card-empresa:hover{color:var(--acc-light)}
+.kan-card-texto{font-size:12px;color:var(--ink-soft);margin-top:3px;white-space:pre-wrap}
+.kan-card-move{display:flex;gap:6px;margin-top:8px}
+.kan-card-move button{flex:1;background:var(--panel);border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:5px 0;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center}
+.kan-card-move button:disabled{opacity:.25;cursor:default}
+.kan-card-move button:not(:disabled):hover{border-color:var(--acc);color:var(--acc-light)}
+.kan-follow-toggle{font-size:10.5px;color:var(--acc-light);font-weight:700;cursor:pointer;margin-top:8px;display:inline-block}
+.kan-follow-box{margin-top:8px;border-top:1px dashed var(--line);padding-top:8px;display:none}
+.kan-follow-box.show{display:block}
+.kan-follow-box textarea{width:100%;background:var(--panel);border:1.5px solid var(--line);color:var(--ink);border-radius:7px;padding:7px 8px;font-size:12px;font-family:inherit;min-height:40px;resize:vertical;margin-bottom:6px}
+.kan-empty-col{text-align:center;color:var(--muted);font-size:11px;padding:16px 8px}
+
 /* ===== CHAT ASISTENTE ===== */
 .chat-fab{position:fixed;right:18px;bottom:18px;z-index:500;width:56px;height:56px;border-radius:50%;background:var(--acc);border:none;font-size:24px;cursor:pointer;box-shadow:0 8px 24px var(--acc-glow);display:flex;align-items:center;justify-content:center}
 .chat-panel{position:fixed;right:18px;bottom:86px;z-index:500;width:min(340px,calc(100vw - 36px));height:min(480px,calc(100vh - 140px));background:var(--panel);border:1px solid var(--line);border-radius:16px;display:none;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6)}
@@ -454,6 +483,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
     <div class="tab" data-tab="contactos">Contactos</div>
     <div class="tab" data-tab="agenda">Agenda</div>
     <div class="tab" data-tab="actividades">Actividades</div>
+    <div class="tab" data-tab="negociaciones">Negociaciones</div>
     <div class="tab" data-tab="map">Mapa</div>
     <div class="tab" data-tab="importar">Importar</div>
     <div class="tab" data-tab="panel" id="tab-panel" style="display:none">Panel</div>
@@ -612,6 +642,15 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
   <div id="act-form-wrap"></div>
   <div id="act-list"></div>
   <datalist id="act-estudios-list"></datalist>
+</section>
+
+<!-- NEGOCIACIONES (kanban) -->
+<section class="view" id="view-negociaciones">
+  <div class="neg-toolbar">
+    <button class="add-btn" id="neg-new-btn">+ Nueva negociación</button>
+  </div>
+  <div id="neg-form-wrap"></div>
+  <div class="kan-board" id="kan-board"></div>
 </section>
 
 <!-- IMPORTAR -->
@@ -794,6 +833,8 @@ const ICONS = {
   x:'<svg class="icn" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
   edit:'<svg class="icn" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>',
   trash:'<svg class="icn" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+  chevLeft:'<svg class="icn" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>',
+  chevRight:'<svg class="icn" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>',
   check:'<svg class="icn" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>',
   bookmark:'<svg class="icn" viewBox="0 0 24 24"><path d="M19 21 12 16l-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>',
   notes:'<svg class="icn" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
@@ -809,6 +850,7 @@ let isAdmin = false;
 let localStore = [];
 let localZones = [];
 let agendaStore = [];
+let negociacionesStore = [];
 let dbReady = false;
 let filterVendedor = 'all';
 
@@ -956,10 +998,11 @@ async function loadAll() {
   try {
     let params = '';
     if (!isAdmin) params = 'user_id=eq.'+currentUser.id;
-    [localStore, localZones, agendaStore] = await Promise.all([
+    [localStore, localZones, agendaStore, negociacionesStore] = await Promise.all([
       sbGet('visitas', params, currentUser.token),
       sbGet('zonas', '', currentUser.token),
-      sbGet('agenda', '', currentUser.token).catch(()=>[])
+      sbGet('agenda', '', currentUser.token).catch(()=>[]),
+      sbGet('negociaciones', params, currentUser.token).catch(()=>[])
     ]);
     dbReady = true;
     if (isAdmin) buildVendedorFilter();
@@ -1087,6 +1130,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
     if(t==='contactos') renderContactos();
     if(t==='agenda') renderAgendaTab();
     if(t==='actividades') renderActividades();
+    if(t==='negociaciones') renderNegociaciones();
     if(t==='panel') renderPanel();
   });
 });
@@ -1151,6 +1195,7 @@ function refreshActiveView(){
   else if(t==='agenda') renderAgendaTab();
   else if(t==='actividades') renderActividades();
   else if(t==='map' && mapInitialized) refreshMapMarkers();
+  else if(t==='negociaciones') renderNegociaciones();
   else if(t==='panel') renderPanel();
 }
 function renderList(){ refreshActiveView(); }
@@ -2097,6 +2142,194 @@ document.getElementById('act-new-btn').addEventListener('click', ()=>{
     const estudioTxt=document.getElementById('act-estudio').value.trim();
     const res = await crearActividadAgenda({fecha, hora, tipo:'actividad', texto, estudioTxt});
     if(res.ok){ toast('Actividad guardada ✓'); wrap.innerHTML=''; renderActividades(); }
+    else toast(res.msg, true);
+  });
+});
+
+// ============================================================
+// NEGOCIACIONES (pipeline kanban, conectado con Actividades)
+// ============================================================
+const NEG_ETAPAS = [
+  {key:'pendiente', label:'Cotización pendiente'},
+  {key:'analisis', label:'Análisis de cotización'},
+  {key:'enviada', label:'Cotización enviada'},
+  {key:'ganada', label:'Venta completada'},
+  {key:'perdida', label:'Venta perdida'}
+];
+
+function getFilteredNegociaciones(){
+  if(!isAdmin || filterVendedor==='all') return negociacionesStore;
+  return negociacionesStore.filter(n=>n.user_email===filterVendedor);
+}
+
+async function guardarNegociacion(neg){
+  neg.user_id=currentUser.id; neg.user_email=currentUser.email; neg.user_name=currentUser.name;
+  const idx=negociacionesStore.findIndex(n=>n.id===neg.id);
+  if(idx>=0) negociacionesStore[idx]=neg; else negociacionesStore.unshift(neg);
+  try{ await sbUpsert('negociaciones', neg, currentUser.token); return true; }
+  catch(e){ console.error('Error guardando negociación:', e); toast('Error al guardar: '+String(e).slice(0,120), true); return false; }
+}
+
+async function crearNegociacion(estudioTxt, texto){
+  if(!texto || !texto.trim()) return {ok:false, msg:'Escribí una descripción.'};
+  if(!estudioTxt || !estudioTxt.trim()) return {ok:false, msg:'Elegí un contacto ya cargado en Contactos.'};
+  const match = localStore.find(e=>(e.estudio||'').toLowerCase().trim()===estudioTxt.toLowerCase().trim());
+  if(!match) return {ok:false, msg:'Ese contacto no existe todavía — elegilo de la lista.'};
+  const neg = {id:Date.now(), estudio_id:match.id, estudio_nombre:match.estudio, texto:texto.trim(), etapa:'pendiente', orden:Date.now()};
+  const ok = await guardarNegociacion(neg);
+  return ok ? {ok:true} : {ok:false, msg:'Error al guardar.'};
+}
+
+async function moverNegociacion(id, nuevaEtapa){
+  const neg = negociacionesStore.find(n=>n.id===id); if(!neg) return;
+  neg.etapa = nuevaEtapa; neg.orden = Date.now();
+  await guardarNegociacion(neg);
+  renderNegociaciones();
+}
+
+function renderNegCard(n){
+  const idx = NEG_ETAPAS.findIndex(e=>e.key===n.etapa);
+  return '<div class="kan-card" data-negid="'+n.id+'" data-etapa="'+n.etapa+'">'
+    + '<div class="kan-card-empresa" data-jumpneg="'+n.estudio_id+'">'+esc(n.estudio_nombre||'(sin nombre)')+'</div>'
+    + '<div class="kan-card-texto">'+esc(n.texto||'')+'</div>'
+    + '<div class="kan-card-move">'
+      + '<button data-movneg="'+n.id+'" data-dir="-1" '+(idx<=0?'disabled':'')+'>'+ICONS.chevLeft+'</button>'
+      + '<button data-movneg="'+n.id+'" data-dir="1" '+(idx>=NEG_ETAPAS.length-1?'disabled':'')+'>'+ICONS.chevRight+'</button>'
+    + '</div>'
+    + '<div class="kan-follow-toggle" data-follow="'+n.id+'">+ Agregar seguimiento</div>'
+    + '<div class="kan-follow-box" id="kan-follow-'+n.id+'">'
+      + '<textarea placeholder="¿Qué hiciste o qué tenés que hacer?" data-followtext="'+n.id+'"></textarea>'
+      + '<div class="row2" style="margin-bottom:6px"><input type="date" data-followfecha="'+n.id+'" style="flex:1"><input type="time" data-followhora="'+n.id+'" style="flex:1"></div>'
+      + '<button class="ct-int-savebtn" data-followsave="'+n.id+'">+ Guardar seguimiento</button>'
+    + '</div>'
+    + '</div>';
+}
+
+function renderNegociaciones(){
+  buildAgendaEstudiosList();
+  const list = getFilteredNegociaciones();
+  const board = document.getElementById('kan-board');
+  board.innerHTML = NEG_ETAPAS.map(et=>{
+    const cards = list.filter(n=>n.etapa===et.key).sort((a,b)=>(b.orden||0)-(a.orden||0));
+    return '<div class="kan-col '+et.key+'" data-col="'+et.key+'">'
+      + '<div class="kan-col-header"><span class="kan-col-title">'+et.label+'</span><span class="kan-col-count">'+cards.length+'</span></div>'
+      + '<div class="kan-cards" data-colcards="'+et.key+'">'+(cards.length?cards.map(renderNegCard).join(''):'<div class="kan-empty-col">Sin negociaciones acá.</div>')+'</div>'
+      + '</div>';
+  }).join('');
+
+  board.querySelectorAll('[data-jumpneg]').forEach(el=>el.addEventListener('click', ()=>{
+    const id=parseFloat(el.dataset.jumpneg); if(id) jumpToContactFromActivity(id);
+  }));
+  board.querySelectorAll('[data-movneg]').forEach(b=>b.addEventListener('click', ()=>{
+    const id=parseFloat(b.dataset.movneg);
+    const neg=negociacionesStore.find(n=>n.id===id); if(!neg) return;
+    const idx=NEG_ETAPAS.findIndex(e=>e.key===neg.etapa);
+    const dir=parseInt(b.dataset.dir,10);
+    const next=NEG_ETAPAS[idx+dir]; if(!next) return;
+    moverNegociacion(id, next.key);
+  }));
+  board.querySelectorAll('[data-follow]').forEach(el=>el.addEventListener('click', ()=>{
+    document.getElementById('kan-follow-'+el.dataset.follow).classList.toggle('show');
+  }));
+  board.querySelectorAll('[data-followsave]').forEach(b=>b.addEventListener('click', async ()=>{
+    const id=parseFloat(b.dataset.followsave);
+    const neg=negociacionesStore.find(n=>n.id===id); if(!neg) return;
+    const ta=board.querySelector('[data-followtext="'+id+'"]');
+    const texto=ta.value.trim(); if(!texto) return;
+    const fechaEl=board.querySelector('[data-followfecha="'+id+'"]');
+    const horaEl=board.querySelector('[data-followhora="'+id+'"]');
+    if(fechaEl.value){
+      const res = await crearActividadAgenda({fecha:fechaEl.value, hora:horaEl.value, tipo:'actividad', texto, estudioTxt:neg.estudio_nombre});
+      if(res.ok) toast('Seguimiento agendado en Actividades ✓'); else toast(res.msg, true);
+    } else {
+      const item=localStore.find(x=>x.id===neg.estudio_id);
+      if(item){
+        if(!Array.isArray(item.interacciones)) item.interacciones=[];
+        item.interacciones.unshift({fecha:new Date().toLocaleDateString('es-UY')+' '+new Date().toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'}),texto:'[Negociación] '+texto,auto:false});
+        await saveEntry(item);
+      }
+      toast('Seguimiento guardado ✓');
+    }
+    ta.value=''; fechaEl.value=''; horaEl.value='';
+    document.getElementById('kan-follow-'+id).classList.remove('show');
+  }));
+
+  setupKanbanDrag();
+}
+
+function setupKanbanDrag(){
+  const board=document.getElementById('kan-board');
+  let dragCard=null, ghost=null, startX=0, startY=0, dragging=false, offsetX=0, offsetY=0;
+
+  board.querySelectorAll('.kan-card').forEach(card=>{ card.addEventListener('pointerdown', onDown); });
+
+  function onDown(e){
+    if(e.target.closest('button, textarea, input, .kan-card-empresa, .kan-follow-toggle')) return;
+    dragCard = e.currentTarget;
+    startX=e.clientX; startY=e.clientY; dragging=false;
+    dragCard._rect = dragCard.getBoundingClientRect();
+    offsetX=e.clientX-dragCard._rect.left; offsetY=e.clientY-dragCard._rect.top;
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+    document.addEventListener('pointercancel', onUp);
+  }
+  function onMove(e){
+    const dx=e.clientX-startX, dy=e.clientY-startY;
+    if(!dragging){
+      if(Math.abs(dx)<8 && Math.abs(dy)<8) return;
+      dragging=true;
+      ghost=dragCard.cloneNode(true);
+      ghost.classList.add('kan-card-ghost');
+      ghost.style.width=dragCard._rect.width+'px';
+      ghost.style.left=dragCard._rect.left+'px';
+      ghost.style.top=dragCard._rect.top+'px';
+      document.body.appendChild(ghost);
+      dragCard.classList.add('dragging');
+      document.body.style.overflow='hidden';
+    }
+    ghost.style.left=(e.clientX-offsetX)+'px';
+    ghost.style.top=(e.clientY-offsetY)+'px';
+    document.querySelectorAll('.kan-col').forEach(c=>c.classList.remove('dragover'));
+    const under=document.elementFromPoint(e.clientX, e.clientY);
+    const col=under && under.closest('.kan-col');
+    if(col) col.classList.add('dragover');
+  }
+  function onUp(e){
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
+    document.removeEventListener('pointercancel', onUp);
+    if(dragging){
+      document.body.style.overflow='';
+      dragCard.classList.remove('dragging');
+      if(ghost){ ghost.remove(); ghost=null; }
+      const under=document.elementFromPoint(e.clientX, e.clientY);
+      const col=under && under.closest('.kan-col');
+      document.querySelectorAll('.kan-col').forEach(c=>c.classList.remove('dragover'));
+      if(col){
+        const nuevaEtapa=col.dataset.col;
+        const id=parseFloat(dragCard.dataset.negid);
+        const neg=negociacionesStore.find(n=>n.id===id);
+        if(neg && neg.etapa!==nuevaEtapa) moverNegociacion(id, nuevaEtapa);
+      }
+    }
+    dragging=false; dragCard=null;
+  }
+}
+
+document.getElementById('neg-new-btn').addEventListener('click', ()=>{
+  buildAgendaEstudiosList();
+  const wrap=document.getElementById('neg-form-wrap');
+  if(wrap.innerHTML){ wrap.innerHTML=''; return; }
+  wrap.innerHTML = '<div class="neg-form-box">'
+    + '<input type="text" id="neg-estudio" list="ag-estudios-list" placeholder="Contacto (elegí uno ya cargado)" style="width:100%;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink);border-radius:7px;padding:9px 10px;font-size:13px;font-family:inherit;margin-bottom:8px">'
+    + '<textarea id="neg-texto" placeholder="¿De qué se trata? Ej: Cotización de tableros trifásicos" style="width:100%;min-height:60px;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink);border-radius:7px;padding:9px 10px;font-size:13px;font-family:inherit;margin-bottom:8px"></textarea>'
+    + '<button class="btn-primary" id="neg-save" style="width:100%">Crear negociación</button>'
+    + '</div>';
+  document.getElementById('neg-save').addEventListener('click', async ()=>{
+    const estudioTxt=document.getElementById('neg-estudio').value.trim();
+    const texto=document.getElementById('neg-texto').value.trim();
+    const res = await crearNegociacion(estudioTxt, texto);
+    if(res.ok){ toast('Negociación creada ✓'); wrap.innerHTML=''; renderNegociaciones(); }
     else toast(res.msg, true);
   });
 });
