@@ -89,9 +89,10 @@ header::after{content:"";position:absolute;bottom:-1px;left:0;right:0;height:3px
 .admin-badge{font-size:10px;font-weight:800;background:var(--acc-tex-btn);color:var(--acc-btn-ink);padding:2px 7px;border-radius:20px;text-transform:uppercase;box-shadow:0 2px 8px var(--acc-glow)}
 .bell-btn{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--line);background:var(--panel2);color:var(--muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s var(--ease)}
 .bell-btn.on{border-color:var(--acc);color:var(--acc);background:var(--acc-dim);box-shadow:0 0 12px var(--acc-glow)}
-.tabs{display:flex;gap:3px;width:100%;position:relative}
-.tabs .tab{flex:1 1 0;padding-left:4px;padding-right:4px;white-space:nowrap;min-width:0}
-.tab{flex:1;text-align:center;padding:10px 0 9px;border-radius:8px 8px 0 0;font-size:11.5px;font-weight:800;color:var(--muted);cursor:pointer;transition:color .2s var(--ease);text-transform:uppercase;letter-spacing:.3px;overflow:hidden;text-overflow:ellipsis;position:relative;z-index:1}
+.tabs{display:flex;gap:3px;width:100%;position:relative;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tabs::-webkit-scrollbar{display:none}
+.tabs .tab{flex:0 0 auto;padding-left:10px;padding-right:10px;white-space:nowrap}
+.tab{text-align:center;padding:10px 0 9px;border-radius:8px 8px 0 0;font-size:11.5px;font-weight:800;color:var(--muted);cursor:pointer;transition:color .2s var(--ease);text-transform:uppercase;letter-spacing:.3px;position:relative;z-index:1}
 .tab.active{color:var(--acc)}
 .tab-indicator{position:absolute;bottom:0;height:100%;background:var(--bg);border-radius:8px 8px 0 0;box-shadow:0 -1px 0 var(--acc) inset;transition:transform .28s var(--ease),width .28s var(--ease);z-index:0;will-change:transform,width}
 .tab-indicator::after{content:"";position:absolute;top:0;left:8%;right:8%;height:2px;background:var(--acc);border-radius:2px;box-shadow:0 0 10px var(--acc-glow)}
@@ -180,8 +181,9 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 #view-map{padding:0;overflow:hidden}
 .map-wrap{position:relative;width:100%;height:100%;display:flex;flex-direction:column}
 #map{width:100%;flex:1;background:#0c0d11;position:relative;z-index:1}
-.map-topbar{flex-shrink:0;display:flex;gap:8px;padding:10px 12px;background:var(--panel);border-bottom:1px solid var(--line);z-index:10;position:relative}
-.map-tb-btn{flex:1;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink);font-size:12px;font-weight:800;padding:11px 8px;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;text-transform:uppercase}
+.map-topbar{flex-shrink:0;display:flex;flex-wrap:wrap;gap:8px;padding:10px 12px;background:var(--panel);border-bottom:1px solid var(--line);z-index:10;position:relative}
+.map-tb-btn{flex:1;min-width:130px;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink);font-size:12px;font-weight:800;padding:11px 8px;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;text-transform:uppercase}
+@media (max-width:600px){.map-topbar .nice-select{flex:1 1 100%}}
 .map-tb-btn.active{background:var(--acc);color:#1a1300;border-color:var(--acc-deep);box-shadow:0 0 14px var(--acc-glow)}
 .map-tb-btn.danger{color:var(--hot)}
 .map-banner{flex-shrink:0;background:var(--acc-dim);border-bottom:1px solid var(--acc);color:var(--acc);font-size:12px;font-weight:700;padding:9px 14px;text-align:center;display:none;z-index:10;position:relative}
@@ -1122,6 +1124,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
     tab.classList.add('active');
     positionTabIndicator();
+    tab.scrollIntoView({inline:'center', block:'nearest', behavior:'smooth'});
     const t=tab.dataset.tab;
     document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
     document.getElementById('view-'+t).classList.add('active');
