@@ -188,6 +188,11 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .map-tb-btn.danger{color:var(--hot)}
 .map-banner{flex-shrink:0;background:var(--acc-dim);border-bottom:1px solid var(--acc);color:var(--acc);font-size:12px;font-weight:700;padding:9px 14px;text-align:center;display:none;z-index:10;position:relative}
 .map-banner.show{display:block}
+.map-banner.with-actions{align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.map-banner.with-actions.show{display:flex}
+.zone-sel-btn{border:none;border-radius:7px;padding:6px 14px;font-size:11.5px;font-weight:800;cursor:pointer;text-transform:uppercase}
+.zone-sel-btn.confirm{background:var(--hot);color:#fff}
+.zone-sel-btn.cancel{background:var(--panel2);color:var(--ink-soft);border:1.5px solid var(--line)}
 .leaflet-popup-content-wrapper{background:var(--panel);color:var(--ink);border-radius:14px;border:1px solid var(--line);box-shadow:0 12px 30px -10px rgba(0,0,0,.6);max-width:280px}
 .leaflet-popup-tip{background:var(--panel)}
 .leaflet-popup-content{margin:12px 14px;font-size:13px;line-height:1.5}
@@ -613,6 +618,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       <button class="map-tb-btn danger" id="btn-clear-zones"><svg class="icn" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Borrar zonas</button>
     </div>
     <div class="map-banner" id="map-banner">Tocá puntos en el mapa para delimitar la zona recorrida. Tocá "Cerrar zona" al terminar.</div>
+    <div class="map-banner with-actions" id="zone-select-banner"><span>Tocá las zonas que querés borrar</span><button type="button" class="zone-sel-btn confirm" id="btn-confirm-delete-zones">Borrar (<span id="zone-sel-count">0</span>)</button><button type="button" class="zone-sel-btn cancel" id="btn-cancel-select-zones">Cancelar</button></div>
     <div id="map"></div>
     <div class="map-fab"><button class="fab-btn" id="fab-pin"><svg class="icn icn-lg" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></button></div>
     <div class="zone-legend"><div class="zone-sw"></div>Zonas recorridas</div>
@@ -762,6 +768,20 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       <div class="temp-chip" id="modal-bitrix-chip"><svg class="icn" viewBox="0 0 24 24" style="fill:currentColor;stroke:none"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg> En Bitrix</div>
     </div>
     <div class="field"><label>Dirección</label><input id="m-direccion" type="text" placeholder="Se completa al ubicar el pin"></div>
+    <div class="field"><label>Zona</label>
+      <div class="quick-chips" id="modal-zona-chips">
+        <div class="chip" data-val="Playa Brava">Playa Brava</div>
+        <div class="chip" data-val="Playa Mansa">Playa Mansa</div>
+        <div class="chip" data-val="Península">Península</div>
+        <div class="chip" data-val="Roosevelt">Roosevelt</div>
+        <div class="chip" data-val="Aidy Grill">Aidy Grill</div>
+        <div class="chip" data-val="Manantiales">Manantiales</div>
+        <div class="chip" data-val="La Barra">La Barra</div>
+        <div class="chip" data-val="Maldonado">Maldonado</div>
+      </div>
+      <input id="m-zona" type="text" placeholder="O escribí otra zona...">
+    </div>
+    <div class="field"><label>Sitio web</label><input id="m-web" type="text" placeholder="www.empresa.com"></div>
     <div class="field"><label>Empresa constructora *</label><input id="m-empresa" type="text" placeholder="Nombre de la empresa"></div>
     <div class="field"><label>Estudio / Desarrolladora</label><input id="m-estudio" type="text" placeholder="Arquitectos o desarrolladora"></div>
     <div class="field"><label>Tipo de obra</label>
@@ -774,6 +794,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
     <div class="field"><label>Cargo</label>
       <select id="m-cargo"><option value="">Seleccionar...</option><option>Jefe de obra</option><option>Capataz</option><option>Encargado de compras</option><option>Arquitecto / Director de obra</option><option>Electricista a cargo</option><option>Otro</option></select>
     </div>
+    <div class="field"><label>Email</label><input id="m-email" type="email" placeholder="nombre@empresa.com" inputmode="email"></div>
     <div class="field"><label>Teléfono <span style="text-transform:none;font-weight:400;color:var(--muted)">(podés agregar más de uno)</span></label>
       <div id="m-tel-list"></div>
       <div class="row2" style="margin-bottom:6px">
@@ -782,6 +803,16 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       </div>
     </div>
     <div class="field"><label>Proveedor eléctrico actual</label><input id="m-proveedor" type="text" placeholder="Ej: Volta, Elecnor..."></div>
+    <div class="field"><label>Materiales entregados</label>
+      <div class="catalog-grid" id="modal-catalog-grid">
+        <div class="catalog-item" data-val="Catálogo general"><div class="box"></div>Catálogo</div>
+        <div class="catalog-item" data-val="Lista de precios"><div class="box"></div>Lista precios</div>
+        <div class="catalog-item" data-val="Tarjeta personal"><div class="box"></div>Tarjeta</div>
+        <div class="catalog-item" data-val="Muestras físicas"><div class="box"></div>Muestras</div>
+        <div class="catalog-item" data-val="Cotización enviada"><div class="box"></div>Cotización</div>
+        <div class="catalog-item" data-val="Ficha técnica"><div class="box"></div>Ficha técnica</div>
+      </div>
+    </div>
     <div class="field"><label>Próxima acción</label>
       <select id="m-followup"><option value="">Seleccionar...</option><option>Enviar cotización</option><option>Llamar la próxima semana</option><option>Visitar de nuevo en 2 semanas</option><option>Esperar que avance la obra</option><option>Cerrado - sin interés</option></select>
     </div>
@@ -1099,13 +1130,36 @@ async function saveZone(zone) {
   catch(e) { toast('Error al guardar zona', true); }
 }
 
-async function clearAllZones() {
-  if (!confirm('¿Borrar todas las zonas?')) return;
-  const toDelete = localZones.map(z => z.id);
-  localZones = []; renderZones(); toast('Zonas borradas');
-  try { await Promise.all(toDelete.map(id => sbDelete('zonas', id, currentUser.token))); }
-  catch(e) {}
+let selectingZones=false, selectedZoneIds=new Set();
+function enterZoneSelectMode(){
+  if(!localZones.length){ toast('No hay zonas guardadas', true); return; }
+  if(drawingZone){ toast('Terminá de marcar la zona primero', true); return; }
+  selectingZones=true; selectedZoneIds=new Set();
+  document.getElementById('zone-sel-count').textContent='0';
+  document.getElementById('zone-select-banner').classList.add('show');
+  renderZones();
 }
+function exitZoneSelectMode(){
+  selectingZones=false; selectedZoneIds=new Set();
+  document.getElementById('zone-select-banner').classList.remove('show');
+  renderZones();
+}
+function toggleZoneSelection(id){
+  if(selectedZoneIds.has(id)) selectedZoneIds.delete(id); else selectedZoneIds.add(id);
+  document.getElementById('zone-sel-count').textContent=selectedZoneIds.size;
+  renderZones();
+}
+document.getElementById('btn-cancel-select-zones').addEventListener('click', exitZoneSelectMode);
+document.getElementById('btn-confirm-delete-zones').addEventListener('click', async ()=>{
+  if(!selectedZoneIds.size){ toast('Seleccioná al menos una zona', true); return; }
+  const ids=Array.from(selectedZoneIds);
+  if(!confirm('¿Borrar '+ids.length+' zona(s) seleccionada(s)?')) return;
+  localZones=localZones.filter(z=>!selectedZoneIds.has(z.id));
+  exitZoneSelectMode();
+  toast('Zona(s) borrada(s)');
+  try { await Promise.all(ids.map(id => sbDelete('zonas', id, currentUser.token))); }
+  catch(e) { toast('Error al borrar en el servidor', true); }
+});
 
 // ============================================================
 // CHISPAS
@@ -1136,6 +1190,7 @@ let mapInitialized=false,map,markersLayer,zonesLayer;
 let drawingZone=false,zonePoints=[],zoneTempMarkers=[],zonePoly=null;
 let modalTempSelected='',mPhotoDataUrl=null,editingId=null;
 let modalContactado=false,modalBitrix=false,modalInteracciones=[];
+let modalZonaSelected='',modalCatalogosSelected=new Set();
 let pickedLatLng=null,pickedAddress='',pickerMap=null,geocodeTimeout=null,pendingNewLatLng=null;
 let modalObras=[],pickingObraMode=false;
 let pickingFormMode=false,formPickedLatLng=null;
@@ -1214,7 +1269,7 @@ document.getElementById('save-btn').addEventListener('click',async()=>{
   spawnSparks(window.innerWidth/2,window.innerHeight-80,22);
   toast('Contacto guardado ✓');clearForm();
   if(entry.direccion && !huboPin) geocodeAndSave(entry.id,entry.direccion+', Punta del Este, Uruguay');
-  if(mapInitialized) refreshMapMarkers();
+  if(mapInitialized){ resetMapContactFilter(); buildMapContactFilter(); refreshMapMarkers(); }
 });
 
 function geocodeAndSave(id,address){
@@ -1311,6 +1366,12 @@ function buildMapContactFilter(){
   const opts = localStore.filter(e=>e.estudio).map(e=>'<option value="'+e.id+'">'+esc(e.estudio)+'</option>').join('');
   sel.innerHTML = '<option value="all">Todos los contactos</option>'+opts;
   if(current && Array.from(sel.options).some(o=>o.value===current)) sel.value=current;
+  else resetMapContactFilter();
+}
+function resetMapContactFilter(){
+  mapContactFilter='all';
+  const sel=document.getElementById('map-contact-filter');
+  if(sel) sel.value='all';
 }
 
 function refreshMapMarkers(){
@@ -1330,7 +1391,19 @@ function refreshMapMarkers(){
 
 function renderZones(){
   if(!zonesLayer)return;zonesLayer.clearLayers();
-  localZones.forEach(z=>{L.polygon(z.points,{color:'#5a4530',weight:2,fillColor:'#b08f68',fillOpacity:.3}).bindPopup('<div class="pop-row"><b>Zona recorrida</b></div><div class="pop-row">'+esc(z.fecha)+'</div>').addTo(zonesLayer);});
+  localZones.forEach(z=>{
+    const isSel=selectedZoneIds.has(z.id);
+    const poly=L.polygon(z.points,{
+      color:isSel?'#ff4d4d':'#5a4530',weight:isSel?3:2,
+      fillColor:isSel?'#ff4d4d':'#b08f68',fillOpacity:isSel?.5:.3
+    });
+    if(selectingZones){
+      poly.on('click',(e)=>{ L.DomEvent.stop(e); toggleZoneSelection(z.id); });
+    }else{
+      poly.bindPopup('<div class="pop-row"><b>Zona recorrida</b></div><div class="pop-row">'+esc(z.fecha)+'</div>');
+    }
+    poly.addTo(zonesLayer);
+  });
 }
 
 function initMap(){
@@ -1379,7 +1452,7 @@ document.getElementById('btn-draw-zone').addEventListener('click',async()=>{
   }
 });
 
-document.getElementById('btn-clear-zones').addEventListener('click',clearAllZones);
+document.getElementById('btn-clear-zones').addEventListener('click',enterZoneSelectMode);
 
 // PIN PICKER
 document.getElementById('fab-pin').addEventListener('click',openPinPicker);
@@ -1468,6 +1541,9 @@ document.getElementById('picker-confirm').addEventListener('click',()=>{
 
 // MODAL PIN
 document.querySelectorAll('#modal-temp-chips .temp-chip').forEach(c=>{c.addEventListener('click',()=>{document.querySelectorAll('#modal-temp-chips .temp-chip').forEach(x=>x.classList.remove('selected'));c.classList.add('selected');modalTempSelected=c.dataset.val;});});
+document.querySelectorAll('#modal-zona-chips .chip').forEach(c=>{c.addEventListener('click',()=>{document.querySelectorAll('#modal-zona-chips .chip').forEach(x=>x.classList.remove('selected'));c.classList.add('selected');modalZonaSelected=c.dataset.val;document.getElementById('m-zona').value='';});});
+document.getElementById('m-zona').addEventListener('input',e=>{if(e.target.value){document.querySelectorAll('#modal-zona-chips .chip').forEach(x=>x.classList.remove('selected'));modalZonaSelected='';}});
+document.querySelectorAll('#modal-catalog-grid .catalog-item').forEach(c=>{c.addEventListener('click',()=>{c.classList.toggle('selected');const v=c.dataset.val;modalCatalogosSelected.has(v)?modalCatalogosSelected.delete(v):modalCatalogosSelected.add(v);});});
 document.getElementById('m-photo-input').addEventListener('change',function(){const file=this.files[0];if(!file)return;const r=new FileReader();r.onload=e=>{mPhotoDataUrl=e.target.result;document.getElementById('m-photo-preview').src=mPhotoDataUrl;document.getElementById('m-photo-preview').style.display='block';};r.readAsDataURL(file);});
 document.getElementById('modal-contactado-chip').addEventListener('click',function(){modalContactado=!modalContactado;this.classList.toggle('selected',modalContactado);});
 function renderModalObras(){
@@ -1547,8 +1623,10 @@ function openPinModal(entry,newLocation){
   editingId=entry?entry.id:null;pendingNewLatLng=newLocation||null;
   document.getElementById('modal-title-text').textContent=entry?'Editar pin':'Nuevo pin';
   document.getElementById('modal-del-pin').style.display=entry?'block':'none';
-  ['m-empresa','m-estudio','m-tipo','m-estado','m-nombre','m-cargo','m-proveedor','m-followup','m-notas','m-direccion','m-tel-new','m-persona-nombre','m-persona-cargo','m-persona-telefono'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['m-empresa','m-estudio','m-tipo','m-estado','m-nombre','m-cargo','m-email','m-proveedor','m-followup','m-notas','m-direccion','m-zona','m-web','m-tel-new','m-persona-nombre','m-persona-cargo','m-persona-telefono'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.querySelectorAll('#modal-temp-chips .temp-chip').forEach(x=>x.classList.remove('selected'));
+  document.querySelectorAll('#modal-zona-chips .chip').forEach(x=>x.classList.remove('selected'));modalZonaSelected='';
+  document.querySelectorAll('#modal-catalog-grid .catalog-item').forEach(x=>x.classList.remove('selected'));modalCatalogosSelected=new Set();
   modalTempSelected='';mPhotoDataUrl=null;document.getElementById('m-photo-preview').style.display='none';
   modalContactado=!!(entry&&entry.contactado);modalBitrix=!!(entry&&entry.bitrix);
   modalInteracciones=entry&&Array.isArray(entry.interacciones)?entry.interacciones.slice():[];
@@ -1567,9 +1645,13 @@ function openPinModal(entry,newLocation){
     document.getElementById('m-empresa').value=entry.empresa||'';document.getElementById('m-estudio').value=entry.estudio||'';
     document.getElementById('m-tipo').value=entry.tipo||'';document.getElementById('m-estado').value=entry.estado||'';
     document.getElementById('m-nombre').value=entry.nombre||'';document.getElementById('m-cargo').value=entry.cargo||'';
+    document.getElementById('m-email').value=entry.email||'';
     document.getElementById('m-proveedor').value=entry.proveedor||'';
     document.getElementById('m-followup').value=entry.followup||'';document.getElementById('m-notas').value=entry.notas||'';
     document.getElementById('m-direccion').value=entry.direccion||'';
+    document.getElementById('m-web').value=entry.web||'';
+    if(entry.zona){const zc=document.querySelector('#modal-zona-chips .chip[data-val="'+entry.zona+'"]');if(zc){zc.classList.add('selected');modalZonaSelected=entry.zona;}else{document.getElementById('m-zona').value=entry.zona;}}
+    if(Array.isArray(entry.catalogos)){entry.catalogos.forEach(v=>{modalCatalogosSelected.add(v);const ci=document.querySelector('#modal-catalog-grid .catalog-item[data-val="'+v+'"]');if(ci)ci.classList.add('selected');});}
     if(entry.temp){const c=document.querySelector('#modal-temp-chips .temp-chip[data-val="'+entry.temp+'"]');if(c){c.classList.add('selected');modalTempSelected=entry.temp;}}
     if(entry.photo){mPhotoDataUrl=entry.photo;document.getElementById('m-photo-preview').src=entry.photo;document.getElementById('m-photo-preview').style.display='block';}
   }else if(newLocation){document.getElementById('m-direccion').value=newLocation.direccion||'';}
@@ -1633,15 +1715,19 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
   const empresa=document.getElementById('m-empresa').value.trim();
   if(!empresa){document.getElementById('m-empresa').style.borderColor='#ff4d4d';setTimeout(()=>document.getElementById('m-empresa').style.borderColor='',1200);return;}
   const direccion=document.getElementById('m-direccion').value.trim();
+  const zona=modalZonaSelected||document.getElementById('m-zona').value.trim();
   if(editingId){
     const item=localStore.find(x=>x.id===editingId);
     if(item){
       item.temp=modalTempSelected;item.empresa=empresa;item.estudio=document.getElementById('m-estudio').value.trim();
       item.tipo=document.getElementById('m-tipo').value;item.estado=document.getElementById('m-estado').value;
       item.nombre=document.getElementById('m-nombre').value.trim();item.cargo=document.getElementById('m-cargo').value;
+      item.email=document.getElementById('m-email').value.trim();
       item.telefono=joinPhones(modalTelefonos);item.proveedor=document.getElementById('m-proveedor').value.trim();
       item.followup=document.getElementById('m-followup').value;item.notas=document.getElementById('m-notas').value.trim();
-      item.direccion=direccion;if(mPhotoDataUrl)item.photo=mPhotoDataUrl;
+      item.direccion=direccion;item.zona=zona;item.web=document.getElementById('m-web').value.trim();
+      item.catalogos=Array.from(modalCatalogosSelected);
+      if(mPhotoDataUrl)item.photo=mPhotoDataUrl;
       if(!item.historial)item.historial=[];
       item.historial.push({fecha:new Date().toLocaleDateString('es-UY'),nota:'Actualizado por '+currentUser.name});
       if(modalContactado && !item.contactado) item.contactado_fecha=new Date().toISOString();
@@ -1662,9 +1748,9 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
       source:'map',temp:modalTempSelected,empresa,estudio:document.getElementById('m-estudio').value.trim(),
       tipo:document.getElementById('m-tipo').value,estado:document.getElementById('m-estado').value,
       nombre:document.getElementById('m-nombre').value.trim(),cargo:document.getElementById('m-cargo').value,
-      telefono:joinPhones(modalTelefonos),email:'',direccion,zona:'',web:'',
+      telefono:joinPhones(modalTelefonos),email:document.getElementById('m-email').value.trim(),direccion,zona,web:document.getElementById('m-web').value.trim(),
       proveedor:document.getElementById('m-proveedor').value.trim(),followup:document.getElementById('m-followup').value,
-      catalogos:[],notas:document.getElementById('m-notas').value.trim(),photo:mPhotoDataUrl,
+      catalogos:Array.from(modalCatalogosSelected),notas:document.getElementById('m-notas').value.trim(),photo:mPhotoDataUrl,
       lat:pendingNewLatLng?pendingNewLatLng.lat:null,lng:pendingNewLatLng?pendingNewLatLng.lng:null,
       historial:[{fecha:new Date().toLocaleDateString('es-UY'),nota:'Pin creado por '+currentUser.name}],
       contactado:modalContactado,contactado_fecha:modalContactado?new Date().toISOString():null,
@@ -1674,8 +1760,9 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
       personas:modalPersonas
     };
     await saveEntry(entry);toast('Pin guardado ✓');
+    resetMapContactFilter();
   }
-  refreshMapMarkers();renderList();if(document.getElementById('view-contactos').classList.contains('active'))renderContactos();
+  buildMapContactFilter();refreshMapMarkers();renderList();if(document.getElementById('view-contactos').classList.contains('active'))renderContactos();
   document.getElementById('pin-modal').classList.remove('show');editingId=null;pendingNewLatLng=null;
 });
 
