@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>RutaObra - Vista Mobile</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0e0f12; --panel: #191b20; --panel2: #21242b; --line: #2e323b;
+  --ink: #f3f4f6; --ink-soft: #c4c8d0; --muted: #888f9b;
+  --acc: #b08f68; --cold: #4a9eff; --hot: #ff4d4d; --ok: #3ecf73;
+}
+body { background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+header { background: linear-gradient(180deg, #181a20, #0e0f12); border-bottom: 1px solid var(--line); padding: 12px 14px; flex-shrink: 0; }
+.brand { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.brand-logo { background: #fff; border-radius: 6px; padding: 4px 6px; display: flex; align-items: center; }
+.brand-logo img { height: 18px; }
+.brand h1 { font-size: 16px; font-weight: 800; }
+.brand p { font-size: 9px; color: var(--muted); }
+.tabs { display: flex; gap: 6px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { flex: 0 0 auto; padding: 8px 12px; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; font-size: 11px; font-weight: 700; color: var(--muted); cursor: pointer; white-space: nowrap; text-transform: uppercase; scroll-snap-align: start; transition: .2s; }
+.tab.active { background: var(--acc); color: #1a1300; border-color: var(--acc); }
+.content { flex: 1; overflow-y: auto; padding: 14px; -webkit-overflow-scrolling: touch; }
+.content h2 { font-size: 16px; margin-bottom: 6px; color: var(--acc); }
+.content p { font-size: 11px; color: var(--muted); margin-bottom: 12px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+.card h3 { font-size: 13px; font-weight: 800; margin-bottom: 8px; color: #fff; }
+.card p { font-size: 11px; color: var(--ink-soft); margin: 3px 0; }
+.badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase; margin-top: 6px; }
+.badge-cold { background: rgba(74, 158, 255, .14); color: var(--cold); }
+.badge-warm { background: rgba(176, 143, 104, .14); color: var(--acc); }
+.badge-hot { background: rgba(255, 77, 77, .14); color: var(--hot); }
+.badge-ok { background: rgba(62, 207, 115, .14); color: var(--ok); }
+.kanban { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+.kan-col { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+.kan-col h3 { font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; color: var(--ink-soft); }
+.kan-card { background: var(--panel2); border: 1px solid var(--line); border-radius: 7px; padding: 8px; margin-bottom: 8px; font-size: 10px; }
+.kan-card h4 { color: #fff; font-weight: 800; margin-bottom: 3px; }
+.kan-card p { color: var(--ink-soft); font-size: 9px; }
+.kan-empty { text-align: center; color: var(--muted); font-size: 9px; padding: 12px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-logo">📱</div>
+    <div>
+      <h1>RutaObra</h1>
+      <p>MGI Insumos Eléctricos</p>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-view="nuevo">＋ Nuevo</div>
+    <div class="tab" data-view="contactos">Contactos</div>
+    <div class="tab" data-view="negociaciones">Negociaciones</div>
+    <div class="tab" data-view="actividades">Actividades</div>
+    <div class="tab" data-view="mapa">Mapa</div>
+  </div>
+</header>
+
+<div class="content">
+
+  <!-- NUEVO -->
+  <div data-content="nuevo">
+    <h2>＋ Nuevo Contacto</h2>
+    <p>Registra una nueva obra</p>
+    <div class="card">
+      <h3>📋 Información</h3>
+      <p>• Empresa constructora</p>
+      <p>• Tipo de construcción</p>
+      <p>• Ubicación exacta</p>
+      <p>• Estado de la obra</p>
+    </div>
+    <div class="card">
+      <h3>👤 Contacto</h3>
+      <p>• Nombre y cargo</p>
+      <p>• Teléfono y email</p>
+      <p>• Clasificación (Frío/Tibio/Caliente)</p>
+    </div>
+  </div>
+
+  <!-- CONTACTOS -->
+  <div data-content="contactos" style="display:none">
+    <h2>👥 Contactos</h2>
+    <p>Base de datos clasificada</p>
+    
+    <div class="card">
+      <h3>JT DE LEON - TERASAKI</h3>
+      <p><strong>Contacto:</strong> Gonzalo (Jefe de obra)</p>
+      <p><strong>Teléfono:</strong> 099 123 456</p>
+      <p><strong>Ubicación:</strong> Punta del Este</p>
+      <p><strong>Estado:</strong> Terminaciones</p>
+      <span class="badge badge-warm">TIBIO</span>
+      <p style="margin-top: 6px; color: var(--ok); font-size: 9px;">✓ Contactado recientemente</p>
+    </div>
+
+    <div class="card">
+      <h3>CRIBA CONSTRUCTORA</h3>
+      <p><strong>Contacto:</strong> Javier (Encargado de compras)</p>
+      <p><strong>Teléfono:</strong> 4222 3344</p>
+      <p><strong>Ubicación:</strong> Maldonado</p>
+      <p><strong>Estado:</strong> Estructura en ejecución</p>
+      <span class="badge badge-cold">FRÍO</span>
+    </div>
+
+    <div class="card">
+      <h3>LIDERUS</h3>
+      <p><strong>Contacto:</strong> Ana (Arquitecta)</p>
+      <p><strong>Teléfono:</strong> 099 987 654</p>
+      <p><strong>Ubicación:</strong> Punta Brava</p>
+      <p><strong>Estado:</strong> Instalaciones (ideal)</p>
+      <span class="badge badge-hot">CALIENTE</span>
+    </div>
+  </div>
+
+  <!-- NEGOCIACIONES (KANBAN MEJORADO) -->
+  <div data-content="negociaciones" style="display:none">
+    <h2>📈 Negociaciones</h2>
+    <p>Pipeline Kanban optimizado para mobile ✓</p>
+    
+    <div class="kanban">
+      <div class="kan-col">
+        <h3>Cotización Pendiente</h3>
+        <div class="kan-card">
+          <h4>JT DE LEON</h4>
+          <p>Cotización para suministro eléctrico SUM</p>
+        </div>
+      </div>
+
+      <div class="kan-col">
+        <h3>Análisis</h3>
+        <div class="kan-card">
+          <h4>CRIBA</h4>
+          <p>En análisis presupuesto estándar</p>
+        </div>
+      </div>
+
+      <div class="kan-col">
+        <h3>Cotización Enviada</h3>
+        <div class="kan-card">
+          <h4>LIDERUS</h4>
+          <p>Presupuesto enviado para revisión</p>
+        </div>
+      </div>
+
+      <div class="kan-col">
+        <h3>Venta Completada</h3>
+        <div class="kan-empty">—</div>
+      </div>
+
+      <div class="kan-col">
+        <h3>Venta Perdida</h3>
+        <div class="kan-empty">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIVIDADES -->
+  <div data-content="actividades" style="display:none">
+    <h2>✅ Actividades</h2>
+    <p>Tareas y seguimientos</p>
+
+    <div class="card" style="border-left: 3px solid var(--ok)">
+      <p style="color: var(--muted); font-size: 9px;">Hoy • 14:30</p>
+      <h3>Llamar a Gonzalo (TERASAKI)</h3>
+      <p>Confirmar recepción de cotización y estado del proyecto</p>
+      <span class="badge badge-ok">PENDIENTE</span>
+    </div>
+
+    <div class="card" style="border-left: 3px solid var(--hot)">
+      <p style="color: var(--muted); font-size: 9px;">Mañana • 10:00</p>
+      <h3>Visita a obra - CRIBA</h3>
+      <p>Inspeccionar etapa de estructura, evaluar necesidades</p>
+      <span class="badge badge-hot">URGENTE</span>
+    </div>
+
+    <div class="card" style="border-left: 3px solid var(--cold)">
+      <p style="color: var(--muted); font-size: 9px;">Próxima semana</p>
+      <h3>Enviar catálogo a LIDERUS</h3>
+      <p>Preparar documento técnico con opciones de presupuesto</p>
+      <span class="badge badge-cold">EN ESPERA</span>
+    </div>
+  </div>
+
+  <!-- MAPA -->
+  <div data-content="mapa" style="display:none">
+    <h2>🗺️ Mapa</h2>
+    <p>Ubicación de todas las obras</p>
+    <div class="card" style="text-align: center; padding: 40px 20px;">
+      <p style="font-size: 32px; margin-bottom: 8px;">🗺️</p>
+      <p style="color: var(--muted); font-size: 12px;">Mapa interactivo con Leaflet</p>
+      <p style="color: var(--acc); font-size: 10px; margin-top: 8px;">Zoom, filtros por zona, markers</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const tabs = document.querySelectorAll('.tab');
+const contents = document.querySelectorAll('[data-content]');
+
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    // Remover activos
+    tabs.forEach(t => t.classList.remove('active'));
+    contents.forEach(c => c.style.display = 'none');
+    
+    // Activar
+    tab.classList.add('active');
+    const viewName = tab.dataset.view;
+    document.querySelector(`[data-content="${viewName}"]`).style.display = 'block';
+  });
+});
+</script>
+
+</body>
+</html>
