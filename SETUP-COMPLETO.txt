@@ -1,0 +1,130 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    ✅ SISTEMA DE RESPALDOS CONFIGURADO                       ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+📁 ESTRUCTURA CREADA:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+D:\CLAUDE CODE\
+│
+├── index.html                          ← Tu aplicación principal
+│
+├── 📦 SISTEMA DE RESPALDOS:
+│   ├── sync-backup.ps1                 ← Script PowerShell (recomendado)
+│   ├── sync-backup.bat                 ← Script Batch (doble clic)
+│   ├── backups/                        ← Carpeta local de respaldos
+│   │   └── index_2026-07-05_234934.html ← Primer respaldo creado ✓
+│   │
+│   └── SISTEMA-RESPALDOS.md            ← Instrucciones completas
+│
+└── .gitignore                          ← Actualizado para excluir backups
+
+
+🎯 CÓMO USARLO:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+OPCIÓN 1: Script PowerShell (en Terminal o PowerShell)
+────────────────────────────────────────────────────
+  .\sync-backup.ps1 -message "Descripción de cambios"
+
+OPCIÓN 2: Script Batch (Doble clic en sync-backup.bat)
+────────────────────────────────────────────────────
+  [Doble clic en D:\CLAUDE CODE\sync-backup.bat]
+
+
+✨ QUÉ HACE AUTOMÁTICAMENTE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. 📦 CREA RESPALDO
+   → Copia index.html a: backups/index_YYYY-MM-DD_HHMMSS.html
+   → Puedes usar cualquier respaldo anterior si te arrepientes
+
+2. 💾 HACE COMMIT EN GIT
+   → Registra todos los cambios con timestamp
+   → Visible en el historial de commits
+
+3. 🚀 SUBE A GITHUB
+   → Automáticamente hace push a: github.com/CrespoBonjour/rutaobra/
+   → Disponible en: https://crespobonjour.github.io/rutaobra/
+
+4. 📱 VES EN TU TELÉFONO
+   → Abre la URL desde cualquier dispositivo
+   → Los cambios se reflejan en segundos
+
+
+📊 ÚLTIMOS CAMBIOS ENVIADOS A GITHUB:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ e8b8704  🔧 Agregar script batch para facilitar respaldos en Windows
+✓ e79feba  📖 Documentar sistema de respaldos y GitHub sync
+✓ 8dab92d  Merge branch 'main' de GitHub
+✓ a657f63  📱 Optimizar layout Kanban en negociaciones para mobile
+✓ a5e6b1a  Update index.html
+
+
+🔄 FLUJO DE TRABAJO AHORA:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+   VS Code                       Local                    GitHub              Teléfono
+   (PC)                        (Backup)                 (Respository)      (Visualización)
+    │                            │                          │                   │
+    │ 1. Cambio código           │                          │                   │
+    │────────────────→           │                          │                   │
+    │                 2. Ejecuta script                     │                   │
+    │                 ↓           │                          │                   │
+    │                 ├─→ Respaldo: index_TIMESTAMP.html    │                   │
+    │                 ├─→ Git Add/Commit                    │                   │
+    │                 └─→ Git Push                          │                   │
+    │                            │                          │←──────────────────│
+    │                            │                    ✓ Actualizado           │
+    │                            │                          │                   │
+    │                            │                          │ 3. Abre URL       │
+    │                            │                          │←──────────────────│
+    │                            │                          │ ¡Ve cambios!  ✓   │
+
+
+🛡️ RECUPERACIÓN EN CASO DE ERROR:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Si cometiste un error:
+
+1. Abre: D:\CLAUDE CODE\backups\
+2. Busca el respaldo con la fecha/hora que quieres: index_2026-07-05_234934.html
+3. Copia su contenido
+4. Pega en: D:\CLAUDE CODE\index.html
+5. Ejecuta: .\sync-backup.ps1 -message "Revertir a versión anterior"
+
+¡Y listo! Vuelves a la versión anterior.
+
+
+📱 PROBAR DESDE EL TELÉFONO:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Abre en tu teléfono la URL:
+   https://crespobonjour.github.io/rutaobra/
+
+Los cambios aparecerán en segundos después de hacer sync-backup
+
+
+✅ ESTADO DEL SISTEMA:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ Respaldos locales configurados
+✓ GitHub conectado y sincronizado
+✓ Scripts de automatización listos
+✓ Documentación creada
+✓ Primer cambio enviado a GitHub
+
+¡LISTO PARA USAR! 🚀
+
+
+PRÓXIMOS PASOS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Haz cambios en index.html (en VS Code)
+2. Ejecuta: .\sync-backup.ps1 -message "Tu descripción"
+3. Espera 2-3 segundos
+4. Abre desde tu teléfono: https://crespobonjour.github.io/rutaobra/
+5. ¡Ve los cambios en vivo! 📱
+
+═══════════════════════════════════════════════════════════════════════════════
