@@ -42,20 +42,20 @@ create policy visitas_select on public.visitas
 create policy visitas_insert on public.visitas
   for insert with check (
     public.is_authorized_user(auth.jwt() ->> 'email')
-    and (user_id = auth.uid() or public.is_admin_user(auth.jwt() ->> 'email'))
+    and (user_id = (auth.uid())::text or public.is_admin_user(auth.jwt() ->> 'email'))
   );
 create policy visitas_update on public.visitas
   for update using (
     public.is_admin_user(auth.jwt() ->> 'email')
-    or (public.is_authorized_user(auth.jwt() ->> 'email') and user_id = auth.uid())
+    or (public.is_authorized_user(auth.jwt() ->> 'email') and user_id = (auth.uid())::text)
   ) with check (
     public.is_admin_user(auth.jwt() ->> 'email')
-    or (public.is_authorized_user(auth.jwt() ->> 'email') and user_id = auth.uid())
+    or (public.is_authorized_user(auth.jwt() ->> 'email') and user_id = (auth.uid())::text)
   );
 create policy visitas_delete on public.visitas
   for delete using (
     public.is_admin_user(auth.jwt() ->> 'email')
-    or (public.is_authorized_user(auth.jwt() ->> 'email') and user_id = auth.uid())
+    or (public.is_authorized_user(auth.jwt() ->> 'email') and user_id = (auth.uid())::text)
   );
 
 -- negociaciones: misma regla que visitas
@@ -64,20 +64,20 @@ create policy negociaciones_select on public.negociaciones
 create policy negociaciones_insert on public.negociaciones
   for insert with check (
     public.is_authorized_user(auth.jwt() ->> 'email')
-    and (user_id = auth.uid() or public.is_admin_user(auth.jwt() ->> 'email'))
+    and (user_id = (auth.uid())::text or public.is_admin_user(auth.jwt() ->> 'email'))
   );
 create policy negociaciones_update on public.negociaciones
   for update using (
     public.is_admin_user(auth.jwt() ->> 'email')
-    or (public.is_authorized_user(auth.jwt() ->> 'email') and user_id = auth.uid())
+    or (public.is_authorized_user(auth.jwt() ->> 'email') and user_id = (auth.uid())::text)
   ) with check (
     public.is_admin_user(auth.jwt() ->> 'email')
-    or (public.is_authorized_user(auth.jwt() ->> 'email') and user_id = auth.uid())
+    or (public.is_authorized_user(auth.jwt() ->> 'email') and user_id = (auth.uid())::text)
   );
 create policy negociaciones_delete on public.negociaciones
   for delete using (
     public.is_admin_user(auth.jwt() ->> 'email')
-    or (public.is_authorized_user(auth.jwt() ->> 'email') and user_id = auth.uid())
+    or (public.is_authorized_user(auth.jwt() ->> 'email') and user_id = (auth.uid())::text)
   );
 
 -- zonas y agenda: ya se comparten entre todo el equipo sin filtro de dueño
