@@ -1107,6 +1107,7 @@ async function saveEntry(entry) {
   entry.user_id = currentUser.id;
   entry.user_email = currentUser.email;
   entry.user_name = currentUser.name;
+  delete entry.expanded;
   const idx = localStore.findIndex(e => e.id === entry.id);
   if (idx >= 0) localStore[idx] = entry; else localStore.unshift(entry);
   setLoading(true);
@@ -1925,6 +1926,7 @@ document.getElementById('import-run-btn').addEventListener('click', async ()=>{
 // TAB CONTACTOS (tarjetas con contactado / bitrix)
 // ============================================================
 let ctSearch='',ctFilter='all',ctBitrixFilter='all';
+let expandedIds=new Set();
 
 function waLink(tel){
   const clean=(tel||'').split('/')[0].replace(/[^0-9+]/g,'');
@@ -1973,7 +1975,7 @@ function renderContactos(){
     ].filter(Boolean);
     const previewInt = ints.length ? ints[0].texto : '';
 
-    return '<div class="ct-card '+(e.contactado?'contacted':'')+' '+(e.bitrix?'inbitrix':'')+' '+(e.expanded?'expanded':'')+'" data-id="'+e.id+'">'
+    return '<div class="ct-card '+(e.contactado?'contacted':'')+' '+(e.bitrix?'inbitrix':'')+' '+(expandedIds.has(e.id)?'expanded':'')+'" data-id="'+e.id+'">'
       +'<div class="ct-top">'
       +'<div class="ct-info" data-toggleexpand="'+e.id+'" style="cursor:pointer">'
         +'<div class="ct-empresa">'+esc(e.estudio||e.empresa||'(sin nombre)')+'</div>'
@@ -1990,7 +1992,7 @@ function renderContactos(){
       +(e.notas?'<div class="ct-preview"><span class="lbl">Notas</span>'+esc(e.notas)+'</div>':'')
       +(previewInt?'<div class="ct-preview ct-preview-int"><span class="lbl">Última interacción</span>'+esc(previewInt)+'</div>':'')
       +(personas.length?'<div class="ct-persons-note" data-toggleexpand="'+e.id+'">'+ICONS.users+' +'+personas.length+' persona'+(personas.length>1?'s':'')+' de contacto</div>':'')
-      +'<button class="ct-expand-toggle" data-toggleexpand="'+e.id+'"><span class="chev">▾</span> '+(e.expanded?'Ocultar detalle':'Ver detalle')+'</button>'
+      +'<button class="ct-expand-toggle" data-toggleexpand="'+e.id+'"><span class="chev">▾</span> '+(expandedIds.has(e.id)?'Ocultar detalle':'Ver detalle')+'</button>'
       +'<div class="ct-detail">'
       +'<div class="ct-status">'
       +'<span class="ct-pill '+(e.contactado?'ok':'')+'">'+(e.contactado?ICONS.check+' Contactado':'Sin contactar')+(e.contactado_fecha?' · '+fmtCorta(e.contactado_fecha):'')+'</span>'
@@ -2010,9 +2012,8 @@ function renderContactos(){
 
   wrap.querySelectorAll('[data-toggleexpand]').forEach(el=>{
     el.addEventListener('click', ()=>{
-      const item=localStore.find(x=>x.id===parseFloat(el.dataset.toggleexpand));
-      if(!item) return;
-      item.expanded=!item.expanded;
+      const id=parseFloat(el.dataset.toggleexpand);
+      if(expandedIds.has(id)) expandedIds.delete(id); else expandedIds.add(id);
       renderContactos();
     });
   });
@@ -2184,7 +2185,7 @@ function jumpToContactFromActivity(estudioId){
   if(!estudioId) return;
   const item = localStore.find(x=>x.id===estudioId);
   if(!item) return;
-  item.expanded = true;
+  expandedIds.add(estudioId);
   document.querySelector('.tab[data-tab="contactos"]').click();
   setTimeout(()=>{
     const cardEl = document.querySelector('.ct-card[data-id="'+estudioId+'"]');
