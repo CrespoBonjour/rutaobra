@@ -722,6 +722,16 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
   <div class="kpi-grid" id="kpi-grid"></div>
   <div class="kpi-section-label">Ranking por vendedor</div>
   <div id="kpi-ranking"></div>
+  <div class="kpi-section-label">Usuarios autorizados</div>
+  <div id="ua-list"></div>
+  <div class="persona-add-form">
+    <input type="email" id="ua-email" placeholder="Email de Google (ej: nombre@gmail.com)">
+    <input type="text" id="ua-nombre" placeholder="Nombre (opcional)">
+    <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)">
+      <input type="checkbox" id="ua-admin" style="width:auto"> Es administrador
+    </label>
+    <button type="button" class="btn-primary" id="ua-save">Agregar / actualizar acceso</button>
+  </div>
 </section>
 
 </main>
@@ -885,9 +895,6 @@ const SUPA_URL = 'https://ohqfstlakwsjrjrmxell.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ocWZzdGxha3dzanJqcm14ZWxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4NDExMzMsImV4cCI6MjA5ODQxNzEzM30.Nru8ZZAcXzz-QDVSU-tuiqhL9FEMs0FdOMcgrBNYNsQ';
 const GOOGLE_CLIENT_ID = '983685192103-u0j394nuqhk6k1p3hpunm33nongb1boa.apps.googleusercontent.com';
 
-// Email del admin (dueño de MGI — cambiá esto por el email real del dueño)
-const ADMIN_EMAILS = ['arq.crespobonjour@gmail.com'];
-
 // Set de iconos SVG reutilizables (reemplaza emojis como icono estructural)
 const ICONS = {
   pin:'<svg class="icn" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>',
@@ -973,6 +980,15 @@ async function sbDelete(table, id, token) {
   if (!r.ok) throw new Error('DELETE '+r.status);
 }
 
+async function checkAuthorization(email, token) {
+  try {
+    const rows = await sbGet('usuarios_autorizados', 'email=eq.'+encodeURIComponent(email.toLowerCase()), token);
+    return { ok:true, row: rows[0] || null };
+  } catch (e) {
+    return { ok:false, row:null };
+  }
+}
+
 // ============================================================
 // AUTH con Google OAuth (Supabase flow)
 // ============================================================
@@ -1024,7 +1040,18 @@ async function initWithToken(token) {
   if (!r.ok) throw new Error('token inválido');
   const data = await r.json();
   currentUser = { token, id: data.id, email: data.email, name: data.user_metadata?.full_name || data.email, avatar: data.user_metadata?.avatar_url };
-  isAdmin = ADMIN_EMAILS.includes(data.email);
+  const auth = await checkAuthorization(data.email, token);
+  if (!auth.ok) {
+    currentUser = null;
+    toast('No se pudo verificar tu acceso, probá de nuevo', true);
+    showLogin();
+    return;
+  }
+  if (!auth.row) {
+    handleUnauthorized(data.email);
+    return;
+  }
+  isAdmin = !!auth.row.es_admin;
   showApp();
   await loadAll();
   if (!tokenRefreshTimer) tokenRefreshTimer = setInterval(refreshAccessToken, 45*60*1000);
@@ -1036,6 +1063,17 @@ function showLogin() {
   document.getElementById('app-main').style.display = 'none';
   document.getElementById('save-bar').style.display = 'none';
   document.getElementById('admin-filter-bar').style.display = 'none';
+}
+
+function handleUnauthorized(email) {
+  localStorage.removeItem('sb_access_token');
+  localStorage.removeItem('sb_refresh_token');
+  if (tokenRefreshTimer) { clearInterval(tokenRefreshTimer); tokenRefreshTimer = null; }
+  currentUser = null; isAdmin = false;
+  showLogin();
+  const status = document.getElementById('login-status');
+  status.textContent = 'Tu cuenta ('+email+') no está autorizada para usar RutaObra. Contactá a Martín para solicitar acceso.';
+  status.className = 'login-status err';
 }
 
 function showApp() {
@@ -1092,13 +1130,11 @@ function setLoading(on) { document.getElementById('sync-indicator').style.displa
 async function loadAll() {
   setLoading(true);
   try {
-    let params = '';
-    if (!isAdmin) params = 'user_id=eq.'+currentUser.id;
     [localStore, localZones, agendaStore, negociacionesStore] = await Promise.all([
-      sbGet('visitas', params, currentUser.token),
+      sbGet('visitas', '', currentUser.token),
       sbGet('zonas', '', currentUser.token),
       sbGet('agenda', '', currentUser.token).catch(()=>[]),
-      sbGet('negociaciones', params, currentUser.token).catch(()=>[])
+      sbGet('negociaciones', '', currentUser.token).catch(()=>[])
     ]);
     dbReady = true;
     if (isAdmin) buildVendedorFilter();
@@ -1213,7 +1249,7 @@ function attachInputSparks(){ document.querySelectorAll('input,textarea').forEac
 // UTILS
 // ============================================================
 function toast(msg,isError){const t=document.getElementById('toast');t.textContent=msg;t.classList.toggle('err',!!isError);t.classList.add('show');setTimeout(()=>t.classList.remove('show'),isError?7000:2000);}
-function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
+function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML.replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 
 // ============================================================
 // TABS
@@ -1385,7 +1421,7 @@ function buildPopup(e,direccionObra){
   if(e.proveedor) html+='<div class="pop-row"><span>Proveedor:</span> '+esc(e.proveedor)+'</div>';
   if(e.followup) html+='<div class="pop-row"><span>'+icoBookmark+'</span> '+esc(e.followup)+'</div>';
   if(e.notas) html+='<div class="pop-row"><span>'+icoNotes+'</span> '+esc(e.notas)+'</div>';
-  if(e.photo) html+='<img class="pop-img" src="'+e.photo+'" alt="Foto">';
+  if(e.photo) html+='<img class="pop-img" src="'+esc(e.photo)+'" alt="Foto">';
   html+='<div class="pop-row" style="color:#888f9b;font-size:11px;margin-top:7px;">'+e.fecha+' · '+e.hora+'</div>';
   if(isAdmin||e.user_id===currentUser?.id) html+='<button class="pop-edit-btn" onclick="openPinModal(localStore.find(e=>e.id==='+e.id+'))"><svg class="icn" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg> Editar información</button>';
   return html;
@@ -2014,7 +2050,7 @@ function renderContactos(){
         +'<div class="ct-nombre">'+esc(e.nombre||'')+(e.cargo?' · '+esc(e.cargo):'')+'</div>'
         +(tempLabel?'<div class="ct-badge-temp '+e.temp+'">'+tempLabel+'</div>':'')
       +'</div>'
-      +(e.photo?'<img class="ct-thumb" src="'+e.photo+'" alt="">':'')
+      +(e.photo?'<img class="ct-thumb" src="'+esc(e.photo)+'" alt="">':'')
       +'<div class="ct-toggles">'
       +'<button class="ct-tgl ok '+(e.contactado?'on':'')+'" data-toggle="contactado" data-id="'+e.id+'" title="Contactado"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>'
       +'<button class="ct-tgl bx '+(e.bitrix?'on':'')+'" data-toggle="bitrix" data-id="'+e.id+'" title="En Bitrix"><svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></button>'
@@ -2095,7 +2131,54 @@ document.querySelectorAll('[data-ctbx]').forEach(b=>b.addEventListener('click',(
 // ============================================================
 // PANEL DE KPIS (admin)
 // ============================================================
+let usuariosAutorizadosStore = [];
+
+async function renderUsuariosAutorizados(){
+  if (!isAdmin) return;
+  const wrap = document.getElementById('ua-list');
+  try { usuariosAutorizadosStore = await sbGet('usuarios_autorizados', '', currentUser.token); }
+  catch(e) { wrap.innerHTML = '<div style="font-size:11px;color:var(--muted)">No se pudo cargar la lista de usuarios.</div>'; return; }
+  if (!usuariosAutorizadosStore.length) { wrap.innerHTML = '<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Sin usuarios cargados todavía.</div>'; }
+  else {
+    wrap.innerHTML = usuariosAutorizadosStore.map(u=>{
+      const isSelf = u.email && currentUser.email && u.email.toLowerCase()===currentUser.email.toLowerCase();
+      return '<div class="persona-row"><span class="txt">'+ICONS.user+' '+esc(u.nombre||u.email)+' · '+esc(u.email)+(u.es_admin?' · admin':'')+'</span>'
+        + (isSelf ? '' : '<button type="button" data-deluser="'+u.id+'">'+ICONS.x+'</button>')
+        + '</div>';
+    }).join('');
+  }
+  wrap.querySelectorAll('[data-deluser]').forEach(b=>b.addEventListener('click', async ()=>{
+    const id = parseFloat(b.dataset.deluser);
+    const row = usuariosAutorizadosStore.find(u=>u.id===id);
+    if (!row || !confirm('¿Quitar el acceso de '+row.email+'?')) return;
+    try { await sbDelete('usuarios_autorizados', id, currentUser.token); toast('Acceso eliminado ✓'); renderUsuariosAutorizados(); }
+    catch(e) { toast('Error al eliminar: '+String(e).slice(0,120), true); }
+  }));
+}
+
+document.getElementById('ua-save').addEventListener('click', async ()=>{
+  const emailInput = document.getElementById('ua-email');
+  const email = emailInput.value.trim().toLowerCase();
+  if (!email || !email.includes('@')) { toast('Escribí un email válido', true); return; }
+  const nombre = document.getElementById('ua-nombre').value.trim();
+  const esAdmin = document.getElementById('ua-admin').checked;
+  const existing = usuariosAutorizadosStore.find(u=>u.email.toLowerCase()===email);
+  const row = {
+    id: existing ? existing.id : Date.now()+Math.floor(Math.random()*1000),
+    email, nombre, es_admin: esAdmin,
+    creado_por: currentUser.email,
+    creado_en: existing ? existing.creado_en : new Date().toISOString()
+  };
+  try {
+    await sbUpsert('usuarios_autorizados', row, currentUser.token);
+    toast(existing ? 'Acceso actualizado ✓' : 'Acceso agregado ✓');
+    emailInput.value=''; document.getElementById('ua-nombre').value=''; document.getElementById('ua-admin').checked=false;
+    renderUsuariosAutorizados();
+  } catch(e) { toast('Error al guardar: '+String(e).slice(0,120), true); }
+});
+
 function renderPanel(){
+  renderUsuariosAutorizados();
   const store = getFilteredStore();
   const total = store.length;
   const contactados = store.filter(e=>e.contactado).length;
