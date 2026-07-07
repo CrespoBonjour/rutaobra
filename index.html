@@ -418,6 +418,8 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .act-edit:hover{color:var(--acc-light)}
 .act-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;flex-shrink:0}
 .act-del:hover{color:#ff4d4d}
+.act-send{background:var(--acc-dim);border:1.5px solid var(--acc);color:var(--acc-light);cursor:pointer;font-size:10.5px;font-weight:800;flex-shrink:0;border-radius:7px;padding:6px 9px;display:flex;align-items:center;gap:4px;text-transform:uppercase}
+.act-send:hover{background:var(--acc);color:#1a1300}
 .act-form-box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:16px}
 .act-empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px}
 
@@ -573,6 +575,9 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
     </div>
     <div class="field"><label>Próxima acción</label>
       <select id="f-followup"><option value="">Seleccionar...</option><option>Enviar cotización</option><option>Llamar la próxima semana</option><option>Visitar de nuevo en 2 semanas</option><option>Enviar catálogo por WhatsApp</option><option>Esperar que avance la obra</option><option>Cerrado - sin interés</option></select>
+    </div>
+    <div class="field"><label>¿Le interesa recibir información de...? <span style="text-transform:none;font-weight:400;color:var(--muted)">(agenda un envío para mañana 10:00)</span></label>
+      <div class="quick-chips" id="f-productos-chips"></div>
     </div>
   </div>
   <div class="group">
@@ -750,6 +755,12 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
     </label>
     <button type="button" class="btn-primary" id="ua-save">Agregar / actualizar acceso</button>
   </div>
+  <div class="kpi-section-label">Catálogo de productos</div>
+  <div id="prod-list"></div>
+  <div class="persona-add-form">
+    <input type="text" id="prod-nombre" placeholder="Nombre del producto (ej: VHO)">
+    <button type="button" class="btn-primary" id="prod-save">Agregar producto</button>
+  </div>
 </section>
 
 </main>
@@ -843,6 +854,9 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
     </div>
     <div class="field"><label>Próxima acción</label>
       <select id="m-followup"><option value="">Seleccionar...</option><option>Enviar cotización</option><option>Llamar la próxima semana</option><option>Visitar de nuevo en 2 semanas</option><option>Esperar que avance la obra</option><option>Cerrado - sin interés</option></select>
+    </div>
+    <div class="field"><label>¿Le interesa recibir información de...? <span style="text-transform:none;font-weight:400;color:var(--muted)">(agenda un envío para mañana 10:00)</span></label>
+      <div class="quick-chips" id="m-productos-chips"></div>
     </div>
     <div class="field"><label>Notas</label><textarea id="m-notas" placeholder="Detalles adicionales..."></textarea></div>
     <div class="field"><label>Otras personas de contacto</label>
@@ -942,6 +956,7 @@ let localStore = [];
 let localZones = [];
 let agendaStore = [];
 let negociacionesStore = [];
+let productosCatalogoStore = [];
 let dbReady = false;
 let filterVendedor = 'all';
 
@@ -1149,14 +1164,17 @@ function setLoading(on) { document.getElementById('sync-indicator').style.displa
 async function loadAll() {
   setLoading(true);
   try {
-    [localStore, localZones, agendaStore, negociacionesStore] = await Promise.all([
+    [localStore, localZones, agendaStore, negociacionesStore, productosCatalogoStore] = await Promise.all([
       sbGet('visitas', '', currentUser.token),
       sbGet('zonas', '', currentUser.token),
       sbGet('agenda', '', currentUser.token).catch(()=>[]),
-      sbGet('negociaciones', '', currentUser.token).catch(()=>[])
+      sbGet('negociaciones', '', currentUser.token).catch(()=>[]),
+      sbGet('productos_catalogo', '', currentUser.token).catch(()=>[])
     ]);
+    productosCatalogoStore.sort((a,b)=>(a.orden||0)-(b.orden||0));
     dbReady = true;
     if (isAdmin) buildVendedorFilter();
+    renderProductosChips();
     renderList();
     if (mapInitialized) refreshMapMarkers();
     if(typeof checkRecordatorios==='function') checkRecordatorios();
@@ -1274,11 +1292,13 @@ function esc(s){const d=document.createElement('div');d.textContent=s||'';return
 // TABS
 // ============================================================
 let zonaSelected='',tempSelected='',catalogosSelected=new Set(),photoDataUrl=null;
+let productosInteresSelected=new Set();
 let mapInitialized=false,map,markersLayer,zonesLayer;
 let drawingZone=false,zonePoints=[],zoneTempMarkers=[],zonePoly=null;
 let modalTempSelected='',mPhotoDataUrl=null,editingId=null;
 let modalContactado=false,modalBitrix=false,modalInteracciones=[];
 let modalZonaSelected='',modalCatalogosSelected=new Set();
+let modalProductosInteresSelected=new Set();
 let pickedLatLng=null,pickedAddress='',pickerMap=null,geocodeTimeout=null,pendingNewLatLng=null;
 let modalObras=[],pickingObraMode=false;
 let pickingFormMode=false,formPickedLatLng=null;
@@ -1320,6 +1340,27 @@ document.getElementById('f-zona').addEventListener('input',e=>{if(e.target.value
 document.querySelectorAll('.catalog-item').forEach(c=>{ c.addEventListener('click',()=>{c.classList.toggle('selected');const v=c.dataset.val;catalogosSelected.has(v)?catalogosSelected.delete(v):catalogosSelected.add(v);}); });
 document.getElementById('photo-input').addEventListener('change',function(){const file=this.files[0];if(!file)return;const r=new FileReader();r.onload=e=>{photoDataUrl=e.target.result;const pr=document.getElementById('f-photo-preview');pr.src=photoDataUrl;pr.style.display='block';document.getElementById('photo-area').style.display='none';};r.readAsDataURL(file);});
 
+function renderProductosChips(){
+  const fWrap=document.getElementById('f-productos-chips');
+  if(fWrap){
+    fWrap.innerHTML=productosCatalogoStore.map(p=>'<div class="chip" data-val="'+esc(p.nombre)+'">'+esc(p.nombre)+'</div>').join('');
+    fWrap.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
+      c.classList.toggle('selected');
+      const v=c.dataset.val;
+      productosInteresSelected.has(v)?productosInteresSelected.delete(v):productosInteresSelected.add(v);
+    }));
+  }
+  const mWrap=document.getElementById('m-productos-chips');
+  if(mWrap){
+    mWrap.innerHTML=productosCatalogoStore.map(p=>'<div class="chip" data-val="'+esc(p.nombre)+'">'+esc(p.nombre)+'</div>').join('');
+    mWrap.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
+      c.classList.toggle('selected');
+      const v=c.dataset.val;
+      modalProductosInteresSelected.has(v)?modalProductosInteresSelected.delete(v):modalProductosInteresSelected.add(v);
+    }));
+  }
+}
+
 function clearForm(){
   ['f-empresa','f-estudio','f-nombre','f-cargo','f-telefono','f-email','f-direccion','f-zona','f-web','f-proveedor','f-notas','f-tipo','f-estado','f-followup'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.querySelectorAll('#temp-chips .temp-chip').forEach(c=>c.classList.remove('selected'));tempSelected='';
@@ -1327,6 +1368,7 @@ function clearForm(){
   document.querySelectorAll('.catalog-item').forEach(c=>c.classList.remove('selected'));catalogosSelected=new Set();
   photoDataUrl=null;document.getElementById('f-photo-preview').style.display='none';document.getElementById('photo-area').style.display='block';
   formPickedLatLng=null;document.getElementById('f-pin-status').style.display='none';
+  productosInteresSelected=new Set();renderProductosChips();
 }
 
 document.getElementById('f-pin-map-btn').addEventListener('click', ()=>{
@@ -1353,12 +1395,18 @@ document.getElementById('save-btn').addEventListener('click',async()=>{
     historial:[{fecha:new Date().toLocaleDateString('es-UY'),nota:'Visita registrada por '+currentUser.name}]
   };
   const huboPin=!!formPickedLatLng;
+  const productosElegidos=Array.from(productosInteresSelected);
   const okSave=await saveEntry(entry);
   if(!okSave) return;
   spawnSparks(window.innerWidth/2,window.innerHeight-80,22);
   toast('Contacto guardado ✓');clearForm();
   if(entry.direccion && !huboPin) geocodeAndSave(entry.id,entry.direccion+', Punta del Este, Uruguay');
   if(mapInitialized){ resetMapContactFilter(); buildMapContactFilter(); refreshMapMarkers(); }
+  if(productosElegidos.length){
+    const fechaManana=fmtYMD(new Date(Date.now()+86400000));
+    const res=await crearActividadAgenda({fecha:fechaManana, hora:'10:00', tipo:'actividad', texto:'Enviar información: '+productosElegidos.join(', '), estudioId:entry.id, productos:productosElegidos.join(', ')});
+    if(res.ok) toast('Actividad agendada para mañana 10:00 ✓'); else toast(res.msg, true);
+  }
 });
 
 function geocodeAndSave(id,address){
@@ -1716,6 +1764,7 @@ function openPinModal(entry,newLocation){
   document.querySelectorAll('#modal-temp-chips .temp-chip').forEach(x=>x.classList.remove('selected'));
   document.querySelectorAll('#modal-zona-chips .chip').forEach(x=>x.classList.remove('selected'));modalZonaSelected='';
   document.querySelectorAll('#modal-catalog-grid .catalog-item').forEach(x=>x.classList.remove('selected'));modalCatalogosSelected=new Set();
+  modalProductosInteresSelected=new Set();renderProductosChips();
   modalTempSelected='';mPhotoDataUrl=null;document.getElementById('m-photo-preview').style.display='none';
   modalContactado=!!(entry&&entry.contactado);modalBitrix=!!(entry&&entry.bitrix);
   modalInteracciones=entry&&Array.isArray(entry.interacciones)?entry.interacciones.slice():[];
@@ -1805,6 +1854,7 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
   if(!empresa){document.getElementById('m-empresa').style.borderColor='#ff4d4d';setTimeout(()=>document.getElementById('m-empresa').style.borderColor='',1200);return;}
   const direccion=document.getElementById('m-direccion').value.trim();
   const zona=modalZonaSelected||document.getElementById('m-zona').value.trim();
+  const productosElegidosModal=Array.from(modalProductosInteresSelected);
   if(editingId){
     const item=localStore.find(x=>x.id===editingId);
     if(item){
@@ -1831,6 +1881,11 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
       const okSave=await saveEntry(item);
       if(!okSave) return;
       toast('Actualizado ✓');
+      if(productosElegidosModal.length){
+        const fechaManana=fmtYMD(new Date(Date.now()+86400000));
+        const res=await crearActividadAgenda({fecha:fechaManana, hora:'10:00', tipo:'actividad', texto:'Enviar información: '+productosElegidosModal.join(', '), estudioId:item.id, productos:productosElegidosModal.join(', ')});
+        if(res.ok) toast('Actividad agendada para mañana 10:00 ✓'); else toast(res.msg, true);
+      }
     }
   }else{
     const entry={
@@ -1854,9 +1909,15 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
     if(!okSave) return;
     toast('Pin guardado ✓');
     resetMapContactFilter();
+    if(productosElegidosModal.length){
+      const fechaManana=fmtYMD(new Date(Date.now()+86400000));
+      const res=await crearActividadAgenda({fecha:fechaManana, hora:'10:00', tipo:'actividad', texto:'Enviar información: '+productosElegidosModal.join(', '), estudioId:entry.id, productos:productosElegidosModal.join(', ')});
+      if(res.ok) toast('Actividad agendada para mañana 10:00 ✓'); else toast(res.msg, true);
+    }
   }
   buildMapContactFilter();refreshMapMarkers();renderList();if(document.getElementById('view-contactos').classList.contains('active'))renderContactos();
   document.getElementById('pin-modal').classList.remove('show');editingId=null;pendingNewLatLng=null;
+  modalProductosInteresSelected=new Set();
 });
 
 // ============================================================
@@ -2019,9 +2080,16 @@ function waLink(tel){
   const clean=(tel||'').split('/')[0].replace(/[^0-9+]/g,'');
   return clean ? 'https://wa.me/598'+clean.replace(/^0/,'') : null;
 }
-function emailComposeLink(email){
+function waLinkMsg(tel,msg){
+  const clean=(tel||'').split('/')[0].replace(/[^0-9+]/g,'');
+  return clean ? 'https://wa.me/598'+clean.replace(/^0/,'')+'?text='+encodeURIComponent(msg||'') : null;
+}
+function emailComposeLink(email,subject,body){
   if(!email) return null;
-  return 'https://webmail.mgi.com.uy/cpsess7189627797/3rdparty/roundcube/?_task=mail&_action=compose&_to='+encodeURIComponent(email);
+  let url='https://webmail.mgi.com.uy/cpsess7189627797/3rdparty/roundcube/?_task=mail&_action=compose&_to='+encodeURIComponent(email);
+  if(subject) url+='&_subject='+encodeURIComponent(subject);
+  if(body) url+='&_body='+encodeURIComponent(body);
+  return url;
 }
 function emailRowHtml(email){
   if(!email) return '';
@@ -2231,8 +2299,44 @@ document.getElementById('ua-save').addEventListener('click', async ()=>{
   } catch(e) { toast('Error al guardar: '+String(e).slice(0,120), true); }
 });
 
+async function renderProductosCatalogo(){
+  if (!isAdmin) return;
+  const wrap = document.getElementById('prod-list');
+  try { productosCatalogoStore = await sbGet('productos_catalogo', '', currentUser.token); productosCatalogoStore.sort((a,b)=>(a.orden||0)-(b.orden||0)); }
+  catch(e) { wrap.innerHTML = '<div style="font-size:11px;color:var(--muted)">No se pudo cargar el catálogo.</div>'; return; }
+  if (!productosCatalogoStore.length) { wrap.innerHTML = '<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Sin productos cargados todavía.</div>'; }
+  else {
+    wrap.innerHTML = productosCatalogoStore.map(p=>
+      '<div class="persona-row"><span class="txt">'+esc(p.nombre)+'</span><button type="button" data-delprod="'+p.id+'">'+ICONS.x+'</button></div>'
+    ).join('');
+  }
+  wrap.querySelectorAll('[data-delprod]').forEach(b=>b.addEventListener('click', async ()=>{
+    const id = parseFloat(b.dataset.delprod);
+    const row = productosCatalogoStore.find(p=>p.id===id);
+    if (!row || !confirm('¿Quitar "'+row.nombre+'" del catálogo?')) return;
+    try { await sbDelete('productos_catalogo', id, currentUser.token); toast('Producto eliminado ✓'); await renderProductosCatalogo(); renderProductosChips(); }
+    catch(e) { toast('Error al eliminar: '+String(e).slice(0,120), true); }
+  }));
+  renderProductosChips();
+}
+
+document.getElementById('prod-save').addEventListener('click', async ()=>{
+  const nombreInput = document.getElementById('prod-nombre');
+  const nombre = nombreInput.value.trim();
+  if (!nombre) { toast('Escribí un nombre de producto', true); return; }
+  const maxOrden = productosCatalogoStore.reduce((m,p)=>Math.max(m,p.orden||0),0);
+  const row = { id: Date.now()+Math.floor(Math.random()*1000), nombre, orden: maxOrden+1, creado_por: currentUser.email, creado_en: new Date().toISOString() };
+  try {
+    await sbUpsert('productos_catalogo', row, currentUser.token);
+    toast('Producto agregado ✓');
+    nombreInput.value='';
+    await renderProductosCatalogo();
+  } catch(e) { toast('Error al guardar: '+String(e).slice(0,120), true); }
+});
+
 function renderPanel(){
   renderUsuariosAutorizados();
+  renderProductosCatalogo();
   const store = getFilteredStore();
   const total = store.length;
   const contactados = store.filter(e=>e.contactado).length;
@@ -2298,14 +2402,17 @@ function buildAgendaEstudiosList(){
 
 // Función única para crear una actividad/visita en agenda, usada desde
 // la pestaña Agenda, la pestaña Actividades, y desde la ficha de cada contacto.
-async function crearActividadAgenda({fecha, hora, tipo, texto, estudioTxt}){
+async function crearActividadAgenda({fecha, hora, tipo, texto, estudioTxt, estudioId:estudioIdFijo, productos}){
   if(!texto || !texto.trim()) return {ok:false, msg:'Escribí un texto para el evento.'};
   let estudioId=null, estudioNombre='';
-  if(estudioTxt && estudioTxt.trim()){
+  if(estudioIdFijo){
+    const match=localStore.find(e=>e.id===estudioIdFijo);
+    if(match){ estudioId=match.id; estudioNombre=match.estudio||match.empresa||''; }
+  } else if(estudioTxt && estudioTxt.trim()){
     const match=localStore.find(e=>(e.estudio||'').toLowerCase().trim()===estudioTxt.toLowerCase().trim());
     if(match){ estudioId=match.id; estudioNombre=match.estudio; } else { estudioNombre=estudioTxt.trim(); }
   }
-  const ev={ id:Date.now()+Math.floor(Math.random()*1000), fecha, hora:hora||'', tipo, texto:texto.trim(), estudio_id:estudioId, estudio_nombre:estudioNombre, completada:false, completada_fecha:null };
+  const ev={ id:Date.now()+Math.floor(Math.random()*1000), fecha, hora:hora||'', tipo, texto:texto.trim(), estudio_id:estudioId, estudio_nombre:estudioNombre, productos:productos||null, completada:false, completada_fecha:null };
   try{
     await sbUpsert('agenda', {...ev, user_id:currentUser.id, user_email:currentUser.email, user_name:currentUser.name}, currentUser.token);
     agendaStore.push(ev);
@@ -2496,6 +2603,7 @@ function renderActividades(){
       + '</div>'
       + '<div class="act-texto">'+esc(e.texto)+'</div>'
       + '</div>'
+      + (e.productos ? '<button class="act-send" data-sendprod="'+e.id+'">'+ICONS.mail+' Enviar</button>' : '')
       + '<button class="act-edit" data-editact="'+e.id+'">'+ICONS.edit+'</button>'
       + '<button class="act-del" data-delag="'+e.id+'">'+ICONS.trash+'</button>'
       + '</div>';
@@ -2507,6 +2615,19 @@ function renderActividades(){
     const ev=agendaStore.find(x=>x.id===parseFloat(b.dataset.editact)); if(!ev) return;
     showActForm(ev);
     document.getElementById('act-form-wrap').scrollIntoView({behavior:'smooth', block:'start'});
+  }));
+  wrap.querySelectorAll('[data-sendprod]').forEach(b=>b.addEventListener('click', ()=>{
+    const ev=agendaStore.find(x=>x.id===parseFloat(b.dataset.sendprod)); if(!ev) return;
+    const contacto = ev.estudio_id ? localStore.find(x=>x.id===ev.estudio_id) : null;
+    const nombre = contacto?.nombre || '';
+    const mensaje = 'Hola'+(nombre?' '+nombre:'')+', te comparto la información de '+ev.productos+' que solicitaste. Cualquier consulta quedo a disposición. Saludos!';
+    let abrioAlgo=false;
+    if(contacto?.email){ window.open(emailComposeLink(contacto.email,'Información solicitada - MGI',mensaje),'_blank'); abrioAlgo=true; }
+    const tel = contacto ? parsePhones(contacto.telefono)[0] : null;
+    if(tel){ window.open(waLinkMsg(tel,mensaje),'_blank'); abrioAlgo=true; }
+    if(!abrioAlgo) toast('El contacto no tiene email ni teléfono cargado', true);
+    else if(!contacto?.email) toast('Este contacto no tiene email cargado, solo se abrió WhatsApp', true);
+    else if(!tel) toast('Este contacto no tiene teléfono cargado, solo se abrió el email', true);
   }));
 }
 
