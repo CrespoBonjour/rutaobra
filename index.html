@@ -428,21 +428,27 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .kan-col{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);display:flex;flex-direction:column;max-height:calc(100vh - 260px);min-height:220px;min-width:0}
 @media (min-width:768px){.kan-board{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}}
 @media (min-width:1000px){.kan-board{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch};.kan-col{flex:0 0 300px;scroll-snap-align:start}}
-.kan-col-header{padding:11px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.kan-col-title{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--ink-soft)}
-.kan-col-count{font-size:10.5px;font-weight:800;color:var(--muted);background:var(--panel2);border-radius:20px;padding:1px 8px}
+.kan-col-header{padding:14px 14px 12px;border-bottom:1px solid var(--line);flex-shrink:0;position:relative}
+.kan-col-header::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--acc)}
+.kan-col-title{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--ink-soft)}
+.kan-col-count{font-family:var(--font-display);font-size:22px;font-weight:600;color:#fff;margin-top:4px;font-variant-numeric:tabular-nums}
 .kan-col.dragover{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc-dim)}
 .kan-col.ganada .kan-col-title{color:#3ecf73}
 .kan-col.perdida .kan-col-title{color:var(--hot)}
+.kan-col.ganada .kan-col-header::before{background:#3ecf73}
+.kan-col.perdida .kan-col-header::before{background:var(--hot)}
 .kan-cards{flex:1;overflow-y:auto;overflow-x:hidden;padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0}
-.kan-card{background:var(--panel2);border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 11px;touch-action:pan-y;user-select:none;transition:box-shadow .15s var(--ease);min-width:0;max-width:100%}
+.kan-card{background:var(--panel2);border:1px solid var(--line);border-radius:var(--r-sm);padding:12px 13px;touch-action:pan-y;user-select:none;transition:border-color .15s var(--ease),transform .15s var(--ease);min-width:0;max-width:100%}
+.kan-card:hover{border-color:var(--acc);transform:translateY(-1px)}
 .kan-card.dragging{opacity:.35}
 .kan-card-ghost{position:fixed;z-index:3000;pointer-events:none;box-shadow:var(--shadow-lift);border-radius:var(--r-sm);transform:rotate(-2deg);opacity:.96}
-.kan-card-empresa{font-size:13px;font-weight:800;color:#fff;cursor:pointer;overflow-wrap:anywhere;word-break:break-word}
+.kan-card-empresa{font-family:var(--font-display);font-size:15px;font-weight:600;color:#fff;letter-spacing:.2px;cursor:pointer;overflow-wrap:anywhere;word-break:break-word}
 .kan-card-empresa:hover{color:var(--acc-light)}
-.kan-card-texto{font-size:12px;color:var(--ink-soft);margin-top:3px;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}
-.kan-card-move{display:flex;gap:6px;margin-top:8px}
-.kan-card-move button{flex:1;background:var(--panel);border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:5px 0;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center}
+.kan-card-texto{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}
+.kan-card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:9px;border-top:1px solid var(--line)}
+.kan-card-stagelbl{font-size:9.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--acc-light)}
+.kan-card-move{display:flex;gap:5px}
+.kan-card-move button{width:24px;height:24px;flex:0 0 auto;background:var(--panel);border:1px solid var(--line);color:var(--muted);border-radius:5px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center}
 .kan-card-move button:disabled{opacity:.25;cursor:default}
 .kan-card-move button:not(:disabled):hover{border-color:var(--acc);color:var(--acc-light)}
 .kan-follow-toggle{font-size:10.5px;color:var(--acc-light);font-weight:700;cursor:pointer;margin-top:8px;display:inline-block}
@@ -2022,6 +2028,15 @@ function emailRowHtml(email){
   return '<div class="ct-phones"><div class="ct-phone-row"><span>'+ICONS.mail+' '+esc(email)+'</span><a href="'+esc(emailComposeLink(email))+'" target="_blank">'+ICONS.arrowUpRight+' Email</a></div></div>';
 }
 function fmtCorta(iso){ if(!iso)return''; const d=new Date(iso); return d.toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit',year:'2-digit'}); }
+function fmtRelativa(ts){
+  if(!ts) return '';
+  const dias = Math.floor((Date.now()-ts)/86400000);
+  if(dias<=0) return 'Hoy';
+  if(dias===1) return 'Ayer';
+  if(dias<7) return 'Hace '+dias+' días';
+  if(dias<30) return 'Hace '+Math.floor(dias/7)+' sem.';
+  return 'Hace '+Math.floor(dias/30)+' mes'+(Math.floor(dias/30)>1?'es':'');
+}
 
 // Un campo de teléfono puede traer más de un número (separados por / , ;).
 function parsePhones(str){
@@ -2575,12 +2590,16 @@ async function moverNegociacion(id, nuevaEtapa){
 
 function renderNegCard(n){
   const idx = NEG_ETAPAS.findIndex(e=>e.key===n.etapa);
+  const stagelbl = n.etapa==='ganada' ? 'Ganada' : n.etapa==='perdida' ? 'Perdida' : fmtRelativa(n.orden);
   return '<div class="kan-card" data-negid="'+n.id+'" data-etapa="'+n.etapa+'">'
     + '<div class="kan-card-empresa" data-jumpneg="'+n.estudio_id+'">'+esc(n.estudio_nombre||'(sin nombre)')+'</div>'
     + '<div class="kan-card-texto">'+esc(n.texto||'')+'</div>'
-    + '<div class="kan-card-move">'
-      + '<button data-movneg="'+n.id+'" data-dir="-1" '+(idx<=0?'disabled':'')+'>'+ICONS.chevLeft+'</button>'
-      + '<button data-movneg="'+n.id+'" data-dir="1" '+(idx>=NEG_ETAPAS.length-1?'disabled':'')+'>'+ICONS.chevRight+'</button>'
+    + '<div class="kan-card-foot">'
+      + '<span class="kan-card-stagelbl">'+esc(stagelbl)+'</span>'
+      + '<div class="kan-card-move">'
+        + '<button data-movneg="'+n.id+'" data-dir="-1" '+(idx<=0?'disabled':'')+'>'+ICONS.chevLeft+'</button>'
+        + '<button data-movneg="'+n.id+'" data-dir="1" '+(idx>=NEG_ETAPAS.length-1?'disabled':'')+'>'+ICONS.chevRight+'</button>'
+      + '</div>'
     + '</div>'
     + '<div class="kan-follow-toggle" data-follow="'+n.id+'">+ Agregar seguimiento</div>'
     + '<div class="kan-follow-box" id="kan-follow-'+n.id+'">'
@@ -2598,7 +2617,7 @@ function renderNegociaciones(){
   board.innerHTML = NEG_ETAPAS.map(et=>{
     const cards = list.filter(n=>n.etapa===et.key).sort((a,b)=>(b.orden||0)-(a.orden||0));
     return '<div class="kan-col '+et.key+'" data-col="'+et.key+'">'
-      + '<div class="kan-col-header"><span class="kan-col-title">'+et.label+'</span><span class="kan-col-count">'+cards.length+'</span></div>'
+      + '<div class="kan-col-header"><div class="kan-col-title">'+et.label+'</div><div class="kan-col-count">'+cards.length+'</div></div>'
       + '<div class="kan-cards" data-colcards="'+et.key+'">'+(cards.length?cards.map(renderNegCard).join(''):'<div class="kan-empty-col">Sin negociaciones acá.</div>')+'</div>'
       + '</div>';
   }).join('');
