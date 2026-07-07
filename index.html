@@ -313,6 +313,8 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .ct-phone-row a{color:#3ecf73;text-decoration:none;margin-left:auto;font-weight:700;font-size:11px;display:flex;align-items:center;gap:3px}
 .ct-preview{font-size:11.5px;color:var(--ink-soft);line-height:1.4;background:var(--panel2);border-left:2px solid var(--line);padding:6px 9px;border-radius:0 6px 6px 0;margin-bottom:8px;white-space:pre-wrap}
 .ct-preview-int{overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;white-space:normal}
+.ct-preview-activity{color:#e0b33d;background:rgba(224,179,61,.14);border-left-color:#e0b33d;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;white-space:normal}
+.ct-badge-activity{position:absolute;top:-6px;right:-6px;width:14px;height:14px;border-radius:50%;background:var(--hot);border:2px solid var(--bg);box-shadow:0 0 6px rgba(255,77,77,.6)}
 .ct-preview .lbl{color:var(--muted);font-weight:700;text-transform:uppercase;font-size:9px;letter-spacing:.3px;margin-right:4px}
 .ct-expand-toggle{width:100%;text-align:center;padding:6px;background:none;border:none;color:var(--muted);font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit;text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;justify-content:center;gap:4px}
 .ct-expand-toggle:hover{color:var(--acc)}
@@ -2147,8 +2149,11 @@ function renderContactos(){
       e.followup ? ICONS.bookmark+' '+esc(e.followup) : ''
     ].filter(Boolean);
     const previewInt = ints.length ? ints[0].texto : '';
+    const actividadesPendientes = agendaStore.filter(a=>a.tipo==='actividad' && !a.completada && a.estudio_id===e.id).sort((a,b)=>(a.fecha+((a.hora)||'99:99')).localeCompare(b.fecha+((b.hora)||'99:99')));
+    const proximaActividad = actividadesPendientes[0];
 
     return '<div class="ct-card '+(e.contactado?'contacted':'')+' '+(e.bitrix?'inbitrix':'')+' '+(expandedIds.has(e.id)?'expanded':'')+'" data-id="'+e.id+'">'
+      +(proximaActividad?'<div class="ct-badge-activity" title="Tiene una actividad pendiente"></div>':'')
       +'<div class="ct-top">'
       +'<div class="ct-info" data-toggleexpand="'+e.id+'" style="cursor:pointer">'
         +'<div class="ct-empresa">'+esc(e.estudio||e.empresa||'(sin nombre)')+'</div>'
@@ -2165,6 +2170,7 @@ function renderContactos(){
       +emailRowHtml(e.email)
       +(e.notas?'<div class="ct-preview"><span class="lbl">Notas</span>'+esc(e.notas)+'</div>':'')
       +(previewInt?'<div class="ct-preview ct-preview-int"><span class="lbl">Última interacción</span>'+esc(previewInt)+'</div>':'')
+      +(proximaActividad?'<div class="ct-preview ct-preview-activity"><span class="lbl">Actividad pendiente</span>'+esc(proximaActividad.texto)+'</div>':'')
       +(personas.length?'<div class="ct-persons-note" data-toggleexpand="'+e.id+'">'+ICONS.users+' +'+personas.length+' persona'+(personas.length>1?'s':'')+' de contacto</div>':'')
       +'<button class="ct-expand-toggle" data-toggleexpand="'+e.id+'"><span class="chev">▾</span> '+(expandedIds.has(e.id)?'Ocultar detalle':'Ver detalle')+'</button>'
       +'<div class="ct-detail">'
