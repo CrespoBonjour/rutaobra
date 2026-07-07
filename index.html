@@ -280,6 +280,9 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .ct-fbtn{padding:7px 10px;background:transparent;border:none;border-radius:6px;color:var(--muted);font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:.16s var(--ease)}
 .ct-fbtn.active{background:var(--acc-dim);color:var(--acc)}
 .ct-fbtn.bx.active{background:rgba(74,158,255,.16);color:var(--cold)}
+.ct-fbtn.cold.active{background:rgba(74,158,255,.16);color:var(--cold)}
+.ct-fbtn.warm.active{background:var(--acc-dim);color:var(--acc)}
+.ct-fbtn.hot.active{background:rgba(255,77,77,.16);color:var(--hot)}
 .io-btn,.add-btn{background:var(--acc-tex-btn);color:var(--acc-btn-ink);border:none;border-radius:9px;padding:9px 14px;font-size:11.5px;font-weight:800;cursor:pointer;text-transform:uppercase;letter-spacing:.3px;font-family:inherit;box-shadow:var(--shadow-sm);white-space:nowrap;transition:transform .15s var(--ease)}
 .io-btn:active,.add-btn:active{transform:scale(.96)}
 .ct-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(266px,1fr));gap:11px}
@@ -336,6 +339,9 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 /* ===== PANEL (KPIs, admin) ===== */
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:22px}
 .kpi-card{background:linear-gradient(165deg,var(--panel3),var(--panel) 65%);border:1px solid var(--line);border-radius:var(--r-md);padding:14px;box-shadow:var(--shadow-sm)}
+.kpi-card.clickable{cursor:pointer;transition:transform .15s var(--ease),border-color .15s var(--ease)}
+.kpi-card.clickable:hover{border-color:var(--acc);transform:translateY(-1px)}
+.kpi-card.clickable:active{transform:scale(.98)}
 .kpi-value{font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--ink)}
 .kpi-label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-top:2px}
 .kpi-bar-track{height:6px;background:var(--panel2);border-radius:4px;margin-top:9px;overflow:hidden}
@@ -638,6 +644,12 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       <button class="ct-fbtn bx active" data-ctbx="all">Bitrix: Todos</button>
       <button class="ct-fbtn bx" data-ctbx="yes">En Bitrix</button>
       <button class="ct-fbtn bx" data-ctbx="no">Falta pasar</button>
+    </div>
+    <div class="ct-fgroup">
+      <button class="ct-fbtn active" data-cttemp="all">Todas las temp.</button>
+      <button class="ct-fbtn cold" data-cttemp="cold">Frío</button>
+      <button class="ct-fbtn warm" data-cttemp="warm">Tibio</button>
+      <button class="ct-fbtn hot" data-cttemp="hot">Caliente</button>
     </div>
     <button class="io-btn" id="ct-export-btn">⬇ CSV</button>
   </div>
@@ -1993,7 +2005,7 @@ document.getElementById('import-run-btn').addEventListener('click', async ()=>{
 // ============================================================
 // TAB CONTACTOS (tarjetas con contactado / bitrix)
 // ============================================================
-let ctSearch='',ctFilter='all',ctBitrixFilter='all';
+let ctSearch='',ctFilter='all',ctBitrixFilter='all',ctTempFilter='all';
 let expandedIds=new Set();
 
 function waLink(tel){
@@ -2024,6 +2036,7 @@ function renderContactos(){
     if(ctFilter==='done' && !e.contactado) return false;
     if(ctBitrixFilter==='yes' && !e.bitrix) return false;
     if(ctBitrixFilter==='no' && e.bitrix) return false;
+    if(ctTempFilter!=='all' && e.temp!==ctTempFilter) return false;
     if(ctSearch){
       const hay=(e.estudio+' '+e.nombre+' '+e.telefono+' '+e.zona+' '+e.empresa).toLowerCase();
       if(!hay.includes(ctSearch.toLowerCase())) return false;
@@ -2127,6 +2140,22 @@ function renderContactos(){
 document.getElementById('ct-search').addEventListener('input', e=>{ ctSearch=e.target.value; renderContactos(); });
 document.querySelectorAll('[data-ctf]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-ctf]').forEach(x=>x.classList.remove('active'));b.classList.add('active');ctFilter=b.dataset.ctf;renderContactos();}));
 document.querySelectorAll('[data-ctbx]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-ctbx]').forEach(x=>x.classList.remove('active'));b.classList.add('active');ctBitrixFilter=b.dataset.ctbx;renderContactos();}));
+document.querySelectorAll('[data-cttemp]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-cttemp]').forEach(x=>x.classList.remove('active'));b.classList.add('active');ctTempFilter=b.dataset.cttemp;renderContactos();}));
+
+function goToContactosFiltered(temp, estadoContacto){
+  ctTempFilter = temp; ctFilter = estadoContacto || 'all'; ctBitrixFilter = 'all'; ctSearch = '';
+  const ctSearchInput = document.getElementById('ct-search'); if(ctSearchInput) ctSearchInput.value = '';
+  document.querySelectorAll('[data-cttemp]').forEach(x=>x.classList.toggle('active', x.dataset.cttemp===temp));
+  document.querySelectorAll('[data-ctf]').forEach(x=>x.classList.toggle('active', x.dataset.ctf===ctFilter));
+  document.querySelectorAll('[data-ctbx]').forEach(x=>x.classList.toggle('active', x.dataset.ctbx==='all'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector('.tab[data-tab="contactos"]').classList.add('active');
+  positionTabIndicator();
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-contactos').classList.add('active');
+  document.getElementById('save-bar').style.display='none';
+  renderContactos();
+}
 
 // ============================================================
 // PANEL DE KPIS (admin)
@@ -2192,15 +2221,18 @@ function renderPanel(){
     {label:'Contactos totales', value: String(total)},
     {label:'Contactados', value: pct(contactados)+'%', bar: pct(contactados), color:'var(--ok)'},
     {label:'En Bitrix', value: pct(enBitrix)+'%', bar: pct(enBitrix), color:'var(--cold)'},
-    {label:'Fríos sin contactar', value: String(friosSinContactar), color:'var(--cold)'},
-    {label:'Tibios', value: String(tibios), color:'var(--acc)'},
-    {label:'Calientes', value: String(calientes), color:'var(--hot)'}
+    {label:'Fríos sin contactar', value: String(friosSinContactar), color:'var(--cold)', temp:'cold', estado:'pending'},
+    {label:'Tibios', value: String(tibios), color:'var(--acc)', temp:'warm'},
+    {label:'Calientes', value: String(calientes), color:'var(--hot)', temp:'hot'}
   ];
   document.getElementById('kpi-grid').innerHTML = cards.map(k=>
-    '<div class="kpi-card"><div class="kpi-value" style="color:'+(k.color||'var(--ink)')+'">'+k.value+'</div><div class="kpi-label">'+k.label+'</div>'
+    '<div class="kpi-card'+(k.temp?' clickable':'')+'"'+(k.temp?' data-gototemp="'+k.temp+'" data-gotoestado="'+(k.estado||'all')+'"':'')+'><div class="kpi-value" style="color:'+(k.color||'var(--ink)')+'">'+k.value+'</div><div class="kpi-label">'+k.label+'</div>'
     +(k.bar!=null?'<div class="kpi-bar-track"><div class="kpi-bar-fill" style="width:'+k.bar+'%;background:'+k.color+'"></div></div>':'')
     +'</div>'
   ).join('');
+  document.querySelectorAll('[data-gototemp]').forEach(c=>c.addEventListener('click', ()=>{
+    goToContactosFiltered(c.dataset.gototemp, c.dataset.gotoestado==='all'?null:c.dataset.gotoestado);
+  }));
 
   const byVendor = {};
   store.forEach(e=>{
