@@ -922,6 +922,7 @@ const ICONS = {
   bookmark:'<svg class="icn" viewBox="0 0 24 24"><path d="M19 21 12 16l-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>',
   notes:'<svg class="icn" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
   arrowUpRight:'<svg class="icn" viewBox="0 0 24 24" style="width:11px;height:11px"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>',
+  mail:'<svg class="icn" viewBox="0 0 24 24" style="width:11px;height:11px"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>',
   zap:'<svg class="icn" viewBox="0 0 24 24" style="fill:currentColor;stroke:none"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>',
   snow:'<svg class="icn" viewBox="0 0 24 24"><path d="M12 2v20M4.2 7l15.6 10M4.2 17l15.6-10"/></svg>',
   therm:'<svg class="icn" viewBox="0 0 24 24"><path d="M14 4v10.5a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0z"/></svg>',
@@ -2012,6 +2013,14 @@ function waLink(tel){
   const clean=(tel||'').split('/')[0].replace(/[^0-9+]/g,'');
   return clean ? 'https://wa.me/598'+clean.replace(/^0/,'') : null;
 }
+function emailComposeLink(email){
+  if(!email) return null;
+  return 'https://webmail.mgi.com.uy/cpsess7189627797/3rdparty/roundcube/?_task=mail&_action=compose&_to='+encodeURIComponent(email);
+}
+function emailRowHtml(email){
+  if(!email) return '';
+  return '<div class="ct-phones"><div class="ct-phone-row"><span>'+ICONS.mail+' '+esc(email)+'</span><a href="'+esc(emailComposeLink(email))+'" target="_blank">'+ICONS.arrowUpRight+' Email</a></div></div>';
+}
 function fmtCorta(iso){ if(!iso)return''; const d=new Date(iso); return d.toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit',year:'2-digit'}); }
 
 // Un campo de teléfono puede traer más de un número (separados por / , ;).
@@ -2070,6 +2079,7 @@ function renderContactos(){
       +'</div></div>'
       +(metaChips.length?'<div class="ct-meta">'+metaChips.map(c=>'<span class="ct-pill">'+c+'</span>').join('')+'</div>':'')
       +phoneRowsHtml(e.telefono)
+      +emailRowHtml(e.email)
       +(e.notas?'<div class="ct-preview"><span class="lbl">Notas</span>'+esc(e.notas)+'</div>':'')
       +(previewInt?'<div class="ct-preview ct-preview-int"><span class="lbl">Última interacción</span>'+esc(previewInt)+'</div>':'')
       +(personas.length?'<div class="ct-persons-note" data-toggleexpand="'+e.id+'">'+ICONS.users+' +'+personas.length+' persona'+(personas.length>1?'s':'')+' de contacto</div>':'')
@@ -2214,14 +2224,14 @@ function renderPanel(){
   const enBitrix = store.filter(e=>e.bitrix).length;
   const tibios = store.filter(e=>e.temp==='warm').length;
   const calientes = store.filter(e=>e.temp==='hot').length;
-  const friosSinContactar = store.filter(e=>e.temp==='cold' && !e.contactado).length;
+  const frios = store.filter(e=>e.temp==='cold').length;
   const pct = n => total ? Math.round(n/total*100) : 0;
 
   const cards = [
     {label:'Contactos totales', value: String(total)},
     {label:'Contactados', value: pct(contactados)+'%', bar: pct(contactados), color:'var(--ok)'},
     {label:'En Bitrix', value: pct(enBitrix)+'%', bar: pct(enBitrix), color:'var(--cold)'},
-    {label:'Fríos sin contactar', value: String(friosSinContactar), color:'var(--cold)', temp:'cold', estado:'pending'},
+    {label:'Fríos', value: String(frios), color:'var(--cold)', temp:'cold'},
     {label:'Tibios', value: String(tibios), color:'var(--acc)', temp:'warm'},
     {label:'Calientes', value: String(calientes), color:'var(--hot)', temp:'hot'}
   ];
