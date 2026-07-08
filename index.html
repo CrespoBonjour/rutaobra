@@ -375,6 +375,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .ag-chip{font-size:8px;line-height:1.35;padding:1px 3px;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;flex-shrink:0}
 .ag-chip.visita{background:var(--acc-dim);color:var(--acc-light)}
 .ag-chip.actividad{background:rgba(74,158,255,.18);color:var(--cold)}
+.ag-chip.completada{background:rgba(62,207,115,.18);color:var(--ok);text-decoration:line-through;text-decoration-color:rgba(62,207,115,.6)}
 .ag-more{font-size:7.5px;color:var(--muted);font-weight:700;flex-shrink:0}
 /* Vista semanal: dias apilados de arriba a abajo, con mas ancho para el texto */
 .ag-grid.week-mode{display:flex;flex-direction:column;gap:8px}
@@ -387,12 +388,14 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .ag-week-chip .t{font-family:monospace;color:var(--muted);flex-shrink:0}
 .ag-week-chip.visita{background:var(--acc-dim);color:var(--acc-light)}
 .ag-week-chip.actividad{background:rgba(74,158,255,.16);color:var(--cold)}
+.ag-week-chip.completada{background:rgba(62,207,115,.16);color:var(--ok);text-decoration:line-through;text-decoration-color:rgba(62,207,115,.6)}
 .ag-week-empty{font-size:11.5px;color:var(--muted)}
 .ag-daypanel{margin-top:16px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
 .ag-dayheader{font-size:14px;font-weight:800;color:#fff;text-transform:capitalize;margin-bottom:10px}
 .ag-event{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px 10px;margin-bottom:8px}
 .ag-event.visita{border-left:3px solid var(--acc)}
 .ag-event.actividad{border-left:3px solid var(--cold)}
+.ag-event.completada{border-left:3px solid var(--ok)}
 .ag-evtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;font-size:10.5px;font-weight:800}
 .ag-evtop.visita{color:var(--acc)}.ag-evtop.actividad{color:var(--cold)}
 .ag-evtext{font-size:12.5px;color:var(--ink-soft);white-space:pre-wrap}
@@ -583,6 +586,13 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
     <div class="field"><label>¿Le interesa recibir información de...? <span style="text-transform:none;font-weight:400;color:var(--muted)">(agenda un envío para mañana 10:00)</span></label>
       <div class="quick-chips" id="f-productos-chips"></div>
     </div>
+    <div class="field"><label>Agendar una actividad <span style="text-transform:none;font-weight:400;color:var(--muted)">(opcional, ej: llamar, visitar...)</span></label>
+      <textarea id="f-act-text" placeholder="¿Qué tenés que hacer con este contacto?" style="min-height:44px;margin-bottom:6px;"></textarea>
+      <div class="row2">
+        <input type="date" id="f-act-fecha" title="Fecha" style="flex:1">
+        <input type="time" id="f-act-hora" title="Hora (opcional)" style="flex:1">
+      </div>
+    </div>
   </div>
   <div class="group">
     <div class="group-label">Ubicación</div>
@@ -665,6 +675,10 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       <button class="ct-fbtn cold" data-cttemp="cold">Frío</button>
       <button class="ct-fbtn warm" data-cttemp="warm">Tibio</button>
       <button class="ct-fbtn hot" data-cttemp="hot">Caliente</button>
+    </div>
+    <div class="ct-fgroup">
+      <button class="ct-fbtn active" data-ctact="all">Todas</button>
+      <button class="ct-fbtn" data-ctact="pending">Actividad pendiente</button>
     </div>
     <button class="io-btn" id="ct-export-btn">⬇ CSV</button>
   </div>
@@ -1373,6 +1387,7 @@ function clearForm(){
   photoDataUrl=null;document.getElementById('f-photo-preview').style.display='none';document.getElementById('photo-area').style.display='block';
   formPickedLatLng=null;document.getElementById('f-pin-status').style.display='none';
   productosInteresSelected=new Set();renderProductosChips();
+  document.getElementById('f-act-text').value='';document.getElementById('f-act-fecha').value='';document.getElementById('f-act-hora').value='';
 }
 
 document.getElementById('f-pin-map-btn').addEventListener('click', ()=>{
@@ -1400,6 +1415,10 @@ document.getElementById('save-btn').addEventListener('click',async()=>{
   };
   const huboPin=!!formPickedLatLng;
   const productosElegidos=Array.from(productosInteresSelected);
+  const actTexto=document.getElementById('f-act-text').value.trim();
+  const actFecha=document.getElementById('f-act-fecha').value;
+  const actHora=document.getElementById('f-act-hora').value;
+  if(actTexto && !actFecha){ toast('Ponele una fecha a la actividad que querés agendar', true); return; }
   const okSave=await saveEntry(entry);
   if(!okSave) return;
   spawnSparks(window.innerWidth/2,window.innerHeight-80,22);
@@ -1410,6 +1429,10 @@ document.getElementById('save-btn').addEventListener('click',async()=>{
     const fechaManana=fmtYMD(new Date(Date.now()+86400000));
     const res=await crearActividadAgenda({fecha:fechaManana, hora:'10:00', tipo:'actividad', texto:'Enviar información: '+productosElegidos.join(', '), estudioId:entry.id, productos:productosElegidos.join(', ')});
     if(res.ok) toast('Actividad agendada para mañana 10:00 ✓'); else toast(res.msg, true);
+  }
+  if(actTexto && actFecha){
+    const res2=await crearActividadAgenda({fecha:actFecha, hora:actHora, tipo:'actividad', texto:actTexto, estudioId:entry.id});
+    if(res2.ok) toast('Actividad agendada ✓'); else toast(res2.msg, true);
   }
 });
 
@@ -2077,7 +2100,7 @@ document.getElementById('import-run-btn').addEventListener('click', async ()=>{
 // ============================================================
 // TAB CONTACTOS (tarjetas con contactado / bitrix)
 // ============================================================
-let ctSearch='',ctFilter='all',ctBitrixFilter='all',ctTempFilter='all';
+let ctSearch='',ctFilter='all',ctBitrixFilter='all',ctTempFilter='all',ctActFilter='all';
 let expandedIds=new Set();
 
 function waLink(tel){
@@ -2133,6 +2156,7 @@ function renderContactos(){
     if(ctBitrixFilter==='yes' && !e.bitrix) return false;
     if(ctBitrixFilter==='no' && e.bitrix) return false;
     if(ctTempFilter!=='all' && e.temp!==ctTempFilter) return false;
+    if(ctActFilter==='pending' && !agendaStore.some(a=>a.tipo==='actividad' && !a.completada && a.estudio_id===e.id)) return false;
     if(ctSearch){
       const hay=(e.estudio+' '+e.nombre+' '+e.telefono+' '+e.zona+' '+e.empresa).toLowerCase();
       if(!hay.includes(ctSearch.toLowerCase())) return false;
@@ -2242,6 +2266,7 @@ document.getElementById('ct-search').addEventListener('input', e=>{ ctSearch=e.t
 document.querySelectorAll('[data-ctf]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-ctf]').forEach(x=>x.classList.remove('active'));b.classList.add('active');ctFilter=b.dataset.ctf;renderContactos();}));
 document.querySelectorAll('[data-ctbx]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-ctbx]').forEach(x=>x.classList.remove('active'));b.classList.add('active');ctBitrixFilter=b.dataset.ctbx;renderContactos();}));
 document.querySelectorAll('[data-cttemp]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-cttemp]').forEach(x=>x.classList.remove('active'));b.classList.add('active');ctTempFilter=b.dataset.cttemp;renderContactos();}));
+document.querySelectorAll('[data-ctact]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-ctact]').forEach(x=>x.classList.remove('active'));b.classList.add('active');ctActFilter=b.dataset.ctact;renderContactos();}));
 
 function goToContactosFiltered(temp, estadoContacto){
   ctTempFilter = temp; ctFilter = estadoContacto || 'all'; ctBitrixFilter = 'all'; ctSearch = '';
@@ -2315,9 +2340,20 @@ async function renderProductosCatalogo(){
   if (!productosCatalogoStore.length) { wrap.innerHTML = '<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Sin productos cargados todavía.</div>'; }
   else {
     wrap.innerHTML = productosCatalogoStore.map(p=>
-      '<div class="persona-row"><span class="txt">'+esc(p.nombre)+'</span><button type="button" data-delprod="'+p.id+'">'+ICONS.x+'</button></div>'
+      '<div class="persona-row"><span class="txt">'+esc(p.nombre)+'</span><button type="button" data-editprod="'+p.id+'">'+ICONS.edit+'</button><button type="button" data-delprod="'+p.id+'">'+ICONS.x+'</button></div>'
     ).join('');
   }
+  wrap.querySelectorAll('[data-editprod]').forEach(b=>b.addEventListener('click', async ()=>{
+    const id = parseFloat(b.dataset.editprod);
+    const row = productosCatalogoStore.find(p=>p.id===id);
+    if (!row) return;
+    const nuevoNombre = prompt('Nuevo nombre para "'+row.nombre+'":', row.nombre);
+    if (!nuevoNombre || !nuevoNombre.trim() || nuevoNombre.trim()===row.nombre) return;
+    try {
+      await sbUpsert('productos_catalogo', {...row, nombre:nuevoNombre.trim()}, currentUser.token);
+      toast('Producto renombrado ✓'); await renderProductosCatalogo();
+    } catch(e) { toast('Error al renombrar: '+String(e).slice(0,120), true); }
+  }));
   wrap.querySelectorAll('[data-delprod]').forEach(b=>b.addEventListener('click', async ()=>{
     const id = parseFloat(b.dataset.delprod);
     const row = productosCatalogoStore.find(p=>p.id===id);
@@ -2483,7 +2519,7 @@ function jumpToContactFromActivity(estudioId){
 function agCellHtml(ymd, dayLabel){
   const evs=agendaStore.filter(e=>e.fecha===ymd).sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
   const isToday=ymd===fmtYMD(new Date()), isSel=ymd===agSelectedDay;
-  const chips = evs.slice(0,2).map(e=>'<span class="ag-chip '+e.tipo+'">'+(e.hora?esc(e.hora)+' · ':'')+esc(e.texto)+'</span>').join('');
+  const chips = evs.slice(0,2).map(e=>'<span class="ag-chip '+e.tipo+(e.completada?' completada':'')+'">'+(e.hora?esc(e.hora)+' · ':'')+esc(e.texto)+'</span>').join('');
   const more = evs.length>2 ? '<span class="ag-more">+'+(evs.length-2)+' más</span>' : '';
   return '<div class="ag-cell '+(isToday?'today':'')+' '+(isSel?'selected':'')+'" data-day="'+ymd+'"><div class="ag-daynum">'+dayLabel+'</div>'+chips+more+'</div>';
 }
@@ -2493,7 +2529,7 @@ function agWeekRowHtml(ymd){
   const isToday=ymd===fmtYMD(new Date()), isSel=ymd===agSelectedDay;
   const label=new Date(ymd+'T00:00:00').toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'short'});
   const chips = evs.length
-    ? evs.map(e=>'<div class="ag-week-chip '+e.tipo+'">'+(e.hora?'<span class="t">'+esc(e.hora)+'</span>':'')+'<span>'+esc(e.texto)+'</span></div>').join('')
+    ? evs.map(e=>'<div class="ag-week-chip '+e.tipo+(e.completada?' completada':'')+'">'+(e.hora?'<span class="t">'+esc(e.hora)+'</span>':'')+'<span>'+esc(e.texto)+'</span></div>').join('')
     : '<div class="ag-week-empty">Sin eventos.</div>';
   return '<div class="ag-week-row '+(isToday?'today':'')+' '+(isSel?'selected':'')+'" data-day="'+ymd+'"><div class="ag-week-daylabel">'+label+'</div><div class="ag-week-chips">'+chips+'</div></div>';
 }
