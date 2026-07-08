@@ -1225,6 +1225,10 @@ function getFilteredStore() {
   if (!isAdmin || filterVendedor === 'all') return localStore;
   return localStore.filter(e => e.user_email === filterVendedor);
 }
+function getFilteredAgenda() {
+  if (!isAdmin || filterVendedor === 'all') return agendaStore;
+  return agendaStore.filter(e => e.user_email === filterVendedor);
+}
 
 async function saveEntry(entry) {
   entry.user_id = currentUser.id;
@@ -2283,6 +2287,19 @@ function goToContactosFiltered(temp, estadoContacto){
   renderContactos();
 }
 
+function goToActividadesFiltered(filtro){
+  actFilter = filtro; actSearch = '';
+  const actSearchInput = document.getElementById('act-search'); if(actSearchInput) actSearchInput.value = '';
+  document.querySelectorAll('[data-actf]').forEach(x=>x.classList.toggle('active', x.dataset.actf===filtro));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector('.tab[data-tab="actividades"]').classList.add('active');
+  positionTabIndicator();
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-actividades').classList.add('active');
+  document.getElementById('save-bar').style.display='none';
+  renderActividades();
+}
+
 // ============================================================
 // PANEL DE KPIS (admin)
 // ============================================================
@@ -2399,21 +2416,33 @@ function renderPanel(){
   const frios = store.filter(e=>e.temp==='cold').length;
   const pct = n => total ? Math.round(n/total*100) : 0;
 
+  const hoyYMD = fmtYMD(new Date());
+  const acts = getFilteredAgenda().filter(e=>e.tipo==='actividad');
+  const actCompletadas = acts.filter(e=>e.completada).length;
+  const actVencidas = acts.filter(e=>!e.completada && e.fecha<hoyYMD).length;
+  const actPendientes = acts.filter(e=>!e.completada).length;
+
   const cards = [
     {label:'Contactos totales', value: String(total)},
     {label:'Contactados', value: pct(contactados)+'%', bar: pct(contactados), color:'var(--ok)'},
     {label:'En Bitrix', value: pct(enBitrix)+'%', bar: pct(enBitrix), color:'var(--cold)'},
     {label:'Fríos', value: String(frios), color:'var(--cold)', temp:'cold'},
     {label:'Tibios', value: String(tibios), color:'var(--acc)', temp:'warm'},
-    {label:'Calientes', value: String(calientes), color:'var(--hot)', temp:'hot'}
+    {label:'Calientes', value: String(calientes), color:'var(--hot)', temp:'hot'},
+    {label:'Actividades pendientes', value: String(actPendientes), color:'var(--cold)', actf:'pendientes'},
+    {label:'Actividades vencidas', value: String(actVencidas), color:'var(--hot)', actf:'vencidas'},
+    {label:'Actividades completadas', value: String(actCompletadas), color:'var(--ok)', actf:'completadas'}
   ];
   document.getElementById('kpi-grid').innerHTML = cards.map(k=>
-    '<div class="kpi-card'+(k.temp?' clickable':'')+'"'+(k.temp?' data-gototemp="'+k.temp+'" data-gotoestado="'+(k.estado||'all')+'"':'')+'><div class="kpi-value" style="color:'+(k.color||'var(--ink)')+'">'+k.value+'</div><div class="kpi-label">'+k.label+'</div>'
+    '<div class="kpi-card'+((k.temp||k.actf)?' clickable':'')+'"'+(k.temp?' data-gototemp="'+k.temp+'" data-gotoestado="'+(k.estado||'all')+'"':'')+(k.actf?' data-gotoact="'+k.actf+'"':'')+'><div class="kpi-value" style="color:'+(k.color||'var(--ink)')+'">'+k.value+'</div><div class="kpi-label">'+k.label+'</div>'
     +(k.bar!=null?'<div class="kpi-bar-track"><div class="kpi-bar-fill" style="width:'+k.bar+'%;background:'+k.color+'"></div></div>':'')
     +'</div>'
   ).join('');
   document.querySelectorAll('[data-gototemp]').forEach(c=>c.addEventListener('click', ()=>{
     goToContactosFiltered(c.dataset.gototemp, c.dataset.gotoestado==='all'?null:c.dataset.gotoestado);
+  }));
+  document.querySelectorAll('[data-gotoact]').forEach(c=>c.addEventListener('click', ()=>{
+    goToActividadesFiltered(c.dataset.gotoact);
   }));
 
   const byVendor = {};
