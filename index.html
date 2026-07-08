@@ -408,7 +408,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 
 /* ===== ACTIVIDADES ===== */
 .act-section-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:800;margin:16px 0 8px}
-.act-row{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--cold);border-radius:9px;padding:12px 14px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start}
+.act-row{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--cold);border-radius:9px;padding:12px 14px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
 .act-row.vencida{border-left-color:#ff4d4d}
 .act-row.completada{border-left-color:#3ecf73;opacity:.6}
 .act-check{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line);background:var(--panel2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
@@ -2349,9 +2349,18 @@ async function renderProductosCatalogo(){
     if (!row) return;
     const nuevoNombre = prompt('Nuevo nombre para "'+row.nombre+'":', row.nombre);
     if (!nuevoNombre || !nuevoNombre.trim() || nuevoNombre.trim()===row.nombre) return;
+    const nombreViejo = row.nombre, nombreNuevo = nuevoNombre.trim();
     try {
-      await sbUpsert('productos_catalogo', {...row, nombre:nuevoNombre.trim()}, currentUser.token);
-      toast('Producto renombrado ✓'); await renderProductosCatalogo();
+      await sbUpsert('productos_catalogo', {...row, nombre:nombreNuevo}, currentUser.token);
+      const afectadas = agendaStore.filter(a=>a.productos && a.productos.split(', ').includes(nombreViejo));
+      for(const act of afectadas){
+        act.productos = act.productos.split(', ').map(p=>p===nombreViejo?nombreNuevo:p).join(', ');
+        act.texto = act.texto.split(nombreViejo).join(nombreNuevo);
+        try { await sbUpsert('agenda', act, currentUser.token); } catch(e2) { console.error('Error actualizando actividad', e2); }
+      }
+      toast('Producto renombrado ✓'+(afectadas.length?' ('+afectadas.length+' actividad(es) actualizadas)':''));
+      await renderProductosCatalogo();
+      if(document.getElementById('view-actividades').classList.contains('active')) renderActividades();
     } catch(e) { toast('Error al renombrar: '+String(e).slice(0,120), true); }
   }));
   wrap.querySelectorAll('[data-delprod]').forEach(b=>b.addEventListener('click', async ()=>{
@@ -2647,7 +2656,7 @@ function renderActividades(){
       + '</div>'
       + '<div class="act-texto">'+esc(e.texto)+'</div>'
       + '</div>'
-      + (e.productos ? '<button class="act-send" data-sendprod="'+e.id+'">'+ICONS.mail+' Enviar</button>' : '')
+      + (e.productos ? '<button class="act-send" data-sendmail="'+e.id+'">'+ICONS.mail+' Email</button><button class="act-send" data-sendwa="'+e.id+'">'+ICONS.arrowUpRight+' WhatsApp</button>' : '')
       + '<button class="act-edit" data-editact="'+e.id+'">'+ICONS.edit+'</button>'
       + '<button class="act-del" data-delag="'+e.id+'">'+ICONS.trash+'</button>'
       + '</div>';
@@ -2660,18 +2669,22 @@ function renderActividades(){
     showActForm(ev);
     document.getElementById('act-form-wrap').scrollIntoView({behavior:'smooth', block:'start'});
   }));
-  wrap.querySelectorAll('[data-sendprod]').forEach(b=>b.addEventListener('click', ()=>{
-    const ev=agendaStore.find(x=>x.id===parseFloat(b.dataset.sendprod)); if(!ev) return;
+  wrap.querySelectorAll('[data-sendmail]').forEach(b=>b.addEventListener('click', ()=>{
+    const ev=agendaStore.find(x=>x.id===parseFloat(b.dataset.sendmail)); if(!ev) return;
     const contacto = ev.estudio_id ? localStore.find(x=>x.id===ev.estudio_id) : null;
+    if(!contacto?.email){ toast('Este contacto no tiene email cargado', true); return; }
     const nombre = contacto?.nombre || '';
     const mensaje = 'Hola'+(nombre?' '+nombre:'')+', te comparto la información de '+ev.productos+' que solicitaste. Cualquier consulta quedo a disposición. Saludos!';
-    let abrioAlgo=false;
-    if(contacto?.email){ window.open(emailComposeLink(contacto.email,'Información solicitada - MGI',mensaje),'_blank'); abrioAlgo=true; }
+    window.open(emailComposeLink(contacto.email,'Información solicitada - MGI',mensaje),'_blank');
+  }));
+  wrap.querySelectorAll('[data-sendwa]').forEach(b=>b.addEventListener('click', ()=>{
+    const ev=agendaStore.find(x=>x.id===parseFloat(b.dataset.sendwa)); if(!ev) return;
+    const contacto = ev.estudio_id ? localStore.find(x=>x.id===ev.estudio_id) : null;
     const tel = contacto ? parsePhones(contacto.telefono)[0] : null;
-    if(tel){ window.open(waLinkMsg(tel,mensaje),'_blank'); abrioAlgo=true; }
-    if(!abrioAlgo) toast('El contacto no tiene email ni teléfono cargado', true);
-    else if(!contacto?.email) toast('Este contacto no tiene email cargado, solo se abrió WhatsApp', true);
-    else if(!tel) toast('Este contacto no tiene teléfono cargado, solo se abrió el email', true);
+    if(!tel){ toast('Este contacto no tiene teléfono cargado', true); return; }
+    const nombre = contacto?.nombre || '';
+    const mensaje = 'Hola'+(nombre?' '+nombre:'')+', te comparto la información de '+ev.productos+' que solicitaste. Cualquier consulta quedo a disposición. Saludos!';
+    window.open(waLinkMsg(tel,mensaje),'_blank');
   }));
 }
 
