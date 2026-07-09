@@ -1812,6 +1812,8 @@ async function enviarABitrix(item, status, reintento){
     return enviarABitrix(item, status, true);
   }
   nuevas.forEach(h=>{ h.bitrix_synced=true; });
+  const sinErrores = !(Array.isArray(data.activityErrors) && data.activityErrors.length);
+  if(sinErrores){ item.bitrix=true; item.bitrix_fecha=new Date().toISOString(); }
   await saveEntry(item);
   status.innerHTML='Contacto ID '+esc(String(data.bitrixContactId))+' · Negociación ID '+esc(String(data.bitrixDealId))+' · <a href="https://mgi.bitrix24.es/crm/deal/details/'+esc(String(data.bitrixDealId))+'/" target="_blank" style="color:var(--acc-light)">abrir negociación ↗</a>'
     +(Array.isArray(data.activityErrors)&&data.activityErrors.length?'<div style="color:var(--hot);margin-top:4px">Error en '+data.activityErrors.length+' actividad(es): '+esc(data.activityErrors.map(e=>e.error).join(' | '))+'</div>':'')
@@ -1975,9 +1977,10 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
       if(modalContactado && !item.contactado) item.contactado_fecha=new Date().toISOString();
       if(!modalContactado) item.contactado_fecha=null;
       item.contactado=modalContactado;
-      if(modalBitrix && !item.bitrix) item.bitrix_fecha=new Date().toISOString();
-      if(!modalBitrix) item.bitrix_fecha=null;
-      item.bitrix=modalBitrix;
+      // Cualquier edición de la ficha desactualiza lo que ya se mandó a Bitrix: se destilda
+      // solo, y se vuelve a tildar cuando se reenvía con éxito (ver enviarABitrix).
+      item.bitrix=false;
+      item.bitrix_fecha=null;
       item.interacciones=modalInteracciones;
       item.obras=modalObras;
       item.personas=modalPersonas;
@@ -2324,6 +2327,7 @@ function renderContactos(){
       const item=localStore.find(x=>x.id===id); if(!item) return;
       if(!Array.isArray(item.interacciones)) item.interacciones=[];
       item.interacciones.unshift({fecha:new Date().toLocaleDateString('es-UY')+' '+new Date().toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'}),texto,auto:false});
+      item.bitrix=false; item.bitrix_fecha=null;
       const okSave=await saveEntry(item);
       if(!okSave) return;
       const fechaEl = wrap.querySelector('[data-intfecha="'+id+'"]');
@@ -2575,6 +2579,7 @@ async function crearActividadAgenda({fecha, hora, tipo, texto, estudioTxt, estud
       if(item){
         if(!Array.isArray(item.interacciones)) item.interacciones=[];
         item.interacciones.unshift({fecha:new Date().toLocaleDateString('es-UY'),texto:(tipo==='visita'?'[Visita agendada] ':'[Actividad agendada] ')+ev.texto,auto:false});
+        item.bitrix=false; item.bitrix_fecha=null;
         await saveEntry(item);
       }
     }
@@ -2605,6 +2610,10 @@ async function toggleActividadCompletada(id){
   ev.completada_fecha = ev.completada ? new Date().toISOString() : null;
   try{
     await sbUpsert('agenda', {id:ev.id, fecha:ev.fecha, hora:ev.hora, tipo:ev.tipo, texto:ev.texto, estudio_id:ev.estudio_id, estudio_nombre:ev.estudio_nombre, completada:ev.completada, completada_fecha:ev.completada_fecha, user_id:currentUser.id, user_email:currentUser.email, user_name:currentUser.name}, currentUser.token);
+    if(ev.completada && ev.estudio_id){
+      const item=localStore.find(x=>x.id===ev.estudio_id);
+      if(item && item.bitrix){ item.bitrix=false; item.bitrix_fecha=null; await saveEntry(item); }
+    }
   }catch(err){ toast('Error al actualizar', true); }
   refreshActiveView();
 }
@@ -2956,6 +2965,7 @@ function renderNegociaciones(){
       if(item){
         if(!Array.isArray(item.interacciones)) item.interacciones=[];
         item.interacciones.unshift({fecha:new Date().toLocaleDateString('es-UY')+' '+new Date().toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'}),texto:'[Negociación] '+texto,auto:false});
+        item.bitrix=false; item.bitrix_fecha=null;
         okSave=await saveEntry(item);
       }
       if(okSave) toast('Seguimiento guardado ✓');
