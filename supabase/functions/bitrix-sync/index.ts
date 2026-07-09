@@ -22,6 +22,7 @@ async function bx(webhookUrl: string, method: string, payload: any) {
   });
   const data = await r.json();
   if (data.error) throw new Error(method + ": " + (data.error_description || data.error));
+  if (data.result === false) throw new Error(method + ": la operación no tuvo efecto (¿el ID ya no existe en Bitrix?)");
   return data.result;
 }
 
@@ -69,8 +70,13 @@ Deno.serve(async (req: Request) => {
 
     let contactId = bitrixContactId;
     if (contactId) {
-      await bx(webhookUrl, "crm.contact.update", { id: contactId, fields: contactFields });
-    } else {
+      try {
+        await bx(webhookUrl, "crm.contact.update", { id: contactId, fields: contactFields });
+      } catch (_e) {
+        contactId = null; // el contacto ya no existe en Bitrix, crear uno nuevo
+      }
+    }
+    if (!contactId) {
       contactId = await bx(webhookUrl, "crm.contact.add", { fields: contactFields });
     }
 
@@ -90,8 +96,13 @@ Deno.serve(async (req: Request) => {
     };
     let dealId = bitrixDealId;
     if (dealId) {
-      await bx(webhookUrl, "crm.deal.update", { id: dealId, fields: dealFields });
-    } else {
+      try {
+        await bx(webhookUrl, "crm.deal.update", { id: dealId, fields: dealFields });
+      } catch (_e) {
+        dealId = null; // la negociacion ya no existe en Bitrix, crear una nueva
+      }
+    }
+    if (!dealId) {
       dealId = await bx(webhookUrl, "crm.deal.add", { fields: dealFields });
     }
 
