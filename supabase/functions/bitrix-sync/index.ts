@@ -106,27 +106,35 @@ Deno.serve(async (req: Request) => {
 
     // 4) Actividades con fecha/hora, vinculadas a la negociacion
     const syncedActivityIds: { rutaObraId: number; bitrixId: string }[] = [];
+    const activityErrors: { rutaObraId: number; error: string }[] = [];
     if (Array.isArray(actividades)) {
       for (const act of actividades) {
         const deadline = act.fecha ? act.fecha + "T" + (act.hora || "10:00") + ":00" : undefined;
-        const activityId = await bx(webhookUrl, "crm.activity.add", {
-          fields: {
-            OWNER_TYPE_ID: 2, // Deal
-            OWNER_ID: dealId,
-            TYPE_ID: 2,
-            SUBJECT: act.texto || "Actividad RutaObra",
-            DESCRIPTION: act.texto || "",
-            COMPLETED: "N",
-            DIRECTION: 2,
-            PRIORITY: 2,
-            ...(deadline ? { DEADLINE: deadline, START_TIME: deadline, END_TIME: deadline } : {}),
-          },
-        });
-        syncedActivityIds.push({ rutaObraId: act.id, bitrixId: String(activityId) });
+        try {
+          const activityId = await bx(webhookUrl, "crm.activity.add", {
+            fields: {
+              OWNER_TYPE_ID: 2, // Deal
+              OWNER_ID: dealId,
+              TYPE_ID: 3, // Tarea
+              PROVIDER_ID: "TASK",
+              PROVIDER_TYPE_ID: "TASK",
+              SUBJECT: act.texto || "Actividad RutaObra",
+              DESCRIPTION: act.texto || "",
+              COMPLETED: "N",
+              DIRECTION: 2,
+              PRIORITY: 2,
+              RESPONSIBLE_ID: 1,
+              ...(deadline ? { DEADLINE: deadline, START_TIME: deadline, END_TIME: deadline } : {}),
+            },
+          });
+          syncedActivityIds.push({ rutaObraId: act.id, bitrixId: String(activityId) });
+        } catch (actErr) {
+          activityErrors.push({ rutaObraId: act.id, error: String(actErr) });
+        }
       }
     }
 
-    return new Response(JSON.stringify({ ok: true, bitrixContactId: contactId, bitrixDealId: dealId, syncedActivityIds }), {
+    return new Response(JSON.stringify({ ok: true, bitrixContactId: contactId, bitrixDealId: dealId, syncedActivityIds, activityErrors }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
