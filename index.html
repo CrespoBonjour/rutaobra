@@ -2604,6 +2604,30 @@ function jumpToContactFromActivity(estudioId){
   }, 80);
 }
 
+async function vincularActividadManual(actId){
+  const act=agendaStore.find(a=>a.id===actId);
+  if(!act) return;
+  const q=prompt('Escribí el nombre de la empresa para buscar y vincular esta actividad:\n\n"'+act.texto+'"');
+  if(!q || !q.trim()) return;
+  const qq=q.trim().toLowerCase();
+  const matches=localStore.filter(e=>(e.empresa||'').toLowerCase().includes(qq) || (e.estudio||'').toLowerCase().includes(qq));
+  if(!matches.length){ toast('No encontré ningún contacto con ese nombre', true); return; }
+  let elegido=matches[0];
+  if(matches.length>1){
+    const lista=matches.map((m,i)=>(i+1)+'. '+(m.estudio||m.empresa)).join('\n');
+    const idx=prompt('Encontré varios, escribí el número correcto:\n\n'+lista);
+    const n=parseInt(idx,10);
+    if(!n || !matches[n-1]){ return; }
+    elegido=matches[n-1];
+  }
+  act.estudio_id=elegido.id; act.estudio_nombre=elegido.estudio||elegido.empresa;
+  try{
+    await sbUpsert('agenda', act, currentUser.token);
+    toast('Actividad vinculada a '+act.estudio_nombre+' ✓');
+    renderActividades();
+  }catch(e){ toast('Error al vincular: '+String(e.message||e).slice(0,120), true); }
+}
+
 function agCellHtml(ymd, dayLabel){
   const evs=agendaStore.filter(e=>e.fecha===ymd).sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
   const isToday=ymd===fmtYMD(new Date()), isSel=ymd===agSelectedDay;
@@ -2730,7 +2754,7 @@ function renderActividades(){
       + '<button class="act-check '+(e.completada?'on':'')+'" data-toggleact="'+e.id+'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>'
       + '<div class="act-body">'
       + '<div class="act-top">'
-      + (e.estudio_nombre ? '<div class="act-estudio" data-jumpact="'+e.estudio_id+'">'+esc(e.estudio_nombre)+'</div>' : '<div class="act-estudio" style="color:var(--muted)">(sin vincular)</div>')
+      + (e.estudio_nombre ? '<div class="act-estudio" data-jumpact="'+e.estudio_id+'">'+esc(e.estudio_nombre)+'</div>' : '<div class="act-estudio" style="color:var(--hot);cursor:pointer" data-vincular="'+e.id+'">(sin vincular, tocar para vincular)</div>')
       + '<div class="act-when '+(e.vencida?'vencida':'')+'">'+niceDate+(e.hora?' · '+esc(e.hora):'')+'</div>'
       + '</div>'
       + '<div class="act-texto">'+esc(e.texto)+'</div>'
@@ -2743,6 +2767,7 @@ function renderActividades(){
   wrap.querySelectorAll('[data-toggleact]').forEach(b=>b.addEventListener('click', ()=> toggleActividadCompletada(parseFloat(b.dataset.toggleact))));
   wrap.querySelectorAll('[data-delag]').forEach(b=>b.addEventListener('click', ()=>{ if(confirm('¿Eliminar esta actividad?')) eliminarActividad(parseFloat(b.dataset.delag)); }));
   wrap.querySelectorAll('[data-jumpact]').forEach(b=>b.addEventListener('click', ()=> jumpToContactFromActivity(parseFloat(b.dataset.jumpact))));
+  wrap.querySelectorAll('[data-vincular]').forEach(b=>b.addEventListener('click', ()=> vincularActividadManual(parseFloat(b.dataset.vincular))));
   wrap.querySelectorAll('[data-editact]').forEach(b=>b.addEventListener('click', ()=>{
     const ev=agendaStore.find(x=>x.id===parseFloat(b.dataset.editact)); if(!ev) return;
     showActForm(ev);
