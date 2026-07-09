@@ -1768,6 +1768,58 @@ document.getElementById('m-persona-add').addEventListener('click', ()=>{
 });
 document.getElementById('modal-bitrix-chip').addEventListener('click',function(){modalBitrix=!modalBitrix;this.classList.toggle('selected',modalBitrix);});
 
+async function enviarABitrix(item, status, reintento){
+  const dealPrevio=item.bitrix_deal_id||null;
+  const ints=Array.isArray(item.interacciones)?item.interacciones:[];
+  const yaSincronizadas=item.bitrix_synced_count||0;
+  const nuevas=ints.slice(0, Math.max(0, ints.length-yaSincronizadas));
+  const actsPendientes=agendaStore.filter(a=>a.tipo==='actividad' && a.estudio_id===item.id && !a.bitrix_activity_id);
+  const r=await fetch(SUPA_URL+'/functions/v1/bitrix-sync', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'apikey':SUPA_KEY, 'Authorization':'Bearer '+currentUser.token },
+    body: JSON.stringify({
+      bitrixContactId: item.bitrix_contact_id||null,
+      bitrixDealId: dealPrevio,
+      empresa:item.empresa, estudio:item.estudio, nombre:item.nombre, cargo:item.cargo,
+      telefono:item.telefono, email:item.email, direccion:item.direccion, notas:item.notas,
+      interacciones: nuevas.map(h=>({fecha:h.fecha, texto:h.texto})),
+      actividades: actsPendientes.map(a=>({id:a.id, fecha:a.fecha, hora:a.hora, texto:a.texto}))
+    })
+  });
+  const data=await r.json();
+  if(!data.ok){
+    status.innerHTML='<div style="color:var(--hot)">Error: '+esc(data.error||'desconocido')+'</div><textarea readonly style="width:100%;min-height:140px;margin-top:8px;font-size:9.5px;font-family:monospace;background:var(--panel2);color:var(--ink-soft);border:1px solid var(--line);border-radius:6px;padding:6px">'+esc(JSON.stringify(data.debug,null,1))+'</textarea>';
+    toast('Error al enviar a Bitrix', true);
+    return;
+  }
+  const dealCambio = dealPrevio && String(dealPrevio)!==String(data.bitrixDealId);
+  item.bitrix_contact_id=data.bitrixContactId;
+  item.bitrix_deal_id=data.bitrixDealId;
+  if(Array.isArray(data.syncedActivityIds)){
+    for(const s of data.syncedActivityIds){
+      const act=agendaStore.find(a=>a.id===s.rutaObraId);
+      if(act){ act.bitrix_activity_id=s.bitrixId; await sbUpsert('agenda', act, currentUser.token); }
+    }
+  }
+  if(dealCambio && !reintento && nuevas.length===0 && actsPendientes.length===0){
+    // La negociacion guardada ya no existía en Bitrix (se creó una nueva): lo que quedó marcado
+    // como sincronizado antes quedó "huérfano" contra la vieja. Reseteamos y reintentamos una vez
+    // contra la negociación nueva, para que comentarios y actividades sí lleguen.
+    item.bitrix_synced_count=0;
+    for(const a of agendaStore.filter(x=>x.tipo==='actividad' && x.estudio_id===item.id && x.bitrix_activity_id)){
+      a.bitrix_activity_id=null; await sbUpsert('agenda', a, currentUser.token);
+    }
+    await saveEntry(item);
+    return enviarABitrix(item, status, true);
+  }
+  item.bitrix_synced_count=ints.length;
+  await saveEntry(item);
+  status.innerHTML='Contacto ID '+esc(String(data.bitrixContactId))+' · Negociación ID '+esc(String(data.bitrixDealId))+' · <a href="https://mgi.bitrix24.es/crm/deal/details/'+esc(String(data.bitrixDealId))+'/" target="_blank" style="color:var(--acc-light)">abrir negociación ↗</a>'
+    +(Array.isArray(data.activityErrors)&&data.activityErrors.length?'<div style="color:var(--hot);margin-top:4px">Error en '+data.activityErrors.length+' actividad(es): '+esc(data.activityErrors.map(e=>e.error).join(' | '))+'</div>':'')
+    +'<textarea readonly style="width:100%;min-height:140px;margin-top:8px;font-size:9.5px;font-family:monospace;background:var(--panel2);color:var(--ink-soft);border:1px solid var(--line);border-radius:6px;padding:6px">'+esc(JSON.stringify(data.debug,null,1))+'</textarea>';
+  toast('Enviado a Bitrix ✓');
+}
+
 document.getElementById('m-bitrix-sync-btn').addEventListener('click', async ()=>{
   if(!editingId) return;
   const item=localStore.find(x=>x.id===editingId);
@@ -1776,42 +1828,7 @@ document.getElementById('m-bitrix-sync-btn').addEventListener('click', async ()=
   const status=document.getElementById('m-bitrix-status');
   btn.disabled=true; status.textContent='Enviando...';
   try{
-    const ints=Array.isArray(item.interacciones)?item.interacciones:[];
-    const yaSincronizadas=item.bitrix_synced_count||0;
-    const nuevas=ints.slice(0, Math.max(0, ints.length-yaSincronizadas));
-    const actsPendientes=agendaStore.filter(a=>a.tipo==='actividad' && a.estudio_id===item.id && !a.bitrix_activity_id);
-    const r=await fetch(SUPA_URL+'/functions/v1/bitrix-sync', {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json', 'apikey':SUPA_KEY, 'Authorization':'Bearer '+currentUser.token },
-      body: JSON.stringify({
-        bitrixContactId: item.bitrix_contact_id||null,
-        bitrixDealId: item.bitrix_deal_id||null,
-        empresa:item.empresa, estudio:item.estudio, nombre:item.nombre, cargo:item.cargo,
-        telefono:item.telefono, email:item.email, direccion:item.direccion, notas:item.notas,
-        interacciones: nuevas.map(h=>({fecha:h.fecha, texto:h.texto})),
-        actividades: actsPendientes.map(a=>({id:a.id, fecha:a.fecha, hora:a.hora, texto:a.texto}))
-      })
-    });
-    const data=await r.json();
-    if(!data.ok){
-      status.innerHTML='<div style="color:var(--hot)">Error: '+esc(data.error||'desconocido')+'</div><textarea readonly style="width:100%;min-height:140px;margin-top:8px;font-size:9.5px;font-family:monospace;background:var(--panel2);color:var(--ink-soft);border:1px solid var(--line);border-radius:6px;padding:6px">'+esc(JSON.stringify(data.debug,null,1))+'</textarea>';
-      toast('Error al enviar a Bitrix', true);
-      return;
-    }
-    item.bitrix_contact_id=data.bitrixContactId;
-    item.bitrix_deal_id=data.bitrixDealId;
-    item.bitrix_synced_count=ints.length;
-    await saveEntry(item);
-    if(Array.isArray(data.syncedActivityIds)){
-      for(const s of data.syncedActivityIds){
-        const act=agendaStore.find(a=>a.id===s.rutaObraId);
-        if(act){ act.bitrix_activity_id=s.bitrixId; await sbUpsert('agenda', act, currentUser.token); }
-      }
-    }
-    status.innerHTML='Contacto ID '+esc(String(data.bitrixContactId))+' · Negociación ID '+esc(String(data.bitrixDealId))+' · <a href="https://mgi.bitrix24.es/crm/deal/details/'+esc(String(data.bitrixDealId))+'/" target="_blank" style="color:var(--acc-light)">abrir negociación ↗</a>'
-      +(Array.isArray(data.activityErrors)&&data.activityErrors.length?'<div style="color:var(--hot);margin-top:4px">Error en '+data.activityErrors.length+' actividad(es): '+esc(data.activityErrors.map(e=>e.error).join(' | '))+'</div>':'')
-      +'<textarea readonly style="width:100%;min-height:140px;margin-top:8px;font-size:9.5px;font-family:monospace;background:var(--panel2);color:var(--ink-soft);border:1px solid var(--line);border-radius:6px;padding:6px">'+esc(JSON.stringify(data.debug,null,1))+'</textarea>';
-    toast('Enviado a Bitrix ✓');
+    await enviarABitrix(item, status, false);
   }catch(e){
     status.textContent='Error al sincronizar';
     toast('Error al enviar a Bitrix: '+String(e.message||e).slice(0,150), true);
