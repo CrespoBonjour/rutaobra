@@ -133,6 +133,10 @@ Deno.serve(async (req: Request) => {
     }
 
     // 4) Actividades con fecha/hora, vinculadas a la negociacion
+    const communications: any[] = [];
+    if (telefono) communications.push({ VALUE: telefono, TYPE: "PHONE", ENTITY_ID: contactId, ENTITY_TYPE_ID: 3 });
+    if (email) communications.push({ VALUE: email, TYPE: "EMAIL", ENTITY_ID: contactId, ENTITY_TYPE_ID: 3 });
+
     const syncedActivityIds: { rutaObraId: number; bitrixId: string }[] = [];
     const activityErrors: { rutaObraId: number; error: string }[] = [];
     if (Array.isArray(actividades)) {
@@ -149,6 +153,7 @@ Deno.serve(async (req: Request) => {
             DIRECTION: 2,
             PRIORITY: 2,
             RESPONSIBLE_ID: 1,
+            ...(communications.length ? { COMMUNICATIONS: communications } : {}),
             ...(deadline ? { DEADLINE: deadline, START_TIME: deadline, END_TIME: deadline } : {}),
           },
         });
