@@ -1804,7 +1804,7 @@ document.getElementById('m-bitrix-sync-btn').addEventListener('click', async ()=
         if(act){ act.bitrix_activity_id=s.bitrixId; await sbUpsert('agenda', act, currentUser.token); }
       }
     }
-    status.textContent='Sincronizado: contacto y negociación en Bitrix ✓';
+    status.innerHTML='Contacto ID '+esc(String(data.bitrixContactId))+' · Negociación ID '+esc(String(data.bitrixDealId))+' · <a href="https://mgi.bitrix24.es/crm/deal/details/'+esc(String(data.bitrixDealId))+'/" target="_blank" style="color:var(--acc-light)">abrir negociación ↗</a>';
     toast('Enviado a Bitrix ✓');
   }catch(e){
     status.textContent='Error al sincronizar';
