@@ -1822,6 +1822,7 @@ async function enviarABitrix(item, status, reintento){
     if(chip) chip.classList.add('selected');
   }
   await saveEntry(item);
+  renderContactos();
   refreshActiveView();
   status.innerHTML='Contacto ID '+esc(String(data.bitrixContactId))+' · Negociación ID '+esc(String(data.bitrixDealId))+' · <a href="https://mgi.bitrix24.es/crm/deal/details/'+esc(String(data.bitrixDealId))+'/" target="_blank" style="color:var(--acc-light)">abrir negociación ↗</a>'
     +(Array.isArray(data.activityErrors)&&data.activityErrors.length?'<div style="color:var(--hot);margin-top:4px">Error en '+data.activityErrors.length+' actividad(es): '+esc(data.activityErrors.map(e=>e.error).join(' | '))+'</div>':'')
