@@ -132,36 +132,33 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // 4) Actividades con fecha/hora, vinculadas a la negociacion
-    const communications: any[] = [];
-    if (telefono) communications.push({ VALUE: telefono, TYPE: "PHONE", ENTITY_ID: contactId, ENTITY_TYPE_ID: 3 });
-    if (email) communications.push({ VALUE: email, TYPE: "EMAIL", ENTITY_ID: contactId, ENTITY_TYPE_ID: 3 });
-
+    // 4) Actividades con fecha/hora: se crean como Tarea (modulo Tasks), vinculada a la
+    // negociacion via UF_CRM_TASK, y siempre asignada al dueño del webhook (quien lo generó
+    // en Bitrix), nunca a un ID fijo.
     const syncedActivityIds: { rutaObraId: number; bitrixId: string }[] = [];
     const activityErrors: { rutaObraId: number; error: string }[] = [];
-    if (Array.isArray(actividades)) {
+    if (Array.isArray(actividades) && actividades.length) {
+      const meResp = await bxRaw(webhookUrl, "user.current", {});
+      debug.push({ step: "user.current", ...meResp });
+      const responsableId = meResp.data.result?.ID;
+
       for (const act of actividades) {
         const deadline = act.fecha ? act.fecha + "T" + (act.hora || "10:00") + ":00" : undefined;
-        const a = await bxRaw(webhookUrl, "crm.activity.add", {
+        const a = await bxRaw(webhookUrl, "tasks.task.add", {
           fields: {
-            OWNER_TYPE_ID: 2,
-            OWNER_ID: dealId,
-            TYPE_ID: 2,
-            SUBJECT: act.texto || "Actividad RutaObra",
+            TITLE: act.texto || "Actividad RutaObra",
             DESCRIPTION: act.texto || "",
-            COMPLETED: "N",
-            DIRECTION: 2,
-            PRIORITY: 2,
-            RESPONSIBLE_ID: 1,
-            ...(communications.length ? { COMMUNICATIONS: communications } : {}),
-            ...(deadline ? { DEADLINE: deadline, START_TIME: deadline, END_TIME: deadline } : {}),
+            UF_CRM_TASK: ["D_" + dealId],
+            ...(responsableId ? { RESPONSIBLE_ID: responsableId } : {}),
+            ...(deadline ? { DEADLINE: deadline } : {}),
           },
         });
-        debug.push({ step: "crm.activity.add", rutaObraId: act.id, ...a });
-        if ("error" in a.data || a.data.result === false) {
-          activityErrors.push({ rutaObraId: act.id, error: a.data.error_description || a.data.error || "result:false" });
+        debug.push({ step: "tasks.task.add", rutaObraId: act.id, ...a });
+        const taskId = a.data.result?.task?.id;
+        if ("error" in a.data || !taskId) {
+          activityErrors.push({ rutaObraId: act.id, error: a.data.error_description || a.data.error || "sin resultado" });
         } else {
-          syncedActivityIds.push({ rutaObraId: act.id, bitrixId: String(a.data.result) });
+          syncedActivityIds.push({ rutaObraId: act.id, bitrixId: String(taskId) });
         }
       }
     }
