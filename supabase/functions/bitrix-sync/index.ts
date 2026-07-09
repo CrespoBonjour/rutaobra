@@ -142,9 +142,7 @@ Deno.serve(async (req: Request) => {
           fields: {
             OWNER_TYPE_ID: 2,
             OWNER_ID: dealId,
-            TYPE_ID: 3,
-            PROVIDER_ID: "TASK",
-            PROVIDER_TYPE_ID: "TASK",
+            TYPE_ID: 2,
             SUBJECT: act.texto || "Actividad RutaObra",
             DESCRIPTION: act.texto || "",
             COMPLETED: "N",
