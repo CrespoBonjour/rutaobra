@@ -144,7 +144,9 @@ Deno.serve(async (req: Request) => {
       debug.push({ step: "responsable_desde_webhook", responsableId });
 
       for (const act of actividades) {
-        const deadline = act.fecha ? act.fecha + "T" + (act.hora || "10:00") + ":00" : undefined;
+        // Uruguay es UTC-3 todo el año (sin horario de verano); se fija el offset explicito
+        // para que Bitrix no interprete la hora con su propio huso horario de cuenta.
+        const deadline = act.fecha ? act.fecha + "T" + (act.hora || "10:00") + ":00-03:00" : undefined;
         const a = await bxRaw(webhookUrl, "tasks.task.add", {
           fields: {
             TITLE: act.texto || "Actividad RutaObra",
