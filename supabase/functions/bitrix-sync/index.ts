@@ -72,12 +72,12 @@ Deno.serve(async (req: Request) => {
     if (contactId) {
       const upd = await bxRaw(webhookUrl, "crm.contact.update", { id: contactId, fields: contactFields });
       debug.push({ step: "crm.contact.update", input: { id: contactId }, ...upd });
-      if (upd.data.error || upd.data.result === false) contactId = null;
+      if ("error" in upd.data || upd.data.result === false) contactId = null;
     }
     if (!contactId) {
       const add = await bxRaw(webhookUrl, "crm.contact.add", { fields: contactFields });
       debug.push({ step: "crm.contact.add", ...add });
-      if (add.data.error) throw new Error("crm.contact.add: " + (add.data.error_description || add.data.error));
+      if ("error" in add.data) throw new Error("crm.contact.add: " + (add.data.error_description || add.data.error));
       contactId = add.data.result;
     }
 
@@ -113,12 +113,12 @@ Deno.serve(async (req: Request) => {
     if (dealId) {
       const upd = await bxRaw(webhookUrl, "crm.deal.update", { id: dealId, fields: dealFields });
       debug.push({ step: "crm.deal.update", input: { id: dealId }, ...upd });
-      if (upd.data.error || upd.data.result === false) dealId = null;
+      if ("error" in upd.data || upd.data.result === false) dealId = null;
     }
     if (!dealId) {
       const add = await bxRaw(webhookUrl, "crm.deal.add", { fields: dealFields });
       debug.push({ step: "crm.deal.add", ...add });
-      if (add.data.error) throw new Error("crm.deal.add: " + (add.data.error_description || add.data.error));
+      if ("error" in add.data) throw new Error("crm.deal.add: " + (add.data.error_description || add.data.error));
       dealId = add.data.result;
     }
 
@@ -155,7 +155,7 @@ Deno.serve(async (req: Request) => {
           },
         });
         debug.push({ step: "crm.activity.add", rutaObraId: act.id, ...a });
-        if (a.data.error || a.data.result === false) {
+        if ("error" in a.data || a.data.result === false) {
           activityErrors.push({ rutaObraId: act.id, error: a.data.error_description || a.data.error || "result:false" });
         } else {
           syncedActivityIds.push({ rutaObraId: act.id, bitrixId: String(a.data.result) });
