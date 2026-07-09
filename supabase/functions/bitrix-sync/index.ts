@@ -133,14 +133,15 @@ Deno.serve(async (req: Request) => {
     }
 
     // 4) Actividades con fecha/hora: se crean como Tarea (modulo Tasks), vinculada a la
-    // negociacion via UF_CRM_TASK, y siempre asignada al dueño del webhook (quien lo generó
-    // en Bitrix), nunca a un ID fijo.
+    // negociacion via UF_CRM_TASK, y siempre asignada al dueño del webhook. Los webhooks
+    // entrantes de Bitrix tienen el formato /rest/{USER_ID}/{TOKEN}/, asi que el ID del
+    // responsable se saca directo de la URL, sin depender de otro permiso ni otra llamada.
     const syncedActivityIds: { rutaObraId: number; bitrixId: string }[] = [];
     const activityErrors: { rutaObraId: number; error: string }[] = [];
     if (Array.isArray(actividades) && actividades.length) {
-      const meResp = await bxRaw(webhookUrl, "user.current", {});
-      debug.push({ step: "user.current", ...meResp });
-      const responsableId = meResp.data.result?.ID;
+      const responsableMatch = webhookUrl.match(/\/rest\/(\d+)\//);
+      const responsableId = responsableMatch ? responsableMatch[1] : null;
+      debug.push({ step: "responsable_desde_webhook", responsableId });
 
       for (const act of actividades) {
         const deadline = act.fecha ? act.fecha + "T" + (act.hora || "10:00") + ":00" : undefined;
