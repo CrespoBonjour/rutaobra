@@ -14,22 +14,22 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-async function bx(webhookUrl: string, method: string, payload: any) {
+async function bxRaw(webhookUrl: string, method: string, payload: any) {
   const r = await fetch(webhookUrl + method + ".json", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
   const data = await r.json();
-  if (data.error) throw new Error(method + ": " + (data.error_description || data.error));
-  if (data.result === false) throw new Error(method + ": la operación no tuvo efecto (¿el ID ya no existe en Bitrix?)");
-  return data.result;
+  return { httpStatus: r.status, data };
 }
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
+
+  const debug: any[] = [];
 
   try {
     const webhookUrl = Deno.env.get("BITRIX_WEBHOOK_URL");
@@ -52,8 +52,8 @@ Deno.serve(async (req: Request) => {
       email,
       direccion,
       notas,
-      interacciones, // [{fecha, texto}] historial, solo lo nuevo
-      actividades, // [{id, fecha, hora, texto}] actividades de agenda pendientes de sincronizar
+      interacciones,
+      actividades,
     } = body;
 
     // 1) Contacto
@@ -70,26 +70,32 @@ Deno.serve(async (req: Request) => {
 
     let contactId = bitrixContactId;
     if (contactId) {
-      try {
-        await bx(webhookUrl, "crm.contact.update", { id: contactId, fields: contactFields });
-      } catch (_e) {
-        contactId = null; // el contacto ya no existe en Bitrix, crear uno nuevo
-      }
+      const upd = await bxRaw(webhookUrl, "crm.contact.update", { id: contactId, fields: contactFields });
+      debug.push({ step: "crm.contact.update", input: { id: contactId }, ...upd });
+      if (upd.data.error || upd.data.result === false) contactId = null;
     }
     if (!contactId) {
-      contactId = await bx(webhookUrl, "crm.contact.add", { fields: contactFields });
+      const add = await bxRaw(webhookUrl, "crm.contact.add", { fields: contactFields });
+      debug.push({ step: "crm.contact.add", ...add });
+      if (add.data.error) throw new Error("crm.contact.add: " + (add.data.error_description || add.data.error));
+      contactId = add.data.result;
     }
 
     // 2) Negociacion (Deal), con el contacto asignado, en el pipeline "NEGOCIOS PUNTA"
     const pipelineNombre = Deno.env.get("BITRIX_PIPELINE_NAME") || "NEGOCIOS PUNTA";
-    const categorias = await bx(webhookUrl, "crm.dealcategory.list", {});
+    const catsResp = await bxRaw(webhookUrl, "crm.dealcategory.list", {});
+    debug.push({ step: "crm.dealcategory.list", ...catsResp });
+    const categorias = catsResp.data.result;
     const categoria = Array.isArray(categorias)
       ? categorias.find((c: any) => (c.NAME || "").trim().toUpperCase() === pipelineNombre.trim().toUpperCase())
       : null;
+    debug.push({ step: "categoria_match", pipelineNombre, encontrada: categoria || null });
 
     let primerStageId: string | null = null;
     if (categoria) {
-      const stages = await bx(webhookUrl, "crm.dealcategory.stage.list", { id: categoria.ID });
+      const stagesResp = await bxRaw(webhookUrl, "crm.dealcategory.stage.list", { id: categoria.ID });
+      debug.push({ step: "crm.dealcategory.stage.list", categoryId: categoria.ID, ...stagesResp });
+      const stages = stagesResp.data.result;
       if (Array.isArray(stages) && stages.length) primerStageId = stages[0].STATUS_ID;
     }
 
@@ -101,24 +107,28 @@ Deno.serve(async (req: Request) => {
       ...(categoria ? { CATEGORY_ID: categoria.ID } : {}),
       ...(primerStageId ? { STAGE_ID: primerStageId } : {}),
     };
+    debug.push({ step: "dealFields_a_enviar", dealFields });
+
     let dealId = bitrixDealId;
     if (dealId) {
-      try {
-        await bx(webhookUrl, "crm.deal.update", { id: dealId, fields: dealFields });
-      } catch (_e) {
-        dealId = null; // la negociacion ya no existe en Bitrix, crear una nueva
-      }
+      const upd = await bxRaw(webhookUrl, "crm.deal.update", { id: dealId, fields: dealFields });
+      debug.push({ step: "crm.deal.update", input: { id: dealId }, ...upd });
+      if (upd.data.error || upd.data.result === false) dealId = null;
     }
     if (!dealId) {
-      dealId = await bx(webhookUrl, "crm.deal.add", { fields: dealFields });
+      const add = await bxRaw(webhookUrl, "crm.deal.add", { fields: dealFields });
+      debug.push({ step: "crm.deal.add", ...add });
+      if (add.data.error) throw new Error("crm.deal.add: " + (add.data.error_description || add.data.error));
+      dealId = add.data.result;
     }
 
     // 3) Notas/interacciones como comentarios de la negociacion
     if (Array.isArray(interacciones)) {
       for (const it of interacciones) {
-        await bx(webhookUrl, "crm.timeline.comment.add", {
+        const c = await bxRaw(webhookUrl, "crm.timeline.comment.add", {
           fields: { ENTITY_ID: dealId, ENTITY_TYPE: "deal", COMMENT: "[" + (it.fecha || "") + "] " + (it.texto || "") },
         });
+        debug.push({ step: "crm.timeline.comment.add", ...c });
       }
     }
 
@@ -128,35 +138,37 @@ Deno.serve(async (req: Request) => {
     if (Array.isArray(actividades)) {
       for (const act of actividades) {
         const deadline = act.fecha ? act.fecha + "T" + (act.hora || "10:00") + ":00" : undefined;
-        try {
-          const activityId = await bx(webhookUrl, "crm.activity.add", {
-            fields: {
-              OWNER_TYPE_ID: 2, // Deal
-              OWNER_ID: dealId,
-              TYPE_ID: 3, // Tarea
-              PROVIDER_ID: "TASK",
-              PROVIDER_TYPE_ID: "TASK",
-              SUBJECT: act.texto || "Actividad RutaObra",
-              DESCRIPTION: act.texto || "",
-              COMPLETED: "N",
-              DIRECTION: 2,
-              PRIORITY: 2,
-              RESPONSIBLE_ID: 1,
-              ...(deadline ? { DEADLINE: deadline, START_TIME: deadline, END_TIME: deadline } : {}),
-            },
-          });
-          syncedActivityIds.push({ rutaObraId: act.id, bitrixId: String(activityId) });
-        } catch (actErr) {
-          activityErrors.push({ rutaObraId: act.id, error: String(actErr) });
+        const a = await bxRaw(webhookUrl, "crm.activity.add", {
+          fields: {
+            OWNER_TYPE_ID: 2,
+            OWNER_ID: dealId,
+            TYPE_ID: 3,
+            PROVIDER_ID: "TASK",
+            PROVIDER_TYPE_ID: "TASK",
+            SUBJECT: act.texto || "Actividad RutaObra",
+            DESCRIPTION: act.texto || "",
+            COMPLETED: "N",
+            DIRECTION: 2,
+            PRIORITY: 2,
+            RESPONSIBLE_ID: 1,
+            ...(deadline ? { DEADLINE: deadline, START_TIME: deadline, END_TIME: deadline } : {}),
+          },
+        });
+        debug.push({ step: "crm.activity.add", rutaObraId: act.id, ...a });
+        if (a.data.error || a.data.result === false) {
+          activityErrors.push({ rutaObraId: act.id, error: a.data.error_description || a.data.error || "result:false" });
+        } else {
+          syncedActivityIds.push({ rutaObraId: act.id, bitrixId: String(a.data.result) });
         }
       }
     }
 
-    return new Response(JSON.stringify({ ok: true, bitrixContactId: contactId, bitrixDealId: dealId, syncedActivityIds, activityErrors }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ ok: true, bitrixContactId: contactId, bitrixDealId: dealId, syncedActivityIds, activityErrors, debug }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   } catch (err) {
-    return new Response(JSON.stringify({ ok: false, error: String(err) }), {
+    return new Response(JSON.stringify({ ok: false, error: String(err), debug }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

@@ -1793,7 +1793,11 @@ document.getElementById('m-bitrix-sync-btn').addEventListener('click', async ()=
       })
     });
     const data=await r.json();
-    if(!data.ok) throw new Error(data.error||'Error desconocido');
+    if(!data.ok){
+      status.innerHTML='<div style="color:var(--hot)">Error: '+esc(data.error||'desconocido')+'</div><textarea readonly style="width:100%;min-height:140px;margin-top:8px;font-size:9.5px;font-family:monospace;background:var(--panel2);color:var(--ink-soft);border:1px solid var(--line);border-radius:6px;padding:6px">'+esc(JSON.stringify(data.debug,null,1))+'</textarea>';
+      toast('Error al enviar a Bitrix', true);
+      return;
+    }
     item.bitrix_contact_id=data.bitrixContactId;
     item.bitrix_deal_id=data.bitrixDealId;
     item.bitrix_synced_count=ints.length;
@@ -1805,7 +1809,8 @@ document.getElementById('m-bitrix-sync-btn').addEventListener('click', async ()=
       }
     }
     status.innerHTML='Contacto ID '+esc(String(data.bitrixContactId))+' · Negociación ID '+esc(String(data.bitrixDealId))+' · <a href="https://mgi.bitrix24.es/crm/deal/details/'+esc(String(data.bitrixDealId))+'/" target="_blank" style="color:var(--acc-light)">abrir negociación ↗</a>'
-      +(Array.isArray(data.activityErrors)&&data.activityErrors.length?'<div style="color:var(--hot);margin-top:4px">Error en '+data.activityErrors.length+' actividad(es): '+esc(data.activityErrors.map(e=>e.error).join(' | '))+'</div>':'');
+      +(Array.isArray(data.activityErrors)&&data.activityErrors.length?'<div style="color:var(--hot);margin-top:4px">Error en '+data.activityErrors.length+' actividad(es): '+esc(data.activityErrors.map(e=>e.error).join(' | '))+'</div>':'')
+      +'<textarea readonly style="width:100%;min-height:140px;margin-top:8px;font-size:9.5px;font-family:monospace;background:var(--panel2);color:var(--ink-soft);border:1px solid var(--line);border-radius:6px;padding:6px">'+esc(JSON.stringify(data.debug,null,1))+'</textarea>';
     toast('Enviado a Bitrix ✓');
   }catch(e){
     status.textContent='Error al sincronizar';
