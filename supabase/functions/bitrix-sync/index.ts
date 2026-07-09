@@ -87,12 +87,19 @@ Deno.serve(async (req: Request) => {
       ? categorias.find((c: any) => (c.NAME || "").trim().toUpperCase() === pipelineNombre.trim().toUpperCase())
       : null;
 
+    let primerStageId: string | null = null;
+    if (categoria) {
+      const stages = await bx(webhookUrl, "crm.dealcategory.stage.list", { id: categoria.ID });
+      if (Array.isArray(stages) && stages.length) primerStageId = stages[0].STATUS_ID;
+    }
+
     const dealFields: Record<string, any> = {
       TITLE: empresa || estudio || "Negociación RutaObra",
       CONTACT_ID: contactId,
       COMMENTS: notas || "",
       OPENED: "Y",
       ...(categoria ? { CATEGORY_ID: categoria.ID } : {}),
+      ...(primerStageId ? { STAGE_ID: primerStageId } : {}),
     };
     let dealId = bitrixDealId;
     if (dealId) {
