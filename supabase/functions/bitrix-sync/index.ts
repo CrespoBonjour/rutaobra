@@ -74,12 +74,19 @@ Deno.serve(async (req: Request) => {
       contactId = await bx(webhookUrl, "crm.contact.add", { fields: contactFields });
     }
 
-    // 2) Negociacion (Deal), con el contacto asignado
+    // 2) Negociacion (Deal), con el contacto asignado, en el pipeline "NEGOCIOS PUNTA"
+    const pipelineNombre = Deno.env.get("BITRIX_PIPELINE_NAME") || "NEGOCIOS PUNTA";
+    const categorias = await bx(webhookUrl, "crm.dealcategory.list", {});
+    const categoria = Array.isArray(categorias)
+      ? categorias.find((c: any) => (c.NAME || "").trim().toUpperCase() === pipelineNombre.trim().toUpperCase())
+      : null;
+
     const dealFields: Record<string, any> = {
       TITLE: empresa || estudio || "Negociación RutaObra",
       CONTACT_ID: contactId,
       COMMENTS: notas || "",
       OPENED: "Y",
+      ...(categoria ? { CATEGORY_ID: categoria.ID } : {}),
     };
     let dealId = bitrixDealId;
     if (dealId) {
