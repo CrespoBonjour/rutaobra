@@ -1826,7 +1826,7 @@ document.getElementById('m-int-save').addEventListener('click', async ()=>{
   if(fechaAg){
     if(editingId){
       const item = localStore.find(x=>x.id===editingId);
-      const res = await crearActividadAgenda({fecha:fechaAg, hora:document.getElementById('m-int-hora').value, tipo:'actividad', texto, estudioTxt: item ? item.estudio : ''});
+      const res = await crearActividadAgenda({fecha:fechaAg, hora:document.getElementById('m-int-hora').value, tipo:'actividad', texto, estudioId: editingId});
       if(res.ok) toast('Interacción agendada ✓'); else toast(res.msg, true);
     } else {
       toast('Guardá el contacto primero para poder agendar la actividad', true);
@@ -2307,7 +2307,7 @@ function renderContactos(){
       const fechaEl = wrap.querySelector('[data-intfecha="'+id+'"]');
       const horaEl = wrap.querySelector('[data-inthora="'+id+'"]');
       if(fechaEl && fechaEl.value){
-        const res = await crearActividadAgenda({fecha:fechaEl.value, hora:horaEl.value, tipo:'actividad', texto, estudioTxt:item.estudio});
+        const res = await crearActividadAgenda({fecha:fechaEl.value, hora:horaEl.value, tipo:'actividad', texto, estudioId:id});
         if(res.ok) toast('Interacción guardada y agendada ✓'); else toast(res.msg, true);
       } else {
         toast('Interacción guardada ✓');
@@ -2901,7 +2901,7 @@ function renderNegociaciones(){
     const fechaEl=board.querySelector('[data-followfecha="'+id+'"]');
     const horaEl=board.querySelector('[data-followhora="'+id+'"]');
     if(fechaEl.value){
-      const res = await crearActividadAgenda({fecha:fechaEl.value, hora:horaEl.value, tipo:'actividad', texto, estudioTxt:neg.estudio_nombre});
+      const res = await crearActividadAgenda({fecha:fechaEl.value, hora:horaEl.value, tipo:'actividad', texto, estudioId:neg.estudio_id});
       if(res.ok) toast('Seguimiento agendado en Actividades ✓'); else toast(res.msg, true);
     } else {
       const item=localStore.find(x=>x.id===neg.estudio_id);
