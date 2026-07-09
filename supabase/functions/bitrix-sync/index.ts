@@ -1,14 +1,11 @@
 // Edge Function: bitrix-sync
-// Recibe datos de un contacto de RutaObra y los manda a Bitrix24 usando el
-// webhook secreto (guardado como variable de entorno BITRIX_WEBHOOK_URL,
-// nunca en el codigo ni en la base de datos).
+// Recibe datos de un contacto de RutaObra y los manda a Bitrix24: crea/actualiza
+// el Contacto, crea/actualiza una Negociacion (Deal) con ese contacto asignado,
+// pasa las notas como comentarios de la negociacion, y crea actividades con
+// fecha/hora en Bitrix por cada actividad pendiente de RutaObra.
 //
-// Deploy: pegar este codigo en Supabase Dashboard -> Edge Functions ->
-// "bitrix-sync" -> Deploy. Configurar el secreto en Edge Functions -> Secrets:
-//   BITRIX_WEBHOOK_URL = https://mgi.bitrix24.es/rest/140/xxxxxxxxx/
-//
-// Requiere que el usuario este autenticado (Supabase ya valida el JWT antes
-// de llegar aca si la funcion se deja con "Verify JWT" activado).
+// La clave del webhook vive en la variable de entorno BITRIX_WEBHOOK_URL
+// (Edge Functions -> Secrets), nunca en el codigo ni en la base de datos.
 
 // deno-lint-ignore-file no-explicit-any
 
@@ -16,6 +13,17 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+async function bx(webhookUrl: string, method: string, payload: any) {
+  const r = await fetch(webhookUrl + method + ".json", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data = await r.json();
+  if (data.error) throw new Error(method + ": " + (data.error_description || data.error));
+  return data.result;
+}
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -34,6 +42,7 @@ Deno.serve(async (req: Request) => {
     const body = await req.json();
     const {
       bitrixContactId,
+      bitrixDealId,
       empresa,
       estudio,
       nombre,
@@ -42,58 +51,75 @@ Deno.serve(async (req: Request) => {
       email,
       direccion,
       notas,
-      interacciones, // array de {fecha, texto} SOLO las nuevas a sincronizar
+      interacciones, // [{fecha, texto}] historial, solo lo nuevo
+      actividades, // [{id, fecha, hora, texto}] actividades de agenda pendientes de sincronizar
     } = body;
 
-    const fields: Record<string, any> = {
+    // 1) Contacto
+    const contactFields: Record<string, any> = {
       NAME: nombre || empresa || "Contacto RutaObra",
       POST: cargo || "",
-      COMMENTS: [empresa ? "Empresa: " + empresa : "", estudio ? "Estudio: " + estudio : "", direccion ? "Dirección: " + direccion : "", notas || ""]
+      COMMENTS: [empresa ? "Empresa: " + empresa : "", estudio ? "Estudio: " + estudio : "", direccion ? "Dirección: " + direccion : ""]
         .filter(Boolean)
         .join("\n"),
       OPENED: "Y",
     };
-    if (telefono) fields.PHONE = [{ VALUE: telefono, VALUE_TYPE: "WORK" }];
-    if (email) fields.EMAIL = [{ VALUE: email, VALUE_TYPE: "WORK" }];
+    if (telefono) contactFields.PHONE = [{ VALUE: telefono, VALUE_TYPE: "WORK" }];
+    if (email) contactFields.EMAIL = [{ VALUE: email, VALUE_TYPE: "WORK" }];
 
     let contactId = bitrixContactId;
-
     if (contactId) {
-      const upd = await fetch(webhookUrl + "crm.contact.update.json", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: contactId, fields }),
-      });
-      const updData = await upd.json();
-      if (updData.error) throw new Error(updData.error_description || updData.error);
+      await bx(webhookUrl, "crm.contact.update", { id: contactId, fields: contactFields });
     } else {
-      const add = await fetch(webhookUrl + "crm.contact.add.json", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fields }),
-      });
-      const addData = await add.json();
-      if (addData.error) throw new Error(addData.error_description || addData.error);
-      contactId = addData.result;
+      contactId = await bx(webhookUrl, "crm.contact.add", { fields: contactFields });
     }
 
+    // 2) Negociacion (Deal), con el contacto asignado
+    const dealFields: Record<string, any> = {
+      TITLE: empresa || estudio || "Negociación RutaObra",
+      CONTACT_ID: contactId,
+      COMMENTS: notas || "",
+      OPENED: "Y",
+    };
+    let dealId = bitrixDealId;
+    if (dealId) {
+      await bx(webhookUrl, "crm.deal.update", { id: dealId, fields: dealFields });
+    } else {
+      dealId = await bx(webhookUrl, "crm.deal.add", { fields: dealFields });
+    }
+
+    // 3) Notas/interacciones como comentarios de la negociacion
     if (Array.isArray(interacciones)) {
       for (const it of interacciones) {
-        await fetch(webhookUrl + "crm.timeline.comment.add.json", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            fields: {
-              ENTITY_ID: contactId,
-              ENTITY_TYPE: "contact",
-              COMMENT: "[" + (it.fecha || "") + "] " + (it.texto || ""),
-            },
-          }),
+        await bx(webhookUrl, "crm.timeline.comment.add", {
+          fields: { ENTITY_ID: dealId, ENTITY_TYPE: "deal", COMMENT: "[" + (it.fecha || "") + "] " + (it.texto || "") },
         });
       }
     }
 
-    return new Response(JSON.stringify({ ok: true, bitrixContactId: contactId }), {
+    // 4) Actividades con fecha/hora, vinculadas a la negociacion
+    const syncedActivityIds: { rutaObraId: number; bitrixId: string }[] = [];
+    if (Array.isArray(actividades)) {
+      for (const act of actividades) {
+        const deadline = act.fecha ? act.fecha + "T" + (act.hora || "10:00") + ":00" : undefined;
+        const activityId = await bx(webhookUrl, "crm.activity.add", {
+          fields: {
+            OWNER_TYPE_ID: 2, // Deal
+            OWNER_ID: dealId,
+            TYPE_ID: 2,
+            SUBJECT: act.texto || "Actividad RutaObra",
+            DESCRIPTION: act.texto || "",
+            COMPLETED: "N",
+            DIRECTION: 2,
+            PRIORITY: 2,
+            ...(deadline ? { DEADLINE: deadline, START_TIME: deadline, END_TIME: deadline } : {}),
+          },
+        });
+        syncedActivityIds.push({ rutaObraId: act.id, bitrixId: String(activityId) });
+      }
+    }
+
+    return new Response(JSON.stringify({ ok: true, bitrixContactId: contactId, bitrixDealId: dealId, syncedActivityIds }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {

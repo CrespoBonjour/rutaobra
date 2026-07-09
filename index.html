@@ -1779,22 +1779,32 @@ document.getElementById('m-bitrix-sync-btn').addEventListener('click', async ()=
     const ints=Array.isArray(item.interacciones)?item.interacciones:[];
     const yaSincronizadas=item.bitrix_synced_count||0;
     const nuevas=ints.slice(0, Math.max(0, ints.length-yaSincronizadas));
+    const actsPendientes=agendaStore.filter(a=>a.tipo==='actividad' && a.estudio_id===item.id && !a.bitrix_activity_id);
     const r=await fetch(SUPA_URL+'/functions/v1/bitrix-sync', {
       method:'POST',
       headers:{ 'Content-Type':'application/json', 'apikey':SUPA_KEY, 'Authorization':'Bearer '+currentUser.token },
       body: JSON.stringify({
         bitrixContactId: item.bitrix_contact_id||null,
+        bitrixDealId: item.bitrix_deal_id||null,
         empresa:item.empresa, estudio:item.estudio, nombre:item.nombre, cargo:item.cargo,
         telefono:item.telefono, email:item.email, direccion:item.direccion, notas:item.notas,
-        interacciones: nuevas.map(h=>({fecha:h.fecha, texto:h.texto}))
+        interacciones: nuevas.map(h=>({fecha:h.fecha, texto:h.texto})),
+        actividades: actsPendientes.map(a=>({id:a.id, fecha:a.fecha, hora:a.hora, texto:a.texto}))
       })
     });
     const data=await r.json();
     if(!data.ok) throw new Error(data.error||'Error desconocido');
     item.bitrix_contact_id=data.bitrixContactId;
+    item.bitrix_deal_id=data.bitrixDealId;
     item.bitrix_synced_count=ints.length;
     await saveEntry(item);
-    status.textContent='Sincronizado con Bitrix (ID '+data.bitrixContactId+') ✓';
+    if(Array.isArray(data.syncedActivityIds)){
+      for(const s of data.syncedActivityIds){
+        const act=agendaStore.find(a=>a.id===s.rutaObraId);
+        if(act){ act.bitrix_activity_id=s.bitrixId; await sbUpsert('agenda', act, currentUser.token); }
+      }
+    }
+    status.textContent='Sincronizado: contacto y negociación en Bitrix ✓';
     toast('Enviado a Bitrix ✓');
   }catch(e){
     status.textContent='Error al sincronizar';
