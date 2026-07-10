@@ -318,8 +318,12 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .ct-phone-row a{color:#3ecf73;text-decoration:none;margin-left:auto;font-weight:700;font-size:10px;display:flex;align-items:center;gap:3px;flex-shrink:0}
 .ct-strip{display:flex;flex-direction:column;gap:3px;margin-bottom:2px}
 .ct-strip-row{display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--ink-soft);background:var(--panel2);border-left:2px solid var(--line);border-radius:0 5px 5px 0;padding:4px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ct-strip-row.activity{color:#e0b33d;background:rgba(224,179,61,.14);border-left-color:#e0b33d}
+.ct-strip-row.activity{align-items:flex-start;color:#e0b33d;background:rgba(224,179,61,.14);border-left-color:#e0b33d;white-space:normal;overflow:visible;text-overflow:clip;line-height:1.35;cursor:pointer;transition:.15s var(--ease)}
+.ct-strip-row.activity:hover{background:rgba(224,179,61,.22)}
+.ct-strip-row.activity .icn{margin-top:1.5px}
 .ct-strip-row .icn{width:11px;height:11px;opacity:.8;flex-shrink:0}
+.ct-detail-notas{font-size:11.5px;color:var(--ink-soft);line-height:1.45;background:var(--panel2);border-left:2px solid var(--line);padding:7px 9px;border-radius:0 6px 6px 0;margin-bottom:8px;white-space:pre-wrap}
+.ct-detail-notas .lbl{display:block;color:var(--muted);font-weight:700;text-transform:uppercase;font-size:9px;letter-spacing:.3px;margin-bottom:3px}
 .ct-badge-activity{position:absolute;top:-6px;right:-6px;width:14px;height:14px;border-radius:50%;background:var(--hot);border:2px solid var(--bg);box-shadow:0 0 6px rgba(255,77,77,.6)}
 .ct-expand-toggle{width:100%;text-align:center;padding:5px;background:none;border:none;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;justify-content:center;gap:4px;margin-top:2px}
 .ct-expand-toggle:hover{color:var(--acc)}
@@ -411,9 +415,10 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 
 /* ===== ACTIVIDADES ===== */
 .act-section-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:800;margin:16px 0 8px}
-.act-row{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--cold);border-radius:9px;padding:12px 14px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.act-row{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--cold);border-radius:9px;padding:12px 14px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;transition:box-shadow .3s var(--ease),border-color .3s var(--ease)}
 .act-row.vencida{border-left-color:#ff4d4d}
 .act-row.completada{border-left-color:#3ecf73;opacity:.6}
+.act-row.flash{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-glow)}
 .act-check{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line);background:var(--panel2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
 .act-check.on{background:#3ecf73;border-color:#3ecf73}
 .act-check svg{opacity:0}.act-check.on svg{opacity:1}
@@ -2288,7 +2293,7 @@ function renderContactos(){
       +'<div class="ct-strip">'
       +(e.notas?'<div class="ct-strip-row" title="'+esc(e.notas)+'">'+ICONS.notes+'<span>'+esc(e.notas)+'</span></div>':'')
       +(previewInt?'<div class="ct-strip-row" title="'+esc(previewInt)+'">'+ICONS.chat+'<span>'+esc(previewInt)+'</span></div>':'')
-      +(proximaActividad?'<div class="ct-strip-row activity" title="'+esc(proximaActividad.texto)+'">'+ICONS.clock+'<span>'+esc(proximaActividad.texto)+'</span></div>':'')
+      +(proximaActividad?'<div class="ct-strip-row activity" data-gotoactid="'+proximaActividad.id+'">'+ICONS.clock+'<span>'+esc(proximaActividad.texto)+'</span></div>':'')
       +'</div>'
       +(personas.length?'<div class="ct-persons-note" data-toggleexpand="'+e.id+'">'+ICONS.users+' +'+personas.length+' persona'+(personas.length>1?'s':'')+' de contacto</div>':'')
       +'<button class="ct-expand-toggle" data-toggleexpand="'+e.id+'"><span class="chev">▾</span> '+(expandedIds.has(e.id)?'Ocultar detalle':'Ver detalle')+'</button>'
@@ -2297,6 +2302,7 @@ function renderContactos(){
       +'<span class="ct-pill '+(e.contactado?'ok':'')+'">'+(e.contactado?ICONS.check+' Contactado':'Sin contactar')+(e.contactado_fecha?' · '+fmtCorta(e.contactado_fecha):'')+'</span>'
       +'<span class="ct-pill '+(e.bitrix?'bx':'')+'">'+(e.bitrix?ICONS.check+' En Bitrix':'Falta pasar a Bitrix')+(e.bitrix_fecha?' · '+fmtCorta(e.bitrix_fecha):'')+'</span>'
       +'</div>'
+      +(e.notas?'<div class="ct-detail-notas"><span class="lbl">Notas</span>'+esc(e.notas)+'</div>':'')
       +(personas.length?personas.map(p=>'<div class="persona-row"><span class="txt">'+ICONS.user+' '+esc(p.nombre||'')+(p.cargo?' · '+esc(p.cargo):'')+(p.telefono?' · '+esc(p.telefono):'')+'</span></div>').join(''):'')
       +'<button class="ct-editbtn" data-editfull="'+e.id+'">'+ICONS.edit+' Editar ficha completa</button>'
       +'<div class="ct-int-box">'
@@ -2315,6 +2321,9 @@ function renderContactos(){
       if(expandedIds.has(id)) expandedIds.delete(id); else expandedIds.add(id);
       renderContactos();
     });
+  });
+  wrap.querySelectorAll('[data-gotoactid]').forEach(el=>{
+    el.addEventListener('click', (ev)=>{ ev.stopPropagation(); jumpToActividadFromContact(parseFloat(el.dataset.gotoactid)); });
   });
   wrap.querySelectorAll('[data-toggle]').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
@@ -2649,6 +2658,21 @@ function jumpToContactFromActivity(estudioId){
   }, 80);
 }
 
+function jumpToActividadFromContact(actId){
+  if(!actId) return;
+  const ev = agendaStore.find(a=>a.id===actId);
+  if(!ev) return;
+  goToActividadesFiltered('pendientes');
+  setTimeout(()=>{
+    const row = document.querySelector('.act-row[data-id="'+actId+'"]');
+    if(row){
+      row.scrollIntoView({behavior:'smooth', block:'center'});
+      row.classList.add('flash');
+      setTimeout(()=>row.classList.remove('flash'), 1600);
+    }
+  }, 80);
+}
+
 async function vincularActividadManual(actId){
   const act=agendaStore.find(a=>a.id===actId);
   if(!act) return;
@@ -2795,7 +2819,7 @@ function renderActividades(){
 
   wrap.innerHTML = items.map(e=>{
     const niceDate = new Date(e.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit',year:'2-digit'});
-    return '<div class="act-row '+(e.vencida?'vencida':'')+' '+(e.completada?'completada':'')+'">'
+    return '<div class="act-row '+(e.vencida?'vencida':'')+' '+(e.completada?'completada':'')+'" data-id="'+e.id+'">'
       + '<button class="act-check '+(e.completada?'on':'')+'" data-toggleact="'+e.id+'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>'
       + '<div class="act-body">'
       + '<div class="act-top">'
