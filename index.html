@@ -347,6 +347,52 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .persona-add-form{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
 .persona-add-form input,.persona-add-form select{width:100%;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink);border-radius:7px;padding:9px 10px;font-size:13px;font-family:inherit}
 
+/* Tarjeta expandida: ocupa todo el ancho de la grilla (horizontal en desktop) */
+.ct-card.expanded{grid-column:1/-1}
+.ct-status{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.ct-dgrid{display:grid;grid-template-columns:1.1fr 1fr 1.2fr 0.9fr;gap:0;margin:0 -11px;border-top:1px solid var(--line-soft)}
+.ct-dcol{padding:12px 14px;border-right:1px solid var(--line-soft);min-width:0}
+.ct-dcol:last-child{border-right:none}
+.ct-dcol-title{font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:800;margin-bottom:9px}
+.ct-dfield{margin-bottom:8px}
+.ct-dfield .k{font-size:9px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);font-weight:700;margin-bottom:1px}
+.ct-dfield .v{font-size:12px;color:var(--ink-soft);line-height:1.4;word-break:break-word}
+.ct-dfield .v.empty{color:#555b66;font-style:italic}
+.ct-stats{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:11px}
+.ct-stat{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 9px}
+.ct-stat .v{font-family:var(--font-display);font-size:16px;font-weight:700;line-height:1.1}
+.ct-stat .l{font-size:8.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;font-weight:700;margin-top:3px}
+.ct-stat.warn .v{color:var(--hot)}
+.ct-neg{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 9px;display:flex;align-items:center;gap:8px;cursor:pointer;transition:border-color .15s var(--ease)}
+.ct-neg:hover{border-color:var(--acc)}
+.ct-neg .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ct-neg .tx{min-width:0}
+.ct-neg .tx b{display:block;font-size:11px;color:var(--ink)}
+.ct-neg .tx span{font-size:9.5px;color:var(--muted)}
+.cat-group{margin-bottom:10px}
+.cat-group-h{display:flex;align-items:center;gap:5px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px}
+.cat-group-h .n{color:var(--muted);font-weight:700;text-transform:none;letter-spacing:0;margin-left:5px}
+.cat-chips{display:flex;flex-wrap:wrap;gap:5px}
+.cat-chip{font-size:10px;font-weight:700;padding:4px 8px;border-radius:20px;display:inline-flex;align-items:center;white-space:nowrap}
+.cat-chip.sent{background:rgba(62,207,115,.13);color:#6fe39c;border:1px solid rgba(62,207,115,.35)}
+.cat-chip.queued{background:rgba(74,158,255,.13);color:#7fb8ff;border:1px solid rgba(74,158,255,.35)}
+.cat-chip.none{background:var(--panel2);color:var(--muted);border:1px solid var(--line)}
+.cat-chip .icn{width:10px;height:10px;vertical-align:-1px;margin-right:2px}
+.cat-summary{font-size:10.5px;color:var(--muted);line-height:1.5;margin-top:2px;padding-top:8px;border-top:1px dashed var(--line)}
+.cat-summary b{color:var(--ink-soft)}
+.ct-timeline{padding:12px 14px 10px;border-top:1px solid var(--line);background:rgba(0,0,0,.14);margin:0 -11px -1px}
+.tl-scroll{max-height:220px;overflow-y:auto;padding-right:6px;margin-bottom:10px}
+.tl-item{display:flex;gap:10px;margin-bottom:11px}
+.tl-dot-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+.tl-dot{width:8px;height:8px;border-radius:50%;background:var(--acc);margin-top:4px;flex-shrink:0}
+.tl-dot.auto{background:var(--muted)}
+.tl-line{width:1.5px;flex:1;background:var(--line);margin-top:2px}
+.tl-content{flex:1;min-width:0;padding-bottom:1px}
+.tl-content .m{font-size:9.5px;color:var(--muted);font-weight:700;margin-bottom:1px}
+.tl-content .txt{font-size:11.5px;color:var(--ink-soft);line-height:1.45;word-break:break-word}
+@media (max-width:980px){.ct-dgrid{grid-template-columns:1fr 1fr}.ct-dcol:nth-child(2){border-right:none}.ct-dcol:nth-child(3){border-top:1px solid var(--line-soft)}.ct-dcol:nth-child(4){border-top:1px solid var(--line-soft);border-right:none}}
+@media (max-width:640px){.ct-dgrid{grid-template-columns:1fr}.ct-dcol{border-right:none!important;border-top:1px solid var(--line-soft)}.ct-dcol:first-child{border-top:none}}
+
 /* ===== PANEL (KPIs, admin) ===== */
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:22px}
 .kpi-card{background:linear-gradient(165deg,var(--panel3),var(--panel) 65%);border:1px solid var(--line);border-radius:var(--r-md);padding:14px;box-shadow:var(--shadow-sm)}
@@ -425,6 +471,10 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .ls-pill i{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .ls-ok{color:var(--ok);font-weight:800}
 .ls-count{align-self:center;font-size:11px;color:var(--muted);font-weight:700;white-space:nowrap}
+.cat-pill-sm{font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;display:inline-block;white-space:nowrap}
+.cat-pill-sm.full{background:rgba(62,207,115,.14);color:#6fe39c}
+.cat-pill-sm.part{background:rgba(74,158,255,.14);color:#7fb8ff}
+.cat-pill-sm.none{background:var(--panel2);color:var(--muted)}
 
 /* ===== AGENDA TAB ===== */
 .ag-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
@@ -637,7 +687,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       <select id="f-tipo"><option value="">Seleccionar...</option><option>Torre residencial</option><option>Hotel</option><option>Uso mixto (shopping + torres)</option><option>Casa / chalet</option><option>Edificio comercial / oficinas</option><option>Reforma / ampliación</option><option>Otro</option></select>
     </div>
     <div class="field"><label>Estado actual de la obra</label>
-      <select id="f-estado"><option value="">Seleccionar...</option><option>Excavación / fundaciones</option><option>Estructura en ejecución</option><option>Mampostería / cerramiento</option><option>Instalaciones (etapa ideal)</option><option>Terminaciones</option><option>Finalizada</option></select>
+      <select id="f-estado"><option value="">Seleccionar...</option><option>Cotización de obra</option><option>Excavación / fundaciones</option><option>Estructura en ejecución</option><option>Mampostería / cerramiento</option><option>Instalaciones (etapa ideal)</option><option>Terminaciones</option><option>Finalizada</option></select>
     </div>
   </div>
   <div class="group">
@@ -934,7 +984,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       <select id="m-tipo"><option value="">Seleccionar...</option><option>Torre residencial</option><option>Hotel</option><option>Uso mixto</option><option>Casa / chalet</option><option>Edificio comercial</option><option>Reforma</option><option>Otro</option></select>
     </div>
     <div class="field"><label>Estado actual</label>
-      <select id="m-estado"><option value="">Seleccionar...</option><option>Excavación / fundaciones</option><option>Estructura en ejecución</option><option>Mampostería / cerramiento</option><option>Instalaciones (etapa ideal)</option><option>Terminaciones</option><option>Finalizada</option></select>
+      <select id="m-estado"><option value="">Seleccionar...</option><option>Cotización de obra</option><option>Excavación / fundaciones</option><option>Estructura en ejecución</option><option>Mampostería / cerramiento</option><option>Instalaciones (etapa ideal)</option><option>Terminaciones</option><option>Finalizada</option></select>
     </div>
     <div class="field"><label>Contacto en obra</label><input id="m-nombre" type="text" placeholder="Con quién hablaste"></div>
     <div class="field"><label>Cargo</label>
@@ -2325,8 +2375,24 @@ function phoneRowsHtml(str){
   }).join('')+'</div>';
 }
 
+// Estado de catálogos por contacto, calculado de las actividades "Enviar información"
+// de la Agenda (agendaStore) — sin ningún campo nuevo en Supabase.
+function getCatalogStatus(contactId){
+  const sent=new Set(), queued=new Set();
+  agendaStore.forEach(a=>{
+    if(a.tipo!=='actividad' || a.estudio_id!==contactId || !a.productos) return;
+    String(a.productos).split(',').map(s=>s.trim()).filter(Boolean).forEach(p=>{
+      (a.completada?sent:queued).add(p);
+    });
+  });
+  queued.forEach(p=>{ if(sent.has(p)) queued.delete(p); });
+  const none = productosCatalogoStore.map(p=>p.nombre).filter(n=>!sent.has(n) && !queued.has(n));
+  return {sent:Array.from(sent), queued:Array.from(queued), none};
+}
+
 function renderContactos(){
   const wrap=document.getElementById('ct-grid');
+  const hoyYMD=fmtYMD(new Date());
   let list = getFilteredStore().filter(e=>{
     if(ctFilter==='pending' && e.contactado) return false;
     if(ctFilter==='done' && !e.contactado) return false;
@@ -2354,6 +2420,12 @@ function renderContactos(){
     const previewInt = ints.length ? ints[0].texto : '';
     const actividadesPendientes = agendaStore.filter(a=>a.tipo==='actividad' && !a.completada && a.estudio_id===e.id).sort((a,b)=>(a.fecha+((a.hora)||'99:99')).localeCompare(b.fecha+((b.hora)||'99:99')));
     const proximaActividad = actividadesPendientes[0];
+    const actVencidas = agendaStore.filter(a=>a.tipo==='actividad' && a.estudio_id===e.id && !a.completada && a.fecha<hoyYMD).length;
+    const ultimaTs = lsUltimaTs(e);
+    const misNeg = negociacionesStore.filter(n=>n.estudio_id===e.id).sort((a,b)=>(b.orden||0)-(a.orden||0))[0];
+    const negLabel = misNeg ? ((NEG_ETAPAS.find(x=>x.key===misNeg.etapa)||{}).label || misNeg.etapa) : '';
+    const negColor = misNeg ? (misNeg.etapa==='ganada'?'#3ecf73':misNeg.etapa==='perdida'?'var(--hot)':'var(--acc)') : '';
+    const catStatus = getCatalogStatus(e.id);
 
     return '<div class="ct-card '+(e.contactado?'contacted':'')+' '+(e.bitrix?'inbitrix':'')+' '+(expandedIds.has(e.id)?'expanded':'')+'" data-id="'+e.id+'">'
       +(proximaActividad?'<div class="ct-badge-activity" title="Tiene una actividad pendiente"></div>':'')
@@ -2383,11 +2455,48 @@ function renderContactos(){
       +'<span class="ct-pill '+(e.contactado?'ok':'')+'">'+(e.contactado?ICONS.check+' Contactado':'Sin contactar')+(e.contactado_fecha?' · '+fmtCorta(e.contactado_fecha):'')+'</span>'
       +'<span class="ct-pill '+(e.bitrix?'bx':'')+'">'+(e.bitrix?ICONS.check+' En Bitrix':'Falta pasar a Bitrix')+(e.bitrix_fecha?' · '+fmtCorta(e.bitrix_fecha):'')+'</span>'
       +'</div>'
-      +(e.notas?'<div class="ct-detail-notas"><span class="lbl">Notas</span>'+esc(e.notas)+'</div>':'')
-      +(personas.length?personas.map(p=>'<div class="persona-row"><span class="txt">'+ICONS.user+' '+esc(p.nombre||'')+(p.cargo?' · '+esc(p.cargo):'')+(p.telefono?' · '+esc(p.telefono):'')+'</span></div>').join(''):'')
       +'<button class="ct-editbtn" data-editfull="'+e.id+'">'+ICONS.edit+' Editar ficha completa</button>'
+      +'<div class="ct-dgrid">'
+
+        +'<div class="ct-dcol"><div class="ct-dcol-title">Datos adicionales</div>'
+        +'<div class="ct-dfield"><div class="k">Proveedor eléctrico actual</div><div class="v'+(e.proveedor?'':' empty')+'">'+(e.proveedor?esc(e.proveedor):'Sin datos')+'</div></div>'
+        +'<div class="ct-dfield"><div class="k">Sitio web</div><div class="v'+(e.web?'':' empty')+'">'+(e.web?esc(e.web):'Sin datos')+'</div></div>'
+        +'<div class="ct-dfield"><div class="k">Próxima acción</div><div class="v'+(e.followup?'':' empty')+'">'+(e.followup?esc(e.followup):'Sin definir')+'</div></div>'
+        +(e.notas?'<div class="ct-detail-notas" style="margin:2px 0 0"><span class="lbl">Notas</span>'+esc(e.notas)+'</div>':'<div class="ct-dfield"><div class="k">Notas</div><div class="v empty">Sin notas</div></div>')
+        +'</div>'
+
+        +'<div class="ct-dcol"><div class="ct-dcol-title">Estadísticas y seguimiento</div>'
+        +'<div class="ct-stats">'
+          +'<div class="ct-stat"><div class="v">'+(ultimaTs?fmtRelativa(ultimaTs):'—')+'</div><div class="l">Último contacto</div></div>'
+          +'<div class="ct-stat"><div class="v">'+ints.length+'</div><div class="l">Interacciones</div></div>'
+          +'<div class="ct-stat"><div class="v" style="font-size:13px">'+esc(e.fecha||'—')+'</div><div class="l">Alta del contacto</div></div>'
+          +'<div class="ct-stat'+(actVencidas?' warn':'')+'"><div class="v">'+actVencidas+'</div><div class="l">Activ. vencidas</div></div>'
+        +'</div>'
+        +(misNeg?('<div class="ct-dcol-title">Negociación asociada</div>'
+          +'<div class="ct-neg" data-gotoneg="1"><div class="dot" style="background:'+negColor+'"></div>'
+          +'<div class="tx"><b>'+esc(negLabel)+'</b><span>Actualizada '+fmtRelativa(misNeg.orden).toLowerCase()+'</span></div></div>'):'')
+        +'</div>'
+
+        +'<div class="ct-dcol"><div class="ct-dcol-title">Catálogos</div>'
+        +(productosCatalogoStore.length?(
+          '<div class="cat-group"><div class="cat-group-h" style="color:#6fe39c">Enviados<span class="n">'+catStatus.sent.length+'</span></div>'
+          +'<div class="cat-chips">'+(catStatus.sent.length?catStatus.sent.map(p=>'<span class="cat-chip sent">'+ICONS.check+esc(p)+'</span>').join(''):'<span style="font-size:10.5px;color:var(--muted)">Ninguno todavía</span>')+'</div></div>'
+          +'<div class="cat-group"><div class="cat-group-h" style="color:#7fb8ff">Pendientes de envío<span class="n">'+catStatus.queued.length+'</span></div>'
+          +'<div class="cat-chips">'+(catStatus.queued.length?catStatus.queued.map(p=>'<span class="cat-chip queued">'+ICONS.clock+esc(p)+'</span>').join(''):'<span style="font-size:10.5px;color:var(--muted)">Ninguno agendado</span>')+'</div></div>'
+          +(catStatus.none.length?('<div class="cat-group"><div class="cat-group-h" style="color:var(--muted)">No ofrecidos<span class="n">'+catStatus.none.length+'</span></div>'
+          +'<div class="cat-chips">'+catStatus.none.map(p=>'<span class="cat-chip none">'+esc(p)+'</span>').join('')+'</div></div>'):'')
+          +(catStatus.queued.length||catStatus.none.length?'<div class="cat-summary">Quedan <b>'+(catStatus.queued.length+catStatus.none.length)+' catálogo'+((catStatus.queued.length+catStatus.none.length)===1?'':'s')+'</b> para ofrecerle — buena excusa para la próxima llamada.</div>':'')
+        ):'<div style="font-size:11px;color:var(--muted)">Todavía no cargaste productos en el catálogo (Panel).</div>')
+        +'</div>'
+
+        +'<div class="ct-dcol"><div class="ct-dcol-title">Personas de contacto</div>'
+        +(personas.length?personas.map(p=>'<div class="persona-row"><span class="txt">'+ICONS.user+' '+esc(p.nombre||'')+(p.cargo?' · '+esc(p.cargo):'')+(p.telefono?' · '+esc(p.telefono):'')+'</span></div>').join(''):'<div style="font-size:11px;color:var(--muted)">Sin personas adicionales cargadas.</div>')
+        +'</div>'
+
+      +'</div>'
+      +'<div class="ct-timeline"><div class="ct-dcol-title">Historial completo ('+ints.length+')</div>'
+      +(ints.length?('<div class="tl-scroll">'+ints.map((h,i)=>'<div class="tl-item"><div class="tl-dot-col"><div class="tl-dot'+(h.auto?' auto':'')+'"></div>'+(i<ints.length-1?'<div class="tl-line"></div>':'')+'</div><div class="tl-content"><div class="m">'+esc(h.fecha)+(h.auto?' · automático':'')+'</div><div class="txt">'+esc(h.texto)+'</div></div></div>').join('')+'</div>'):'<div style="font-size:11px;color:var(--muted);margin-bottom:8px">Sin interacciones todavía.</div>')
       +'<div class="ct-int-box">'
-      +'<div class="ct-int-list">'+(ints.length? ints.slice(0,4).map(h=>'<div class="ct-int-item"><span class="m">'+esc(h.fecha)+(h.auto?' · automático':'')+'</span>'+esc(h.texto)+'</div>').join('') : '<div style="font-size:11px;color:var(--muted)">Sin interacciones.</div>')+'</div>'
       +'<textarea placeholder="¿Qué hiciste o qué tenés que hacer?" data-inttext="'+e.id+'"></textarea>'
       +'<div class="row2" style="margin-bottom:6px"><input type="date" data-intfecha="'+e.id+'" style="flex:1"><input type="time" data-inthora="'+e.id+'" style="flex:1"></div>'
       +'<button class="ct-int-savebtn" data-intsave="'+e.id+'">+ Guardar interacción</button>'
@@ -2405,6 +2514,9 @@ function renderContactos(){
   });
   wrap.querySelectorAll('[data-gotoactid]').forEach(el=>{
     el.addEventListener('click', (ev)=>{ ev.stopPropagation(); jumpToActividadFromContact(parseFloat(el.dataset.gotoactid)); });
+  });
+  wrap.querySelectorAll('[data-gotoneg]').forEach(el=>{
+    el.addEventListener('click', ()=>{ document.querySelector('.tab[data-tab="negociaciones"]').click(); });
   });
   wrap.querySelectorAll('[data-toggle]').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
@@ -2663,8 +2775,8 @@ function renderPanel(){
 // ============================================================
 // ANÁLISIS DE CARTERA (gráficos del Panel — CSS puro, sin librerías)
 // ============================================================
-const ETAPAS_OBRA=['Excavación / fundaciones','Estructura en ejecución','Mampostería / cerramiento','Instalaciones (etapa ideal)','Terminaciones','Finalizada'];
-const ETAPA_CORTA={'Excavación / fundaciones':'Excavación','Estructura en ejecución':'Estructura','Mampostería / cerramiento':'Mampostería','Instalaciones (etapa ideal)':'Instalaciones','Terminaciones':'Terminaciones','Finalizada':'Finalizada'};
+const ETAPAS_OBRA=['Cotización de obra','Excavación / fundaciones','Estructura en ejecución','Mampostería / cerramiento','Instalaciones (etapa ideal)','Terminaciones','Finalizada'];
+const ETAPA_CORTA={'Cotización de obra':'Cotización','Excavación / fundaciones':'Excavación','Estructura en ejecución':'Estructura','Mampostería / cerramiento':'Mampostería','Instalaciones (etapa ideal)':'Instalaciones','Terminaciones':'Terminaciones','Finalizada':'Finalizada'};
 const TEMP_META=[
   {k:'cold',label:'Frío',plural:'Fríos',color:'var(--cold)'},
   {k:'warm',label:'Tibio',plural:'Tibios',color:'var(--acc)'},
@@ -2891,7 +3003,8 @@ const LS_COLS=[
   {key:'temp', label:'Temp.'},
   {key:'contactado', label:'Contact.'},
   {key:'user_name', label:'Vendedor'},
-  {key:'ultima', label:'Últ. actividad'}
+  {key:'ultima', label:'Últ. actividad'},
+  {key:'catalogos', label:'Catálogos'}
 ];
 function lsUltimaTs(e){
   const ints=Array.isArray(e.interacciones)?e.interacciones:[];
@@ -2904,6 +3017,7 @@ function lsVal(e,key){
   if(key==='contactado') return e.contactado?1:0;
   if(key==='ultima') return lsUltimaTs(e);
   if(key==='estado') return ETAPAS_OBRA.indexOf(e.estado);
+  if(key==='catalogos'){ const cs=getCatalogStatus(e.id); return cs.sent.length; }
   return (e[key]||'').toString().toLowerCase();
 }
 function renderLista(){
@@ -2927,6 +3041,10 @@ function renderLista(){
     body.innerHTML=list.map(e=>{
       const tm=TEMP_META.find(t=>t.k===e.temp);
       const ts=lsUltimaTs(e);
+      const cs=getCatalogStatus(e.id);
+      const catTotal=cs.sent.length+cs.queued.length;
+      const catPillClass = catTotal===0 ? 'none' : (cs.sent.length===catTotal ? 'full' : 'part');
+      const catPillTxt = catTotal===0 ? 'Sin pedidos' : (cs.sent.length+'/'+catTotal+' enviados');
       return '<tr data-lsid="'+e.id+'">'
         +'<td class="ls-est">'+esc(e.estudio||e.empresa||'(sin nombre)')+'</td>'
         +'<td>'+esc(e.nombre||'—')+'</td>'
@@ -2936,6 +3054,7 @@ function renderLista(){
         +'<td>'+(e.contactado?'<span class="ls-ok">✓</span>':'—')+'</td>'
         +'<td>'+esc(e.user_name||'—')+'</td>'
         +'<td>'+(ts?new Date(ts).toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit',year:'2-digit'}):'—')+'</td>'
+        +'<td><span class="cat-pill-sm '+catPillClass+'">'+catPillTxt+'</span></td>'
         +'</tr>';
     }).join('');
   }
