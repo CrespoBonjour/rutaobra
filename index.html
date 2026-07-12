@@ -2345,9 +2345,11 @@ function waLinkMsg(tel,msg){
 }
 function emailComposeLink(email,subject,body){
   if(!email) return null;
-  let url='https://webmail.mgi.com.uy/cpsess7189627797/3rdparty/roundcube/?_task=mail&_action=compose&_to='+encodeURIComponent(email);
-  if(subject) url+='&_subject='+encodeURIComponent(subject);
-  if(body) url+='&_body='+encodeURIComponent(body);
+  let url='mailto:'+encodeURIComponent(email);
+  const params=[];
+  if(subject) params.push('subject='+encodeURIComponent(subject));
+  if(body) params.push('body='+encodeURIComponent(body));
+  if(params.length) url+='?'+params.join('&');
   return url;
 }
 function emailRowHtml(email){

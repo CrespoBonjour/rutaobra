@@ -1,5 +1,7 @@
 /Git/
 desktop.ini
+.env
+.env.local
 .claude/
 /backups/
 demo-negociaciones.html
