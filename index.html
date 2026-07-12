@@ -2352,6 +2352,15 @@ function emailComposeLink(email,subject,body){
   if(params.length) url+='?'+params.join('&');
   return url;
 }
+function openMailto(url){
+  if(!url) return;
+  const a=document.createElement('a');
+  a.href=url;
+  a.style.display='none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
 function emailRowHtml(email){
   if(!email) return '';
   return '<div class="ct-phones"><div class="ct-phone-row"><span>'+ICONS.mail+' '+esc(email)+'</span><a href="'+esc(emailComposeLink(email))+'">'+ICONS.arrowUpRight+' Email</a></div></div>';
@@ -3361,7 +3370,7 @@ function renderActividades(){
     if(!contacto?.email){ toast('Este contacto no tiene email cargado', true); return; }
     const nombre = contacto?.nombre || '';
     const mensaje = 'Hola'+(nombre?' '+nombre:'')+', te comparto la información de '+ev.productos+' que solicitaste. Cualquier consulta quedo a disposición. Saludos!';
-    window.location.href = emailComposeLink(contacto.email,'Información solicitada - MGI',mensaje);
+    openMailto(emailComposeLink(contacto.email,'Información solicitada - MGI',mensaje));
   }));
   wrap.querySelectorAll('[data-sendwa]').forEach(b=>b.addEventListener('click', ()=>{
     const ev=agendaStore.find(x=>x.id===parseFloat(b.dataset.sendwa)); if(!ev) return;
