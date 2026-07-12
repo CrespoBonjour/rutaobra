@@ -2354,7 +2354,7 @@ function emailComposeLink(email,subject,body){
 }
 function emailRowHtml(email){
   if(!email) return '';
-  return '<div class="ct-phones"><div class="ct-phone-row"><span>'+ICONS.mail+' '+esc(email)+'</span><a href="'+esc(emailComposeLink(email))+'" target="_blank">'+ICONS.arrowUpRight+' Email</a></div></div>';
+  return '<div class="ct-phones"><div class="ct-phone-row"><span>'+ICONS.mail+' '+esc(email)+'</span><a href="'+esc(emailComposeLink(email))+'">'+ICONS.arrowUpRight+' Email</a></div></div>';
 }
 function fmtCorta(iso){ if(!iso)return''; const d=new Date(iso); return d.toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit',year:'2-digit'}); }
 function fmtRelativa(ts){
@@ -3361,7 +3361,7 @@ function renderActividades(){
     if(!contacto?.email){ toast('Este contacto no tiene email cargado', true); return; }
     const nombre = contacto?.nombre || '';
     const mensaje = 'Hola'+(nombre?' '+nombre:'')+', te comparto la información de '+ev.productos+' que solicitaste. Cualquier consulta quedo a disposición. Saludos!';
-    window.open(emailComposeLink(contacto.email,'Información solicitada - MGI',mensaje),'_blank');
+    window.location.href = emailComposeLink(contacto.email,'Información solicitada - MGI',mensaje);
   }));
   wrap.querySelectorAll('[data-sendwa]').forEach(b=>b.addEventListener('click', ()=>{
     const ev=agendaStore.find(x=>x.id===parseFloat(b.dataset.sendwa)); if(!ev) return;
