@@ -2343,27 +2343,23 @@ function waLinkMsg(tel,msg){
   const clean=(tel||'').split('/')[0].replace(/[^0-9+]/g,'');
   return clean ? 'https://wa.me/598'+clean.replace(/^0/,'')+'?text='+encodeURIComponent(msg||'') : null;
 }
-function emailComposeLink(email,subject,body){
-  if(!email) return null;
-  let url='mailto:'+encodeURIComponent(email);
-  const params=[];
-  if(subject) params.push('subject='+encodeURIComponent(subject));
-  if(body) params.push('body='+encodeURIComponent(body));
-  if(params.length) url+='?'+params.join('&');
-  return url;
-}
-function openMailto(url){
-  if(!url) return;
-  const a=document.createElement('a');
-  a.href=url;
-  a.style.display='none';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+function copyAndOpenWebmail(email,subject,body){
+  const partes=['Para: '+(email||'')];
+  if(subject) partes.push('Asunto: '+subject);
+  partes.push('');
+  if(body) partes.push(body);
+  const texto=partes.join('\n');
+  const abrir=()=>window.open('https://webmail.mgi.com.uy/','_blank');
+  const avisarFalloCopia=()=>{ toast('No se pudo copiar automático, copiá el mensaje a mano', true); abrir(); };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(texto).then(()=>{ toast('Datos copiados al portapapeles · pegalos en el mail nuevo'); abrir(); }, avisarFalloCopia);
+  } else {
+    avisarFalloCopia();
+  }
 }
 function emailRowHtml(email){
   if(!email) return '';
-  return '<div class="ct-phones"><div class="ct-phone-row"><span>'+ICONS.mail+' '+esc(email)+'</span><a href="'+esc(emailComposeLink(email))+'">'+ICONS.arrowUpRight+' Email</a></div></div>';
+  return '<div class="ct-phones"><div class="ct-phone-row"><span>'+ICONS.mail+' '+esc(email)+'</span><a href="#" data-emailcopy="'+esc(email)+'">'+ICONS.arrowUpRight+' Email</a></div></div>';
 }
 function fmtCorta(iso){ if(!iso)return''; const d=new Date(iso); return d.toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit',year:'2-digit'}); }
 function fmtRelativa(ts){
@@ -2519,6 +2515,9 @@ function renderContactos(){
       +'</div>';
   }).join('');
 
+  wrap.querySelectorAll('[data-emailcopy]').forEach(el=>{
+    el.addEventListener('click', (ev)=>{ ev.preventDefault(); copyAndOpenWebmail(el.dataset.emailcopy); });
+  });
   wrap.querySelectorAll('[data-toggleexpand]').forEach(el=>{
     el.addEventListener('click', ()=>{
       const id=parseFloat(el.dataset.toggleexpand);
@@ -3370,7 +3369,7 @@ function renderActividades(){
     if(!contacto?.email){ toast('Este contacto no tiene email cargado', true); return; }
     const nombre = contacto?.nombre || '';
     const mensaje = 'Hola'+(nombre?' '+nombre:'')+', te comparto la información de '+ev.productos+' que solicitaste. Cualquier consulta quedo a disposición. Saludos!';
-    openMailto(emailComposeLink(contacto.email,'Información solicitada - MGI',mensaje));
+    copyAndOpenWebmail(contacto.email,'Información solicitada - MGI',mensaje);
   }));
   wrap.querySelectorAll('[data-sendwa]').forEach(b=>b.addEventListener('click', ()=>{
     const ev=agendaStore.find(x=>x.id===parseFloat(b.dataset.sendwa)); if(!ev) return;
