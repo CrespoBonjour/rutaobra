@@ -395,7 +395,10 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 }
 
 /* Modal de detalle de contacto: ventana flotante compacta con edición in-place */
-#detail-modal .modal{max-width:560px;padding-bottom:16px}
+#detail-modal .modal{max-width:940px;padding-bottom:16px}
+#detail-body .dm-body-grid{display:flex;gap:18px;align-items:flex-start}
+#detail-body .dm-body-grid>.ct-profile-grid{flex:1.35;min-width:0}
+#detail-body .dm-body-grid>.ct-timeline{flex:1;min-width:0;border-top:none;border-left:1px solid var(--line);border-radius:8px;margin:8px 0 0;padding:0 0 0 16px}
 #detail-body .dm-edit{display:none}
 #detail-body.editing .dm-view{display:none}
 #detail-body.editing .dm-edit{display:block}
@@ -406,7 +409,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 #detail-body.editing #dm-editbtn{display:none}
 #detail-body .dm-editactions .ct-editbtn{margin-bottom:0;flex:1;width:auto}
 #detail-body #dm-fullform{font-size:9.5px;text-transform:none;letter-spacing:0;font-weight:600;padding:6px}
-#detail-body .ct-profile-grid{grid-template-columns:120px 1fr;gap:10px;padding-top:8px}
+#detail-body .ct-profile-grid{grid-template-columns:145px 1fr;gap:12px;padding-top:8px}
 #detail-body .ct-side{gap:5px;padding-right:9px}
 #detail-body .ct-editbtn{padding:6px;font-size:10px;margin-bottom:3px}
 #detail-body .ct-ministat{padding:3px 0;font-size:9.5px}
@@ -423,6 +426,10 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 #detail-body .tl-item{margin-bottom:6px}
 #detail-body .tl-content .txt{font-size:10.5px}
 #detail-body .ct-int-box textarea{min-height:36px;font-size:11px}
+@media (max-width:860px){
+  #detail-body .dm-body-grid{flex-direction:column}
+  #detail-body .dm-body-grid>.ct-timeline{border-left:none;border-top:1px solid var(--line);padding:8px 0 0;margin:8px 0 0}
+}
 @media (max-width:640px){
   #detail-body .ct-profile-grid{grid-template-columns:1fr}
   #detail-body .ct-side{border-right:none;border-bottom:1px solid var(--line-soft);padding-right:0;padding-bottom:8px}
@@ -2541,6 +2548,7 @@ function buildDetailModalHtml(e){
   const followupOpts=['Enviar cotización','Llamar la próxima semana','Visitar de nuevo en 2 semanas','Esperar que avance la obra','Cerrado - sin interés'];
 
   return '<div class="modal-title"><span>'+esc(e.estudio||e.empresa||'(sin nombre)')+'</span><span class="del-pin" id="dm-close" style="color:var(--muted)">✕ Cerrar</span></div>'
+    +'<div class="dm-body-grid">'
     +'<div class="ct-profile-grid">'
 
       +'<div class="ct-side">'
@@ -2591,6 +2599,7 @@ function buildDetailModalHtml(e){
     +'<textarea placeholder="¿Qué hiciste o qué tenés que hacer?" id="dm-inttext"></textarea>'
     +'<div class="row2" style="margin-bottom:6px"><input type="date" id="dm-intfecha" style="flex:1"><input type="time" id="dm-inthora" style="flex:1"></div>'
     +'<button class="ct-int-savebtn" id="dm-intsave">+ Guardar interacción</button>'
+    +'</div>'
     +'</div>'
     +'</div>'
     +'<button class="ct-editbtn" id="dm-fullform" style="background:none;border:none;color:var(--muted);margin-top:2px">Editar todos los campos (dirección, zona, catálogo, personas, foto...) →</button>';
