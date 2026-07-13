@@ -327,10 +327,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .ct-badge-activity{position:absolute;top:-6px;right:-6px;width:14px;height:14px;border-radius:50%;background:var(--hot);border:2px solid var(--bg);box-shadow:0 0 6px rgba(255,77,77,.6)}
 .ct-expand-toggle{width:100%;text-align:center;padding:5px;background:none;border:none;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;justify-content:center;gap:4px;margin-top:2px}
 .ct-expand-toggle:hover{color:var(--acc)}
-.ct-expand-toggle .chev{transition:transform .2s var(--ease);display:inline-block}
-.ct-card.expanded .ct-expand-toggle .chev{transform:rotate(180deg)}
-.ct-detail{display:none;margin-top:6px;animation:fade-in .18s ease}
-.ct-card.expanded .ct-detail{display:block}
+.ct-expand-toggle .chev{display:inline-block}
 .ct-persons-note{font-size:11px;color:var(--acc);font-weight:700;margin-bottom:6px;cursor:pointer}
 .ct-editbtn{width:100%;padding:9px;background:var(--panel2);border:1px solid var(--line);border-radius:var(--r-sm);color:var(--muted);font-size:11.5px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.4px;font-family:inherit;margin-bottom:8px;transition:.16s var(--ease)}
 .ct-editbtn:hover{border-color:var(--acc);color:var(--acc)}
@@ -347,8 +344,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .persona-add-form{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
 .persona-add-form input,.persona-add-form select{width:100%;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink);border-radius:7px;padding:9px 10px;font-size:13px;font-family:inherit}
 
-/* Tarjeta expandida: perfil (sidebar) + contenido, ancho completo de la grilla en desktop */
-.ct-card.expanded{grid-column:1/-1}
+/* Ficha de contacto: perfil (sidebar) + contenido, dentro del modal de detalle */
 .ct-profile-grid{display:grid;grid-template-columns:168px 1fr;gap:16px;align-items:start;margin-top:2px;padding-top:10px;border-top:1px solid var(--line-soft)}
 .ct-side{display:flex;flex-direction:column;gap:8px;border-right:1px solid var(--line-soft);padding-right:14px;min-width:0}
 .ct-side .ct-pill{display:flex;align-items:center;justify-content:center;width:100%;max-width:none;box-sizing:border-box}
@@ -396,6 +392,41 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
   .ct-profile-grid{grid-template-columns:1fr}
   .ct-side{border-right:none;border-bottom:1px solid var(--line-soft);padding-right:0;padding-bottom:10px}
   .ct-split{grid-template-columns:1fr}
+}
+
+/* Modal de detalle de contacto: ventana flotante compacta con edición in-place */
+#detail-modal .modal{max-width:560px;padding-bottom:16px}
+#detail-body .dm-edit{display:none}
+#detail-body.editing .dm-view{display:none}
+#detail-body.editing .dm-edit{display:block}
+#detail-body .ct-nextaction select.dm-edit{width:100%;background:var(--panel2);border:1.5px solid var(--acc);color:var(--ink);border-radius:6px;padding:5px 7px;font-size:11px;font-family:inherit;margin-top:2px}
+#detail-body .ct-detail-notas textarea.dm-edit{width:100%;background:var(--panel2);border:1.5px solid var(--acc);color:var(--ink);border-radius:6px;padding:7px 8px;font-size:11.5px;font-family:inherit;min-height:56px;resize:vertical;margin-top:2px}
+#detail-body .dm-editactions{display:none;gap:6px;margin-bottom:8px}
+#detail-body.editing .dm-editactions{display:flex}
+#detail-body.editing #dm-editbtn{display:none}
+#detail-body .dm-editactions .ct-editbtn{margin-bottom:0;flex:1;width:auto}
+#detail-body #dm-fullform{font-size:9.5px;text-transform:none;letter-spacing:0;font-weight:600;padding:6px}
+#detail-body .ct-profile-grid{grid-template-columns:120px 1fr;gap:10px;padding-top:8px}
+#detail-body .ct-side{gap:5px;padding-right:9px}
+#detail-body .ct-editbtn{padding:6px;font-size:10px;margin-bottom:3px}
+#detail-body .ct-ministat{padding:3px 0;font-size:9.5px}
+#detail-body .ct-nextaction{padding:6px 7px;font-size:9.5px}
+#detail-body .ct-nextaction b{font-size:8px;margin-bottom:2px}
+#detail-body .ct-main{gap:7px}
+#detail-body .ct-detail-notas{font-size:10.5px;padding:6px 8px;margin-bottom:0}
+#detail-body .ct-split{gap:10px}
+#detail-body .ct-dcol-title{font-size:8.5px;margin-bottom:5px}
+#detail-body .cat-group{margin-bottom:6px}
+#detail-body .cat-chip{font-size:9px;padding:3px 6px}
+#detail-body .ct-timeline{padding:8px 10px;margin:8px -16px -1px}
+#detail-body .tl-scroll{max-height:90px;margin-bottom:6px}
+#detail-body .tl-item{margin-bottom:6px}
+#detail-body .tl-content .txt{font-size:10.5px}
+#detail-body .ct-int-box textarea{min-height:36px;font-size:11px}
+@media (max-width:640px){
+  #detail-body .ct-profile-grid{grid-template-columns:1fr}
+  #detail-body .ct-side{border-right:none;border-bottom:1px solid var(--line-soft);padding-right:0;padding-bottom:8px}
+  #detail-body .ct-split{grid-template-columns:1fr}
 }
 
 /* ===== PANEL (KPIs, admin) ===== */
@@ -1052,6 +1083,13 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       <button class="btn-secondary" id="modal-cancel">Cancelar</button>
       <button class="btn-primary" id="modal-save"><svg class="icn" viewBox="0 0 24 24" style="fill:currentColor;stroke:none"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg> Guardar</button>
     </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div id="detail-body"></div>
   </div>
 </div>
 
@@ -2333,7 +2371,6 @@ document.getElementById('import-run-btn').addEventListener('click', async ()=>{
 // TAB CONTACTOS (tarjetas con contactado / bitrix)
 // ============================================================
 let ctSearch='',ctFilter='all',ctBitrixFilter='all',ctTempFilter='all',ctActFilter='all';
-let expandedIds=new Set();
 
 function waLink(tel){
   const clean=(tel||'').split('/')[0].replace(/[^0-9+]/g,'');
@@ -2439,10 +2476,10 @@ function renderContactos(){
     const negColor = misNeg ? (misNeg.etapa==='ganada'?'#3ecf73':misNeg.etapa==='perdida'?'var(--hot)':'var(--acc)') : '';
     const catStatus = getCatalogStatus(e.id);
 
-    return '<div class="ct-card '+(e.contactado?'contacted':'')+' '+(e.bitrix?'inbitrix':'')+' '+(expandedIds.has(e.id)?'expanded':'')+'" data-id="'+e.id+'">'
+    return '<div class="ct-card '+(e.contactado?'contacted':'')+' '+(e.bitrix?'inbitrix':'')+'" data-id="'+e.id+'">'
       +(proximaActividad?'<div class="ct-badge-activity" title="Tiene una actividad pendiente"></div>':'')
       +'<div class="ct-top">'
-      +'<div class="ct-info" data-toggleexpand="'+e.id+'" style="cursor:pointer">'
+      +'<div class="ct-info" data-opendetail="'+e.id+'" style="cursor:pointer">'
         +'<div class="ct-empresa">'+esc(e.estudio||e.empresa||'(sin nombre)')+'</div>'
         +'<div class="ct-nombre">'+esc(e.nombre||'')+(e.cargo?' · '+esc(e.cargo):'')+'</div>'
         +(tempLabel?'<div class="ct-badge-temp '+e.temp+'">'+tempLabel+'</div>':'')
@@ -2460,76 +2497,19 @@ function renderContactos(){
       +(previewInt?'<div class="ct-strip-row" title="'+esc(previewInt)+'">'+ICONS.chat+'<span>'+esc(previewInt)+'</span></div>':'')
       +(proximaActividad?'<div class="ct-strip-row activity" data-gotoactid="'+proximaActividad.id+'">'+ICONS.clock+'<span>'+esc(proximaActividad.texto)+'</span></div>':'')
       +'</div>'
-      +(personas.length?'<div class="ct-persons-note" data-toggleexpand="'+e.id+'">'+ICONS.users+' +'+personas.length+' persona'+(personas.length>1?'s':'')+' de contacto</div>':'')
-      +'<button class="ct-expand-toggle" data-toggleexpand="'+e.id+'"><span class="chev">▾</span> '+(expandedIds.has(e.id)?'Ocultar detalle':'Ver detalle')+'</button>'
-      +'<div class="ct-detail">'
-      +'<div class="ct-profile-grid">'
-
-        +'<div class="ct-side">'
-        +'<span class="ct-pill '+(e.contactado?'ok':'')+'">'+(e.contactado?ICONS.check+' Contactado':'Sin contactar')+(e.contactado_fecha?' · '+fmtCorta(e.contactado_fecha):'')+'</span>'
-        +'<span class="ct-pill '+(e.bitrix?'bx':'')+'">'+(e.bitrix?ICONS.check+' En Bitrix':'Falta pasar a Bitrix')+(e.bitrix_fecha?' · '+fmtCorta(e.bitrix_fecha):'')+'</span>'
-        +'<button class="ct-editbtn" data-editfull="'+e.id+'">'+ICONS.edit+' Editar ficha</button>'
-        +'<div class="ct-ministat"><span class="l">Último contacto</span><span class="v">'+(ultimaTs?fmtRelativa(ultimaTs):'—')+'</span></div>'
-        +'<div class="ct-ministat"><span class="l">Interacciones</span><span class="v">'+ints.length+'</span></div>'
-        +'<div class="ct-ministat"><span class="l">Alta</span><span class="v">'+esc(e.fecha||'—')+'</span></div>'
-        +'<div class="ct-ministat"><span class="l">Activ. vencidas</span><span class="v'+(actVencidas?' warn':'')+'">'+actVencidas+'</span></div>'
-        +'<div class="ct-ministat"><span class="l">Proveedor</span><span class="v'+(e.proveedor?'':' empty')+'">'+(e.proveedor?esc(e.proveedor):'Sin datos')+'</span></div>'
-        +'<div class="ct-ministat"><span class="l">Sitio web</span><span class="v'+(e.web?'':' empty')+'">'+(e.web?esc(e.web):'Sin datos')+'</span></div>'
-        +'<div class="ct-nextaction"><b>Próxima acción</b><span'+(e.followup?'':' class="empty"')+'>'+(e.followup?esc(e.followup):'Sin definir')+'</span></div>'
-        +'</div>'
-
-        +'<div class="ct-main">'
-        +(e.notas?'<div class="ct-detail-notas"><span class="lbl">Notas</span>'+esc(e.notas)+'</div>':'<div class="ct-detail-notas" style="color:#555b66;font-style:italic">Sin notas</div>')
-        +(misNeg?('<div class="ct-neg" data-gotoneg="1"><div class="dot" style="background:'+negColor+'"></div>'
-          +'<div class="tx"><b>'+esc(negLabel)+'</b><span>Negociación actualizada '+fmtRelativa(misNeg.orden).toLowerCase()+'</span></div></div>'):'')
-
-        +'<div class="ct-split">'
-          +'<div><div class="ct-dcol-title">Catálogos</div>'
-          +(productosCatalogoStore.length?(
-            '<div class="cat-group"><div class="cat-group-h" style="color:#6fe39c">Enviados<span class="n">'+catStatus.sent.length+'</span></div>'
-            +'<div class="cat-chips">'+(catStatus.sent.length?catStatus.sent.map(p=>'<span class="cat-chip sent">'+ICONS.check+esc(p)+'</span>').join(''):'<span style="font-size:10.5px;color:var(--muted)">Ninguno todavía</span>')+'</div></div>'
-            +'<div class="cat-group"><div class="cat-group-h" style="color:#7fb8ff">Pendientes de envío<span class="n">'+catStatus.queued.length+'</span></div>'
-            +'<div class="cat-chips">'+(catStatus.queued.length?catStatus.queued.map(p=>'<span class="cat-chip queued">'+ICONS.clock+esc(p)+'</span>').join(''):'<span style="font-size:10.5px;color:var(--muted)">Ninguno agendado</span>')+'</div></div>'
-            +(catStatus.none.length?('<div class="cat-group"><div class="cat-group-h" style="color:var(--muted)">No ofrecidos<span class="n">'+catStatus.none.length+'</span></div>'
-            +'<div class="cat-chips">'+catStatus.none.map(p=>'<span class="cat-chip none">'+esc(p)+'</span>').join('')+'</div></div>'):'')
-            +(catStatus.queued.length||catStatus.none.length?'<div class="cat-summary">Quedan <b>'+(catStatus.queued.length+catStatus.none.length)+' catálogo'+((catStatus.queued.length+catStatus.none.length)===1?'':'s')+'</b> para ofrecerle — buena excusa para la próxima llamada.</div>':'')
-          ):'<div style="font-size:11px;color:var(--muted)">Todavía no cargaste productos en el catálogo (Panel).</div>')
-          +'</div>'
-
-          +'<div><div class="ct-dcol-title">Personas de contacto</div>'
-          +(personas.length?personas.map(p=>'<div class="persona-row"><span class="txt">'+ICONS.user+' '+esc(p.nombre||'')+(p.cargo?' · '+esc(p.cargo):'')+(p.telefono?' · '+esc(p.telefono):'')+'</span></div>').join(''):'<div style="font-size:11px;color:var(--muted)">Sin personas adicionales cargadas.</div>')
-          +'</div>'
-        +'</div>'
-        +'</div>'
-
-      +'</div>'
-      +'<div class="ct-timeline"><div class="ct-dcol-title">Historial completo ('+ints.length+')</div>'
-      +(ints.length?('<div class="tl-scroll">'+ints.map((h,i)=>'<div class="tl-item"><div class="tl-dot-col"><div class="tl-dot'+(h.auto?' auto':'')+'"></div>'+(i<ints.length-1?'<div class="tl-line"></div>':'')+'</div><div class="tl-content"><div class="m">'+esc(h.fecha)+(h.auto?' · automático':'')+'</div><div class="txt">'+esc(h.texto)+'</div></div></div>').join('')+'</div>'):'<div style="font-size:11px;color:var(--muted);margin-bottom:8px">Sin interacciones todavía.</div>')
-      +'<div class="ct-int-box">'
-      +'<textarea placeholder="¿Qué hiciste o qué tenés que hacer?" data-inttext="'+e.id+'"></textarea>'
-      +'<div class="row2" style="margin-bottom:6px"><input type="date" data-intfecha="'+e.id+'" style="flex:1"><input type="time" data-inthora="'+e.id+'" style="flex:1"></div>'
-      +'<button class="ct-int-savebtn" data-intsave="'+e.id+'">+ Guardar interacción</button>'
-      +'</div>'
-      +'</div>'
-      +'</div>'
+      +(personas.length?'<div class="ct-persons-note" data-opendetail="'+e.id+'">'+ICONS.users+' +'+personas.length+' persona'+(personas.length>1?'s':'')+' de contacto</div>':'')
+      +'<button class="ct-expand-toggle" data-opendetail="'+e.id+'"><span class="chev">▾</span> Ver detalle</button>'
       +'</div>';
   }).join('');
 
   wrap.querySelectorAll('[data-emailcopy]').forEach(el=>{
     el.addEventListener('click', (ev)=>{ ev.preventDefault(); copyAndOpenWebmail(el.dataset.emailcopy); });
   });
-  wrap.querySelectorAll('[data-toggleexpand]').forEach(el=>{
-    el.addEventListener('click', ()=>{
-      const id=parseFloat(el.dataset.toggleexpand);
-      if(expandedIds.has(id)) expandedIds.delete(id); else expandedIds.add(id);
-      renderContactos();
-    });
+  wrap.querySelectorAll('[data-opendetail]').forEach(el=>{
+    el.addEventListener('click', ()=> openContactDetail(parseFloat(el.dataset.opendetail)));
   });
   wrap.querySelectorAll('[data-gotoactid]').forEach(el=>{
     el.addEventListener('click', (ev)=>{ ev.stopPropagation(); jumpToActividadFromContact(parseFloat(el.dataset.gotoactid)); });
-  });
-  wrap.querySelectorAll('[data-gotoneg]').forEach(el=>{
-    el.addEventListener('click', ()=>{ document.querySelector('.tab[data-tab="negociaciones"]').click(); });
   });
   wrap.querySelectorAll('[data-toggle]').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
@@ -2542,35 +2522,132 @@ function renderContactos(){
       await saveEntry(item); renderContactos();
     });
   });
-  wrap.querySelectorAll('[data-editfull]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const item=localStore.find(x=>x.id===parseFloat(btn.dataset.editfull));
-      if(item) openPinModal(item);
-    });
+}
+
+// ============================================================
+// MODAL DE DETALLE DE CONTACTO (ventana flotante, compacta, editable in-place)
+// ============================================================
+let detailModalId=null;
+function buildDetailModalHtml(e){
+  const hoyYMD=fmtYMD(new Date());
+  const ints = Array.isArray(e.interacciones) ? e.interacciones : [];
+  const personas = Array.isArray(e.personas) ? e.personas : [];
+  const actVencidas = agendaStore.filter(a=>a.tipo==='actividad' && a.estudio_id===e.id && !a.completada && a.fecha<hoyYMD).length;
+  const ultimaTs = lsUltimaTs(e);
+  const misNeg = negociacionesStore.filter(n=>n.estudio_id===e.id).sort((a,b)=>(b.orden||0)-(a.orden||0))[0];
+  const negLabel = misNeg ? ((NEG_ETAPAS.find(x=>x.key===misNeg.etapa)||{}).label || misNeg.etapa) : '';
+  const negColor = misNeg ? (misNeg.etapa==='ganada'?'#3ecf73':misNeg.etapa==='perdida'?'var(--hot)':'var(--acc)') : '';
+  const catStatus = getCatalogStatus(e.id);
+  const followupOpts=['Enviar cotización','Llamar la próxima semana','Visitar de nuevo en 2 semanas','Esperar que avance la obra','Cerrado - sin interés'];
+
+  return '<div class="modal-title"><span>'+esc(e.estudio||e.empresa||'(sin nombre)')+'</span><span class="del-pin" id="dm-close" style="color:var(--muted)">✕ Cerrar</span></div>'
+    +'<div class="ct-profile-grid">'
+
+      +'<div class="ct-side">'
+      +'<span class="ct-pill '+(e.contactado?'ok':'')+'">'+(e.contactado?ICONS.check+' Contactado':'Sin contactar')+(e.contactado_fecha?' · '+fmtCorta(e.contactado_fecha):'')+'</span>'
+      +'<span class="ct-pill '+(e.bitrix?'bx':'')+'">'+(e.bitrix?ICONS.check+' En Bitrix':'Falta pasar a Bitrix')+(e.bitrix_fecha?' · '+fmtCorta(e.bitrix_fecha):'')+'</span>'
+      +'<button class="ct-editbtn" id="dm-editbtn">'+ICONS.edit+' Editar ficha</button>'
+      +'<div class="dm-editactions"><button class="ct-editbtn" id="dm-save" style="background:var(--acc-tex-btn);color:var(--acc-btn-ink);border:none">Guardar</button><button class="ct-editbtn" id="dm-cancel">Cancelar</button></div>'
+      +'<div class="ct-ministat"><span class="l">Último contacto</span><span class="v">'+(ultimaTs?fmtRelativa(ultimaTs):'—')+'</span></div>'
+      +'<div class="ct-ministat"><span class="l">Interacciones</span><span class="v">'+ints.length+'</span></div>'
+      +'<div class="ct-ministat"><span class="l">Alta</span><span class="v">'+esc(e.fecha||'—')+'</span></div>'
+      +'<div class="ct-ministat"><span class="l">Activ. vencidas</span><span class="v'+(actVencidas?' warn':'')+'">'+actVencidas+'</span></div>'
+      +'<div class="ct-ministat"><span class="l">Proveedor</span><span class="v'+(e.proveedor?'':' empty')+'">'+(e.proveedor?esc(e.proveedor):'Sin datos')+'</span></div>'
+      +'<div class="ct-ministat"><span class="l">Sitio web</span><span class="v'+(e.web?'':' empty')+'">'+(e.web?esc(e.web):'Sin datos')+'</span></div>'
+      +'<div class="ct-nextaction"><b>Próxima acción</b>'
+        +'<span class="dm-view'+(e.followup?'':' empty')+'">'+(e.followup?esc(e.followup):'Sin definir')+'</span>'
+        +'<select class="dm-edit" id="dm-followup"><option value="">Seleccionar...</option>'+followupOpts.map(o=>'<option'+(e.followup===o?' selected':'')+'>'+esc(o)+'</option>').join('')+'</select>'
+      +'</div>'
+      +'</div>'
+
+      +'<div class="ct-main">'
+      +'<div class="ct-detail-notas"><span class="lbl">Notas</span>'
+        +'<span class="dm-view">'+(e.notas?esc(e.notas):'<i style="color:#555b66">Sin notas</i>')+'</span>'
+        +'<textarea class="dm-edit" id="dm-notas" placeholder="Detalles adicionales...">'+esc(e.notas||'')+'</textarea>'
+      +'</div>'
+      +(misNeg?('<div class="ct-neg" data-gotoneg="1"><div class="dot" style="background:'+negColor+'"></div>'
+        +'<div class="tx"><b>'+esc(negLabel)+'</b><span>Negociación actualizada '+fmtRelativa(misNeg.orden).toLowerCase()+'</span></div></div>'):'')
+
+      +'<div class="ct-split">'
+        +'<div><div class="ct-dcol-title">Catálogos</div>'
+        +(productosCatalogoStore.length?(
+          '<div class="cat-group"><div class="cat-group-h" style="color:#6fe39c">Enviados<span class="n">'+catStatus.sent.length+'</span></div>'
+          +'<div class="cat-chips">'+(catStatus.sent.length?catStatus.sent.map(p=>'<span class="cat-chip sent">'+ICONS.check+esc(p)+'</span>').join(''):'<span style="font-size:10.5px;color:var(--muted)">Ninguno todavía</span>')+'</div></div>'
+          +'<div class="cat-group"><div class="cat-group-h" style="color:#7fb8ff">Pendientes<span class="n">'+catStatus.queued.length+'</span></div>'
+          +'<div class="cat-chips">'+(catStatus.queued.length?catStatus.queued.map(p=>'<span class="cat-chip queued">'+ICONS.clock+esc(p)+'</span>').join(''):'<span style="font-size:10.5px;color:var(--muted)">Ninguno agendado</span>')+'</div></div>'
+        ):'<div style="font-size:11px;color:var(--muted)">Sin catálogos cargados.</div>')
+        +'</div>'
+
+        +'<div><div class="ct-dcol-title">Personas de contacto</div>'
+        +(personas.length?personas.map(p=>'<div class="persona-row"><span class="txt">'+ICONS.user+' '+esc(p.nombre||'')+(p.cargo?' · '+esc(p.cargo):'')+(p.telefono?' · '+esc(p.telefono):'')+'</span></div>').join(''):'<div style="font-size:11px;color:var(--muted)">Sin personas adicionales.</div>')
+        +'</div>'
+      +'</div>'
+      +'</div>'
+
+    +'</div>'
+    +'<div class="ct-timeline"><div class="ct-dcol-title">Historial completo ('+ints.length+')</div>'
+    +(ints.length?('<div class="tl-scroll">'+ints.map((h,i)=>'<div class="tl-item"><div class="tl-dot-col"><div class="tl-dot'+(h.auto?' auto':'')+'"></div>'+(i<ints.length-1?'<div class="tl-line"></div>':'')+'</div><div class="tl-content"><div class="m">'+esc(h.fecha)+(h.auto?' · automático':'')+'</div><div class="txt">'+esc(h.texto)+'</div></div></div>').join('')+'</div>'):'<div style="font-size:11px;color:var(--muted);margin-bottom:8px">Sin interacciones todavía.</div>')
+    +'<div class="ct-int-box">'
+    +'<textarea placeholder="¿Qué hiciste o qué tenés que hacer?" id="dm-inttext"></textarea>'
+    +'<div class="row2" style="margin-bottom:6px"><input type="date" id="dm-intfecha" style="flex:1"><input type="time" id="dm-inthora" style="flex:1"></div>'
+    +'<button class="ct-int-savebtn" id="dm-intsave">+ Guardar interacción</button>'
+    +'</div>'
+    +'</div>'
+    +'<button class="ct-editbtn" id="dm-fullform" style="background:none;border:none;color:var(--muted);margin-top:2px">Editar todos los campos (dirección, zona, catálogo, personas, foto...) →</button>';
+}
+function openContactDetail(id){
+  const item=localStore.find(x=>x.id===id); if(!item) return;
+  detailModalId=id;
+  renderDetailModal();
+  document.getElementById('detail-modal').classList.add('show');
+}
+function closeDetailModal(){
+  document.getElementById('detail-modal').classList.remove('show');
+  document.getElementById('detail-body').classList.remove('editing');
+  detailModalId=null;
+}
+function renderDetailModal(){
+  const item=localStore.find(x=>x.id===detailModalId); if(!item) return;
+  const body=document.getElementById('detail-body');
+  body.classList.remove('editing');
+  body.innerHTML=buildDetailModalHtml(item);
+  document.getElementById('dm-close').addEventListener('click', closeDetailModal);
+  document.getElementById('dm-editbtn').addEventListener('click', ()=> body.classList.add('editing'));
+  document.getElementById('dm-cancel').addEventListener('click', ()=> renderDetailModal());
+  document.getElementById('dm-save').addEventListener('click', async ()=>{
+    item.notas=document.getElementById('dm-notas').value.trim();
+    item.followup=document.getElementById('dm-followup').value;
+    item.bitrix=false; item.bitrix_fecha=null;
+    const ok=await saveEntry(item);
+    if(!ok) return;
+    toast('Ficha actualizada ✓');
+    renderDetailModal();
+    renderContactos();
   });
-  wrap.querySelectorAll('[data-intsave]').forEach(btn=>{
-    btn.addEventListener('click', async ()=>{
-      const id=parseFloat(btn.dataset.intsave);
-      const ta=wrap.querySelector('[data-inttext="'+id+'"]');
-      const texto=ta.value.trim(); if(!texto) return;
-      const item=localStore.find(x=>x.id===id); if(!item) return;
-      if(!Array.isArray(item.interacciones)) item.interacciones=[];
-      item.interacciones.unshift({fecha:new Date().toLocaleDateString('es-UY')+' '+new Date().toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'}),texto,auto:false});
-      item.bitrix=false; item.bitrix_fecha=null;
-      const okSave=await saveEntry(item);
-      if(!okSave) return;
-      const fechaEl = wrap.querySelector('[data-intfecha="'+id+'"]');
-      const horaEl = wrap.querySelector('[data-inthora="'+id+'"]');
-      if(fechaEl && fechaEl.value){
-        const res = await crearActividadAgenda({fecha:fechaEl.value, hora:horaEl.value, tipo:'actividad', texto, estudioId:id});
-        if(res.ok) toast('Interacción guardada y agendada ✓'); else toast(res.msg, true);
-      } else {
-        toast('Interacción guardada ✓');
-      }
-      renderContactos();
-    });
+  document.getElementById('dm-fullform').addEventListener('click', ()=>{ closeDetailModal(); openPinModal(item); });
+  const negEl=body.querySelector('[data-gotoneg]');
+  if(negEl) negEl.addEventListener('click', ()=>{ closeDetailModal(); document.querySelector('.tab[data-tab="negociaciones"]').click(); });
+  document.getElementById('dm-intsave').addEventListener('click', async ()=>{
+    const ta=document.getElementById('dm-inttext');
+    const texto=ta.value.trim(); if(!texto) return;
+    if(!Array.isArray(item.interacciones)) item.interacciones=[];
+    item.interacciones.unshift({fecha:new Date().toLocaleDateString('es-UY')+' '+new Date().toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'}),texto,auto:false});
+    item.bitrix=false; item.bitrix_fecha=null;
+    const okSave=await saveEntry(item);
+    if(!okSave) return;
+    const fechaEl=document.getElementById('dm-intfecha');
+    const horaEl=document.getElementById('dm-inthora');
+    if(fechaEl.value){
+      const res = await crearActividadAgenda({fecha:fechaEl.value, hora:horaEl.value, tipo:'actividad', texto, estudioId:item.id});
+      if(res.ok) toast('Interacción guardada y agendada ✓'); else toast(res.msg, true);
+    } else {
+      toast('Interacción guardada ✓');
+    }
+    renderDetailModal();
+    renderContactos();
   });
 }
+document.getElementById('detail-modal').addEventListener('click', (ev)=>{ if(ev.target.id==='detail-modal') closeDetailModal(); });
 document.getElementById('ct-search').addEventListener('input', e=>{ ctSearch=e.target.value; renderContactos(); });
 document.querySelectorAll('[data-ctf]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-ctf]').forEach(x=>x.classList.remove('active'));b.classList.add('active');ctFilter=b.dataset.ctf;renderContactos();}));
 document.querySelectorAll('[data-ctbx]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-ctbx]').forEach(x=>x.classList.remove('active'));b.classList.add('active');ctBitrixFilter=b.dataset.ctbx;renderContactos();}));
@@ -3171,12 +3248,8 @@ function jumpToContactFromActivity(estudioId){
   if(!estudioId) return;
   const item = localStore.find(x=>x.id===estudioId);
   if(!item) return;
-  expandedIds.add(estudioId);
   document.querySelector('.tab[data-tab="contactos"]').click();
-  setTimeout(()=>{
-    const cardEl = document.querySelector('.ct-card[data-id="'+estudioId+'"]');
-    if(cardEl) cardEl.scrollIntoView({behavior:'smooth', block:'center'});
-  }, 80);
+  setTimeout(()=> openContactDetail(estudioId), 80);
 }
 
 function jumpToActividadFromContact(actId){
