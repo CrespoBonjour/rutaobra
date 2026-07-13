@@ -341,60 +341,79 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .persona-add-form input,.persona-add-form select{width:100%;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink);border-radius:7px;padding:9px 10px;font-size:13px;font-family:inherit}
 
 /* ===== Ficha de contacto unificada (pin-modal): 3 columnas, centrada, con edicion completa ===== */
-#pin-modal .pm-modal{max-width:1180px;padding:16px 16px 20px}
-.pm-topbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid var(--line-soft)}
-.pm-emp{font-family:var(--font-display);font-size:19px;font-weight:700;color:#fff;flex-shrink:0}
+#pin-modal .pm-modal{max-width:1180px;padding:0;display:flex;flex-direction:column;max-height:90vh;overflow:hidden}
+#pin-modal .modal-handle{margin-top:12px;flex-shrink:0}
+#pin-modal .pm-topbar,#pin-modal .modal-actions,#pin-modal .pm-tabs{flex-shrink:0}
+/* Barra superior fija (no scrollea): nombre, temperatura, estado, mini-stats */
+.pm-topbar{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 20px;background:var(--panel3);border-bottom:1px solid var(--line-soft)}
+.pm-emp{font-family:var(--font-display);font-size:18px;font-weight:700;color:#fff;flex-shrink:0}
 .pm-topbar .temp-chips{display:flex;gap:5px;margin-bottom:0;width:auto}
-.pm-topbar .temp-chip{padding:5px 9px;font-size:10px;white-space:nowrap}
+.pm-topbar .temp-chip{padding:5px 9px;font-size:10px;white-space:nowrap;border-width:1.5px}
 .pm-ministat-row{display:flex;gap:14px;margin-left:auto;font-size:10px;color:var(--muted);flex-wrap:wrap}
 .pm-ministat-row b{color:var(--ink-soft);font-weight:700}
 .pm-ministat-row .warn b{color:var(--hot)}
 
-.pm-tabs{display:none;gap:5px;margin-bottom:12px}
-.pm-tab{flex:1;text-align:center;font-size:10.5px;font-weight:800;padding:8px 4px;border-radius:8px;background:var(--panel2);color:var(--muted);border:1px solid var(--line);cursor:pointer}
+.pm-tabs{display:none;gap:5px;padding:10px 20px 0}
+.pm-tab{flex:1;text-align:center;font-size:11px;font-weight:800;padding:9px 4px;border-radius:9px;background:var(--panel2);color:var(--muted);border:1px solid var(--line);cursor:pointer}
 .pm-tab.sel{background:var(--acc-dim);color:var(--acc-light);border-color:var(--acc-deep)}
 
-.pm-cols{display:grid;grid-template-columns:250px 1fr 250px;gap:0}
-.pm-col{padding:0 14px;display:flex;flex-direction:column;gap:7px}
-.pm-col-l{border-right:1px solid var(--line-soft);padding-left:0}
-.pm-col-r{border-left:1px solid var(--line-soft);padding-right:0}
-.pm-col-c{padding-left:14px}
-.pm-divider{border-top:1px dashed var(--line);margin:1px 0}
-.pm-sectitle{font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:800}
+/* Zona central scrolleable: solo esto se mueve; la barra de arriba y los botones de abajo quedan fijos */
+.pm-cols{flex:1;overflow-y:auto;display:grid;grid-template-columns:250px 1fr 250px;gap:0;padding:14px 0}
+.pm-col{padding:0 18px;display:flex;flex-direction:column;gap:11px;align-content:start}
+.pm-col-l{border-right:1px solid var(--line-soft)}
+.pm-col-r{border-left:1px solid var(--line-soft)}
+.pm-divider{border-top:1px dashed var(--line);margin:3px 0 1px}
+.pm-sectitle{font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:800}
 
-/* Densidad compacta: los campos del formulario reusan .field/.quick-chips/.temp-chips/.catalog-grid
-   tal cual (mismos ids y JS), pero mas chicos dentro de la ficha para que no dominen visualmente. */
+/* Densidad: los campos reusan .field/.quick-chips/.catalog-grid tal cual (mismos ids y JS),
+   pero mas livianos dentro de la ficha, con aire entre grupos para que no se sienta apretado. */
 .pm-col .field{margin-bottom:0}
-.pm-col .field label{font-size:8.5px;margin-bottom:2px}
-.pm-col .field input,.pm-col .field select,.pm-col .field textarea{padding:6px 8px;font-size:11px;border-radius:6px}
-.pm-col .field textarea{min-height:34px}
-.pm-col #m-notas{min-height:56px;max-height:100px}
-.pm-col .row2{gap:6px}
-.pm-col .quick-chips{margin:0 0 2px;gap:4px}
-.pm-col .quick-chips .chip{font-size:9px;padding:3px 8px;border-radius:14px}
-.pm-col .temp-chips{margin-bottom:0;gap:4px}
-.pm-col .temp-chip{padding:5px 4px;font-size:9px}
-.pm-col .catalog-grid{margin-bottom:0;gap:5px}
-.pm-col .catalog-item{font-size:9.5px;padding:6px 7px}
-.pm-col .ct-int-savebtn{padding:6px;font-size:10px}
-.pm-col .persona-add-form{gap:4px;margin-bottom:0}
-.pm-col .persona-add-form input,.pm-col .persona-add-form select{padding:6px 8px;font-size:11px}
-.pm-col .obra-row,.pm-col .persona-row{padding:5px 7px;font-size:10px;margin-bottom:0}
+.pm-col .field label{font-size:9px;margin-bottom:3px;letter-spacing:.3px}
+.pm-col .field input,.pm-col .field select,.pm-col .field textarea{padding:8px 10px;font-size:12px;border-width:1px;box-shadow:none;max-width:100%}
+.pm-col .row2{gap:8px}
+.pm-col .catalog-grid{margin-bottom:0;gap:6px}
+.pm-col .catalog-item{font-size:11px;padding:8px 9px;border-width:1px}
+.pm-col .catalog-item .box{width:14px;height:14px}
+.pm-col .quick-chips{margin:0;gap:5px}
+.pm-col .quick-chips .chip{font-size:10.5px;padding:6px 10px;border-radius:7px;border-width:1px}
+.pm-col .ct-int-savebtn{padding:8px;font-size:10.5px}
+.pm-col .persona-add-form{gap:6px;margin-bottom:0}
+.pm-col .persona-add-form input,.pm-col .persona-add-form select{padding:7px 9px;font-size:12px}
+.pm-col .obra-row,.pm-col .persona-row{padding:6px 8px;font-size:11px;margin-bottom:0}
 
-.pm-newrow{display:flex;gap:6px;align-items:flex-start}
-.pm-newrow textarea{flex:1;min-height:32px;padding:6px 8px;font-size:11px}
-.pm-newact{display:flex;gap:5px;flex-wrap:wrap}
-.pm-newact input[type=text]{flex:1;min-width:110px;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink);border-radius:6px;padding:6px 8px;font-size:11px;font-family:inherit}
-.pm-newact input[type=date],.pm-newact input[type=time]{background:var(--panel2);border:1.5px solid var(--line);color:var(--ink);border-radius:6px;padding:6px;font-size:10px;font-family:inherit}
-.pm-actlist{max-height:110px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
-.act-item{display:flex;align-items:center;gap:6px;background:var(--panel2);border-radius:6px;padding:5px 8px;font-size:10px}
-.act-item input[type=checkbox]{accent-color:var(--acc);flex-shrink:0}
+/* Notas: crece con el texto, con tope generoso (recien ahi scroll suave) */
+.pm-col #m-notas{min-height:54px;max-height:170px;resize:none;overflow-y:auto;line-height:1.45}
+
+/* Desplegable sutil: los valores se ven siempre; esto solo revela el formulario de "agregar" */
+.pm-addtoggle{align-self:flex-start;font-size:10.5px;font-weight:700;color:var(--acc);background:none;border:none;cursor:pointer;padding:1px 0;font-family:inherit;display:inline-flex;align-items:center;gap:4px;transition:color .15s var(--ease)}
+.pm-addtoggle:hover{color:var(--acc-light)}
+.pm-addtoggle .chev{display:inline-block;transition:transform .18s var(--ease);font-size:9px}
+.pm-addtoggle.open .chev{transform:rotate(90deg)}
+.pm-addbox{display:none;flex-direction:column;gap:6px;margin-top:1px;padding:8px;background:rgba(0,0,0,.14);border:1px solid var(--line-soft);border-radius:8px}
+.pm-addbox.open{display:flex}
+.pm-addrow{display:flex;gap:6px}
+.pm-addrow input{flex:1;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:8px 10px;font-size:12px;font-family:inherit}
+.pm-addbox .quick-chips{margin:0;gap:5px}
+.pm-addbox .chip{font-size:10px;padding:5px 9px;border-radius:7px;border-width:1px}
+.pm-addbtn{flex:0 0 auto;padding:0 14px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}
+
+.pm-newrow{display:flex;gap:6px;align-items:stretch}
+.pm-newrow textarea{flex:1;min-height:36px;padding:8px 10px;font-size:12px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:7px;font-family:inherit;resize:none}
+.pm-newrow .ct-int-savebtn{align-self:stretch;display:flex;align-items:center}
+.pm-newact{display:flex;gap:6px;flex-wrap:wrap}
+.pm-newact input[type=text]{flex:1;min-width:120px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:8px 10px;font-size:12px;font-family:inherit}
+.pm-newact input[type=date],.pm-newact input[type=time]{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:8px;font-size:11px;font-family:inherit}
+.pm-actlist{max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:5px}
+.act-item{display:flex;align-items:center;gap:7px;background:var(--panel2);border-radius:7px;padding:7px 9px;font-size:11px}
+.act-item input[type=checkbox]{accent-color:var(--acc);flex-shrink:0;width:15px;height:15px}
 .act-item .txt{flex:1;min-width:0}
 .act-item .txt.venc{color:var(--hot)}
-.act-item .when{font-size:8.5px;color:var(--flag,#e0b33d);flex-shrink:0}
+.act-item .when{font-size:9px;color:var(--flag,#e0b33d);flex-shrink:0}
+.pm-col .ct-int-list{max-height:150px;overflow-y:auto}
 
-.chart-card{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px 10px}
-.chart-card .ct{font-size:8.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:800;margin-bottom:6px;display:flex;justify-content:space-between;align-items:baseline}
+.pm-charts{display:none;flex-direction:column;gap:7px}
+.chart-card{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px 11px}
+.chart-card .ct{font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:800;margin-bottom:6px;display:flex;justify-content:space-between;align-items:baseline}
 .chart-card .ct .val{font-family:var(--font-display);font-size:15px;color:var(--ink);font-weight:700;text-transform:none;letter-spacing:0}
 .spark{width:100%;height:30px;display:block}
 .stackbar{display:flex;gap:2px;height:9px;border-radius:5px;overflow:hidden;margin-bottom:5px}
@@ -403,14 +422,32 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .stackbar .queued{background:var(--cold)}
 .stackbar .none{background:var(--line)}
 .stackbar .vencida{background:var(--hot)}
-.chart-legend{display:flex;gap:8px;font-size:8.5px;color:var(--muted);flex-wrap:wrap}
+.chart-legend{display:flex;gap:9px;font-size:9px;color:var(--muted);flex-wrap:wrap}
 .chart-legend b{display:inline-block;width:6px;height:6px;border-radius:2px;margin-right:3px;vertical-align:1px}
+.pm-col .photo-area{padding:14px;margin-bottom:0;font-size:11px}
+
+/* Botones Cancelar/Guardar fijos abajo (siempre a mano, sin scrollear) */
+.pm-modal .modal-actions{position:sticky;bottom:0;z-index:3;margin-top:0;padding:12px 20px;background:var(--panel);border-top:1px solid var(--line-soft)}
 
 @media (max-width:900px){
   .pm-tabs{display:flex}
-  .pm-cols{display:block}
-  .pm-col{display:none;max-height:none;padding:0;border:none}
+  .pm-cols{display:block;padding:14px 0}
+  .pm-col{display:none;padding:0 18px;border:none}
   .pm-col.sel{display:flex}
+  .pm-topbar{padding:12px 16px;gap:8px 10px}
+  .pm-emp{font-size:16px;width:100%}
+  .pm-ministat-row{margin-left:0;width:100%;gap:12px}
+}
+@media (max-width:600px){
+  .modal-overlay{padding:0;align-items:stretch}
+  #pin-modal .pm-modal{max-width:none;max-height:100vh;height:100vh;border-radius:0;border-top:none;overflow-x:hidden}
+  #pin-modal .modal-handle{display:none}
+  .pm-topbar{flex-direction:column;align-items:flex-start;gap:8px;padding:12px 16px}
+  .pm-topbar .temp-chips{flex-wrap:wrap}
+  .pm-ministat-row{gap:12px}
+  .pm-tabs{padding:10px 16px 0}
+  .pm-tab{min-width:0;font-size:10.5px;white-space:nowrap}
+  .pm-cols{overflow-x:hidden}
 }
 
 
@@ -1003,11 +1040,14 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
             <select id="m-cargo"><option value="">Seleccionar...</option><option>Jefe de obra</option><option>Capataz</option><option>Encargado de compras</option><option>Arquitecto / Director de obra</option><option>Electricista a cargo</option><option>Otro</option></select>
           </div>
         </div>
-        <div class="field"><label>Teléfono <span style="text-transform:none;font-weight:400;color:var(--muted)">(podés agregar más de uno)</span></label>
+        <div class="field"><label>Teléfono</label>
           <div id="m-tel-list"></div>
-          <div class="row2" style="margin-bottom:6px">
-            <input type="tel" id="m-tel-new" inputmode="tel" placeholder="Agregar número..." style="flex:1">
-            <button type="button" class="ct-int-savebtn" id="m-tel-add" style="width:auto;flex:0 0 auto;padding:0 16px;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink)">+ Agregar</button>
+          <button type="button" class="pm-addtoggle" data-addtoggle="tel"><span class="chev">›</span> agregar teléfono</button>
+          <div class="pm-addbox" id="pm-add-tel">
+            <div class="pm-addrow">
+              <input type="tel" id="m-tel-new" inputmode="tel" placeholder="Nuevo número...">
+              <button type="button" class="pm-addbtn" id="m-tel-add">Agregar</button>
+            </div>
           </div>
         </div>
         <div class="field"><label>Email</label><input id="m-email" type="email" placeholder="nombre@empresa.com" inputmode="email"></div>
@@ -1016,41 +1056,34 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
           <div class="field"><label>Dirección</label><input id="m-direccion" type="text" placeholder="Se completa al ubicar el pin"></div>
           <div class="field"><label>Zona</label><input id="m-zona" type="text" placeholder="Zona..."></div>
         </div>
-        <div class="quick-chips" id="modal-zona-chips">
-          <div class="chip" data-val="Playa Brava">Playa Brava</div>
-          <div class="chip" data-val="Playa Mansa">Playa Mansa</div>
-          <div class="chip" data-val="Península">Península</div>
-          <div class="chip" data-val="Roosevelt">Roosevelt</div>
-          <div class="chip" data-val="Aidy Grill">Aidy Grill</div>
-          <div class="chip" data-val="Manantiales">Manantiales</div>
-          <div class="chip" data-val="La Barra">La Barra</div>
-          <div class="chip" data-val="Maldonado">Maldonado</div>
+        <button type="button" class="pm-addtoggle" data-addtoggle="zona"><span class="chev">›</span> elegir zona / ubicar obra</button>
+        <div class="pm-addbox" id="pm-add-zona">
+          <div class="quick-chips" id="modal-zona-chips">
+            <div class="chip" data-val="Playa Brava">Playa Brava</div>
+            <div class="chip" data-val="Playa Mansa">Playa Mansa</div>
+            <div class="chip" data-val="Península">Península</div>
+            <div class="chip" data-val="Roosevelt">Roosevelt</div>
+            <div class="chip" data-val="Aidy Grill">Aidy Grill</div>
+            <div class="chip" data-val="Manantiales">Manantiales</div>
+            <div class="chip" data-val="La Barra">La Barra</div>
+            <div class="chip" data-val="Maldonado">Maldonado</div>
+          </div>
+          <div id="m-obras-list"></div>
+          <button type="button" class="ct-int-savebtn" id="m-obra-add" style="background:var(--cold)"><svg class="icn" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Agregar obra en el mapa</button>
         </div>
-        <div id="m-obras-list"></div>
-        <button type="button" class="ct-int-savebtn" id="m-obra-add" style="background:var(--cold)"><svg class="icn" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Agregar obra en el mapa</button>
         <div class="field"><label>Proveedor eléctrico actual</label><input id="m-proveedor" type="text" placeholder="Ej: Volta, Elecnor..."></div>
-        <div class="pm-divider"></div>
-        <div class="pm-sectitle">Catálogos a enviar <span style="text-transform:none;font-weight:400;color:var(--muted)">(agenda un envío para mañana 10:00)</span></div>
-        <div class="quick-chips" id="m-productos-chips"></div>
-        <div class="pm-divider"></div>
-        <div class="pm-sectitle">Materiales entregados</div>
-        <div class="catalog-grid" id="modal-catalog-grid">
-          <div class="catalog-item" data-val="Catálogo general"><div class="box"></div>Catálogo</div>
-          <div class="catalog-item" data-val="Lista de precios"><div class="box"></div>Lista precios</div>
-          <div class="catalog-item" data-val="Tarjeta personal"><div class="box"></div>Tarjeta</div>
-          <div class="catalog-item" data-val="Muestras físicas"><div class="box"></div>Muestras</div>
-          <div class="catalog-item" data-val="Cotización enviada"><div class="box"></div>Cotización</div>
-          <div class="catalog-item" data-val="Ficha técnica"><div class="box"></div>Ficha técnica</div>
-        </div>
         <div class="pm-divider"></div>
         <div class="pm-sectitle">Otras personas de contacto</div>
         <div id="m-personas-list"></div>
-        <div class="persona-add-form">
-          <input type="text" id="m-persona-nombre" placeholder="Nombre">
-          <select id="m-persona-cargo"><option value="">Cargo (opcional)...</option><option>Jefe de obra</option><option>Capataz</option><option>Encargado de compras</option><option>Arquitecto / Director de obra</option><option>Ingeniero residente</option><option>Electricista a cargo</option><option>Dueño / Desarrollador</option><option>Otro</option></select>
-          <input type="tel" id="m-persona-telefono" inputmode="tel" placeholder="Teléfono (opcional)">
+        <button type="button" class="pm-addtoggle" data-addtoggle="persona"><span class="chev">›</span> agregar persona</button>
+        <div class="pm-addbox" id="pm-add-persona">
+          <div class="persona-add-form">
+            <input type="text" id="m-persona-nombre" placeholder="Nombre">
+            <select id="m-persona-cargo"><option value="">Cargo (opcional)...</option><option>Jefe de obra</option><option>Capataz</option><option>Encargado de compras</option><option>Arquitecto / Director de obra</option><option>Ingeniero residente</option><option>Electricista a cargo</option><option>Dueño / Desarrollador</option><option>Otro</option></select>
+            <input type="tel" id="m-persona-telefono" inputmode="tel" placeholder="Teléfono (opcional)">
+          </div>
+          <button type="button" class="ct-int-savebtn" id="m-persona-add" style="background:var(--panel2);border:1.5px solid var(--line);color:var(--ink)">+ Agregar persona</button>
         </div>
-        <button type="button" class="ct-int-savebtn" id="m-persona-add" style="background:var(--panel2);border:1.5px solid var(--line);color:var(--ink)">+ Agregar persona</button>
       </div>
 
       <div class="pm-col pm-col-c pm-pane" data-pane="notas">
@@ -1084,6 +1117,19 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
         <div class="field" id="m-bitrix-sync-wrap" style="display:none">
           <button type="button" class="ct-int-savebtn" id="m-bitrix-sync-btn" style="background:#4a9eff"><svg class="icn" viewBox="0 0 24 24" style="fill:currentColor;stroke:none"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg> Enviar a Bitrix</button>
           <div id="m-bitrix-status" style="font-size:11px;color:var(--muted);margin-top:5px"></div>
+        </div>
+        <div class="pm-divider"></div>
+        <div class="pm-sectitle">Catálogos a enviar <span style="text-transform:none;font-weight:400;color:var(--muted)">(agenda un envío para mañana 10:00)</span></div>
+        <div class="quick-chips" id="m-productos-chips"></div>
+        <div class="pm-divider"></div>
+        <div class="pm-sectitle">Materiales entregados</div>
+        <div class="catalog-grid" id="modal-catalog-grid">
+          <div class="catalog-item" data-val="Catálogo general"><div class="box"></div>Catálogo</div>
+          <div class="catalog-item" data-val="Lista de precios"><div class="box"></div>Lista precios</div>
+          <div class="catalog-item" data-val="Tarjeta personal"><div class="box"></div>Tarjeta</div>
+          <div class="catalog-item" data-val="Muestras físicas"><div class="box"></div>Muestras</div>
+          <div class="catalog-item" data-val="Cotización enviada"><div class="box"></div>Cotización</div>
+          <div class="catalog-item" data-val="Ficha técnica"><div class="box"></div>Ficha técnica</div>
         </div>
         <div class="pm-divider"></div>
         <div class="pm-charts" id="pm-charts" style="display:none">
@@ -2197,7 +2243,11 @@ function openPinModal(entry,newLocation){
     if(entry.temp){const c=document.querySelector('#modal-temp-chips .temp-chip[data-val="'+entry.temp+'"]');if(c){c.classList.add('selected');modalTempSelected=entry.temp;}}
     if(entry.photo){mPhotoDataUrl=entry.photo;document.getElementById('m-photo-preview').src=entry.photo;document.getElementById('m-photo-preview').style.display='block';}
   }else if(newLocation){document.getElementById('m-direccion').value=newLocation.direccion||'';}
+  document.querySelectorAll('.pm-addbox').forEach(b=>b.classList.remove('open'));
+  document.querySelectorAll('.pm-addtoggle').forEach(t=>t.classList.remove('open'));
   document.getElementById('pin-modal').classList.add('show');
+  document.querySelectorAll('#pin-modal .pm-cols, #pin-modal .pm-actlist, #pin-modal .ct-int-list').forEach(el=>el.scrollTop=0);
+  autoGrowNotes();
   attachButtonSparks();attachInputSparks();
 }
 
@@ -2331,6 +2381,25 @@ document.querySelectorAll('#pm-tabs .pm-tab').forEach(t=>{
     document.querySelectorAll('.pm-pane').forEach(p=>p.classList.toggle('sel', p.dataset.pane===t.dataset.pane));
   });
 });
+
+// Desplegables sutiles: revelan el formulario de "agregar" sin ocultar los valores ya cargados
+document.querySelectorAll('.pm-addtoggle').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const box=document.getElementById('pm-add-'+btn.dataset.addtoggle);
+    if(!box) return;
+    const willOpen=!box.classList.contains('open');
+    box.classList.toggle('open', willOpen);
+    btn.classList.toggle('open', willOpen);
+  });
+});
+// Notas: el cuadro crece con el texto (hasta el tope del CSS, ahi scroll suave)
+function autoGrowNotes(){
+  const el=document.getElementById('m-notas');
+  if(!el) return;
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight, 170)+'px';
+}
+document.getElementById('m-notas').addEventListener('input', autoGrowNotes);
 
 // ============================================================
 // ARRANCAR
