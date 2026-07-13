@@ -235,10 +235,10 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 @keyframes pulse-locate{0%,100%{opacity:1}50%{opacity:.35}}
 
 /* ── MODAL PIN ── */
-.modal-overlay{position:fixed;inset:0;background:rgba(6,7,9,.72);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:1000;display:none;align-items:flex-end;justify-content:center}
+.modal-overlay{position:fixed;inset:0;background:rgba(6,7,9,.72);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:1000;display:none;align-items:center;justify-content:center;padding:24px}
 .modal-overlay.show{display:flex;animation:fade-in .2s ease}
 @keyframes fade-in{from{opacity:0}to{opacity:1}}
-.modal{background:linear-gradient(180deg,var(--panel3),var(--panel) 12%);border-radius:var(--r-lg) var(--r-lg) 0 0;width:100%;max-width:640px;max-height:92vh;overflow-y:auto;padding:18px 16px 40px;border-top:3px solid var(--acc);box-shadow:var(--shadow-lift);transition:transform .32s var(--ease)}
+.modal{background:linear-gradient(180deg,var(--panel3),var(--panel) 12%);border-radius:var(--r-lg);width:100%;max-width:640px;max-height:92vh;overflow-y:auto;padding:18px 16px 24px;border-top:3px solid var(--acc);box-shadow:var(--shadow-lift);transition:transform .32s var(--ease)}
 .modal.dragging{transition:none}
 .modal-handle{width:40px;height:4px;background:var(--line);border-radius:4px;margin:0 auto 16px;position:relative;touch-action:none}
 .modal-handle::before{content:"";position:absolute;inset:-14px -60px;cursor:grab}
@@ -249,6 +249,12 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .btn-primary:active{transform:scale(.97)}
 .btn-secondary{flex:1;background:var(--panel2);color:var(--muted);font-weight:800;font-size:14px;border:1.5px solid var(--line);border-radius:var(--r-sm);padding:14px;cursor:pointer;text-transform:uppercase;transition:.15s var(--ease)}
 .btn-secondary:active{transform:scale(.97)}
+
+/* Ficha de contacto (pin-modal): ventana centrada, ancha, con edicion completa */
+#pin-modal .modal{max-width:920px}
+.ct-ministat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.ct-ministat-row .ct-ministat{flex-direction:column;align-items:flex-start;gap:2px;background:var(--panel2);border:1px solid var(--line);border-bottom:1px solid var(--line);border-radius:8px;padding:8px 10px}
+@media (max-width:640px){.ct-ministat-row{grid-template-columns:1fr 1fr}}
 
 /* ── USER DROPDOWN ── */
 .user-dropdown{position:fixed;top:60px;right:12px;z-index:500;background:var(--panel);border:1.5px solid var(--line);border-radius:12px;padding:8px;min-width:200px;display:none;box-shadow:0 12px 30px rgba(0,0,0,.5)}
@@ -322,8 +328,6 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .ct-strip-row.activity:hover{background:rgba(224,179,61,.22)}
 .ct-strip-row.activity .icn{margin-top:1.5px}
 .ct-strip-row .icn{width:11px;height:11px;opacity:.8;flex-shrink:0}
-.ct-detail-notas{font-size:11.5px;color:var(--ink-soft);line-height:1.45;background:var(--panel2);border-left:2px solid var(--line);padding:7px 9px;border-radius:0 6px 6px 0;margin-bottom:8px;white-space:pre-wrap}
-.ct-detail-notas .lbl{display:block;color:var(--muted);font-weight:700;text-transform:uppercase;font-size:9px;letter-spacing:.3px;margin-bottom:3px}
 .ct-badge-activity{position:absolute;top:-6px;right:-6px;width:14px;height:14px;border-radius:50%;background:var(--hot);border:2px solid var(--bg);box-shadow:0 0 6px rgba(255,77,77,.6)}
 .ct-expand-toggle{width:100%;text-align:center;padding:5px;background:none;border:none;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;justify-content:center;gap:4px;margin-top:2px}
 .ct-expand-toggle:hover{color:var(--acc)}
@@ -344,97 +348,10 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .persona-add-form{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
 .persona-add-form input,.persona-add-form select{width:100%;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink);border-radius:7px;padding:9px 10px;font-size:13px;font-family:inherit}
 
-/* Ficha de contacto: perfil (sidebar) + contenido, dentro del modal de detalle */
-.ct-profile-grid{display:grid;grid-template-columns:168px 1fr;gap:16px;align-items:start;margin-top:2px;padding-top:10px;border-top:1px solid var(--line-soft)}
-.ct-side{display:flex;flex-direction:column;gap:8px;border-right:1px solid var(--line-soft);padding-right:14px;min-width:0}
-.ct-side .ct-pill{display:flex;align-items:center;justify-content:center;width:100%;max-width:none;box-sizing:border-box}
-.ct-side .ct-editbtn{margin:2px 0 4px}
 .ct-ministat{display:flex;justify-content:space-between;gap:8px;font-size:10.5px;padding:5px 0;border-bottom:1px solid var(--line-soft)}
-.ct-ministat:last-of-type{border-bottom:none}
 .ct-ministat .l{color:var(--muted);font-weight:600;flex-shrink:0}
 .ct-ministat .v{color:var(--ink-soft);font-weight:700;text-align:right;word-break:break-word}
 .ct-ministat .v.warn{color:var(--hot)}
-.ct-ministat .v.empty{color:#555b66;font-style:italic;font-weight:500}
-.ct-nextaction{background:var(--acc-dim);border:1px solid rgba(176,143,104,.35);border-radius:7px;padding:8px 9px;font-size:10.5px;color:var(--acc-light);line-height:1.4}
-.ct-nextaction b{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);margin-bottom:3px;font-weight:800}
-.ct-nextaction span.empty{color:#8d8378;font-style:italic}
-.ct-main{display:flex;flex-direction:column;gap:11px;min-width:0}
-.ct-split{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
-.ct-dcol-title{font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:800;margin-bottom:9px}
-.ct-neg{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 9px;display:flex;align-items:center;gap:8px;cursor:pointer;transition:border-color .15s var(--ease)}
-.ct-neg:hover{border-color:var(--acc)}
-.ct-neg .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.ct-neg .tx{min-width:0}
-.ct-neg .tx b{display:block;font-size:11px;color:var(--ink)}
-.ct-neg .tx span{font-size:9.5px;color:var(--muted)}
-.cat-group{margin-bottom:10px}
-.cat-group-h{display:flex;align-items:center;gap:5px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px}
-.cat-group-h .n{color:var(--muted);font-weight:700;text-transform:none;letter-spacing:0;margin-left:5px}
-.cat-chips{display:flex;flex-wrap:wrap;gap:5px}
-.cat-chip{font-size:10px;font-weight:700;padding:4px 8px;border-radius:20px;display:inline-flex;align-items:center;white-space:nowrap}
-.cat-chip.sent{background:rgba(62,207,115,.13);color:#6fe39c;border:1px solid rgba(62,207,115,.35)}
-.cat-chip.queued{background:rgba(74,158,255,.13);color:#7fb8ff;border:1px solid rgba(74,158,255,.35)}
-.cat-chip.none{background:var(--panel2);color:var(--muted);border:1px solid var(--line)}
-.cat-chip .icn{width:10px;height:10px;vertical-align:-1px;margin-right:2px}
-.cat-summary{font-size:10.5px;color:var(--muted);line-height:1.5;margin-top:2px;padding-top:8px;border-top:1px dashed var(--line)}
-.cat-summary b{color:var(--ink-soft)}
-.ct-timeline{padding:12px 14px 10px;border-top:1px solid var(--line);background:rgba(0,0,0,.14);margin:11px -11px -1px}
-.tl-scroll{max-height:160px;overflow-y:auto;padding-right:6px;margin-bottom:10px}
-.tl-item{display:flex;gap:10px;margin-bottom:11px}
-.tl-dot-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
-.tl-dot{width:8px;height:8px;border-radius:50%;background:var(--acc);margin-top:4px;flex-shrink:0}
-.tl-dot.auto{background:var(--muted)}
-.tl-line{width:1.5px;flex:1;background:var(--line);margin-top:2px}
-.tl-content{flex:1;min-width:0;padding-bottom:1px}
-.tl-content .m{font-size:9.5px;color:var(--muted);font-weight:700;margin-bottom:1px}
-.tl-content .txt{font-size:11.5px;color:var(--ink-soft);line-height:1.45;word-break:break-word}
-@media (max-width:640px){
-  .ct-profile-grid{grid-template-columns:1fr}
-  .ct-side{border-right:none;border-bottom:1px solid var(--line-soft);padding-right:0;padding-bottom:10px}
-  .ct-split{grid-template-columns:1fr}
-}
-
-/* Modal de detalle de contacto: ventana flotante compacta con edición in-place */
-#detail-modal .modal{max-width:940px;padding-bottom:16px}
-#detail-body .dm-body-grid{display:flex;gap:18px;align-items:flex-start}
-#detail-body .dm-body-grid>.ct-profile-grid{flex:1.35;min-width:0}
-#detail-body .dm-body-grid>.ct-timeline{flex:1;min-width:0;border-top:none;border-left:1px solid var(--line);border-radius:8px;margin:8px 0 0;padding:0 0 0 16px}
-#detail-body .dm-edit{display:none}
-#detail-body.editing .dm-view{display:none}
-#detail-body.editing .dm-edit{display:block}
-#detail-body .ct-nextaction select.dm-edit{width:100%;background:var(--panel2);border:1.5px solid var(--acc);color:var(--ink);border-radius:6px;padding:5px 7px;font-size:11px;font-family:inherit;margin-top:2px}
-#detail-body .ct-detail-notas textarea.dm-edit{width:100%;background:var(--panel2);border:1.5px solid var(--acc);color:var(--ink);border-radius:6px;padding:7px 8px;font-size:11.5px;font-family:inherit;min-height:56px;resize:vertical;margin-top:2px}
-#detail-body .dm-editactions{display:none;gap:6px;margin-bottom:8px}
-#detail-body.editing .dm-editactions{display:flex}
-#detail-body.editing #dm-editbtn{display:none}
-#detail-body .dm-editactions .ct-editbtn{margin-bottom:0;flex:1;width:auto}
-#detail-body #dm-fullform{font-size:9.5px;text-transform:none;letter-spacing:0;font-weight:600;padding:6px}
-#detail-body .ct-profile-grid{grid-template-columns:145px 1fr;gap:12px;padding-top:8px}
-#detail-body .ct-side{gap:5px;padding-right:9px}
-#detail-body .ct-editbtn{padding:6px;font-size:10px;margin-bottom:3px}
-#detail-body .ct-ministat{padding:3px 0;font-size:9.5px}
-#detail-body .ct-nextaction{padding:6px 7px;font-size:9.5px}
-#detail-body .ct-nextaction b{font-size:8px;margin-bottom:2px}
-#detail-body .ct-main{gap:7px}
-#detail-body .ct-detail-notas{font-size:10.5px;padding:6px 8px;margin-bottom:0}
-#detail-body .ct-split{gap:10px}
-#detail-body .ct-dcol-title{font-size:8.5px;margin-bottom:5px}
-#detail-body .cat-group{margin-bottom:6px}
-#detail-body .cat-chip{font-size:9px;padding:3px 6px}
-#detail-body .ct-timeline{padding:8px 10px;margin:8px -16px -1px}
-#detail-body .tl-scroll{max-height:90px;margin-bottom:6px}
-#detail-body .tl-item{margin-bottom:6px}
-#detail-body .tl-content .txt{font-size:10.5px}
-#detail-body .ct-int-box textarea{min-height:36px;font-size:11px}
-@media (max-width:860px){
-  #detail-body .dm-body-grid{flex-direction:column}
-  #detail-body .dm-body-grid>.ct-timeline{border-left:none;border-top:1px solid var(--line);padding:8px 0 0;margin:8px 0 0}
-}
-@media (max-width:640px){
-  #detail-body .ct-profile-grid{grid-template-columns:1fr}
-  #detail-body .ct-side{border-right:none;border-bottom:1px solid var(--line-soft);padding-right:0;padding-bottom:8px}
-  #detail-body .ct-split{grid-template-columns:1fr}
-}
 
 /* ===== PANEL (KPIs, admin) ===== */
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:22px}
@@ -993,6 +910,12 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       <span id="modal-title-text">Nuevo pin</span>
       <span class="del-pin" id="modal-del-pin" style="display:none"><svg class="icn" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Eliminar</span>
     </div>
+    <div class="ct-ministat-row" id="pm-ministat" style="display:none">
+      <div class="ct-ministat"><span class="l">Último contacto</span><span class="v" id="pm-ultimocontacto">—</span></div>
+      <div class="ct-ministat"><span class="l">Interacciones</span><span class="v" id="pm-interacciones">0</span></div>
+      <div class="ct-ministat"><span class="l">Alta</span><span class="v" id="pm-alta">—</span></div>
+      <div class="ct-ministat"><span class="l">Activ. vencidas</span><span class="v" id="pm-actvencidas">0</span></div>
+    </div>
     <div class="temp-chips" id="modal-temp-chips">
       <div class="temp-chip cold" data-val="cold"><svg class="icn" viewBox="0 0 24 24"><path d="M12 2v20M4.2 7l15.6 10M4.2 17l15.6-10"/></svg> Frío</div>
       <div class="temp-chip warm" data-val="warm"><svg class="icn" viewBox="0 0 24 24"><path d="M14 4v10.5a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0z"/></svg> Tibio</div>
@@ -1006,7 +929,39 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       <button type="button" class="ct-int-savebtn" id="m-bitrix-sync-btn" style="background:#4a9eff"><svg class="icn" viewBox="0 0 24 24" style="fill:currentColor;stroke:none"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg> Enviar a Bitrix</button>
       <div id="m-bitrix-status" style="font-size:11px;color:var(--muted);margin-top:5px"></div>
     </div>
-    <div class="field"><label>Dirección</label><input id="m-direccion" type="text" placeholder="Se completa al ubicar el pin"></div>
+    <div class="row2">
+      <div class="field"><label>Empresa constructora *</label><input id="m-empresa" type="text" placeholder="Nombre de la empresa"></div>
+      <div class="field"><label>Estudio / Desarrolladora</label><input id="m-estudio" type="text" placeholder="Arquitectos o desarrolladora"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Tipo de obra</label>
+        <select id="m-tipo"><option value="">Seleccionar...</option><option>Torre residencial</option><option>Hotel</option><option>Uso mixto</option><option>Casa / chalet</option><option>Edificio comercial</option><option>Reforma</option><option>Otro</option></select>
+      </div>
+      <div class="field"><label>Estado actual</label>
+        <select id="m-estado"><option value="">Seleccionar...</option><option>Cotización de obra</option><option>Excavación / fundaciones</option><option>Estructura en ejecución</option><option>Mampostería / cerramiento</option><option>Instalaciones (etapa ideal)</option><option>Terminaciones</option><option>Finalizada</option></select>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Contacto en obra</label><input id="m-nombre" type="text" placeholder="Con quién hablaste"></div>
+      <div class="field"><label>Cargo</label>
+        <select id="m-cargo"><option value="">Seleccionar...</option><option>Jefe de obra</option><option>Capataz</option><option>Encargado de compras</option><option>Arquitecto / Director de obra</option><option>Electricista a cargo</option><option>Otro</option></select>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Email</label><input id="m-email" type="email" placeholder="nombre@empresa.com" inputmode="email"></div>
+      <div class="field"><label>Proveedor eléctrico actual</label><input id="m-proveedor" type="text" placeholder="Ej: Volta, Elecnor..."></div>
+    </div>
+    <div class="field"><label>Teléfono <span style="text-transform:none;font-weight:400;color:var(--muted)">(podés agregar más de uno)</span></label>
+      <div id="m-tel-list"></div>
+      <div class="row2" style="margin-bottom:6px">
+        <input type="tel" id="m-tel-new" inputmode="tel" placeholder="Agregar número..." style="flex:1">
+        <button type="button" class="ct-int-savebtn" id="m-tel-add" style="width:auto;flex:0 0 auto;padding:0 16px;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink)">+ Agregar</button>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Dirección</label><input id="m-direccion" type="text" placeholder="Se completa al ubicar el pin"></div>
+      <div class="field"><label>Sitio web</label><input id="m-web" type="text" placeholder="www.empresa.com"></div>
+    </div>
     <div class="field"><label>Zona</label>
       <div class="quick-chips" id="modal-zona-chips">
         <div class="chip" data-val="Playa Brava">Playa Brava</div>
@@ -1020,28 +975,9 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       </div>
       <input id="m-zona" type="text" placeholder="O escribí otra zona...">
     </div>
-    <div class="field"><label>Sitio web</label><input id="m-web" type="text" placeholder="www.empresa.com"></div>
-    <div class="field"><label>Empresa constructora *</label><input id="m-empresa" type="text" placeholder="Nombre de la empresa"></div>
-    <div class="field"><label>Estudio / Desarrolladora</label><input id="m-estudio" type="text" placeholder="Arquitectos o desarrolladora"></div>
-    <div class="field"><label>Tipo de obra</label>
-      <select id="m-tipo"><option value="">Seleccionar...</option><option>Torre residencial</option><option>Hotel</option><option>Uso mixto</option><option>Casa / chalet</option><option>Edificio comercial</option><option>Reforma</option><option>Otro</option></select>
+    <div class="field"><label>Próxima acción</label>
+      <select id="m-followup"><option value="">Seleccionar...</option><option>Enviar cotización</option><option>Llamar la próxima semana</option><option>Visitar de nuevo en 2 semanas</option><option>Esperar que avance la obra</option><option>Cerrado - sin interés</option></select>
     </div>
-    <div class="field"><label>Estado actual</label>
-      <select id="m-estado"><option value="">Seleccionar...</option><option>Cotización de obra</option><option>Excavación / fundaciones</option><option>Estructura en ejecución</option><option>Mampostería / cerramiento</option><option>Instalaciones (etapa ideal)</option><option>Terminaciones</option><option>Finalizada</option></select>
-    </div>
-    <div class="field"><label>Contacto en obra</label><input id="m-nombre" type="text" placeholder="Con quién hablaste"></div>
-    <div class="field"><label>Cargo</label>
-      <select id="m-cargo"><option value="">Seleccionar...</option><option>Jefe de obra</option><option>Capataz</option><option>Encargado de compras</option><option>Arquitecto / Director de obra</option><option>Electricista a cargo</option><option>Otro</option></select>
-    </div>
-    <div class="field"><label>Email</label><input id="m-email" type="email" placeholder="nombre@empresa.com" inputmode="email"></div>
-    <div class="field"><label>Teléfono <span style="text-transform:none;font-weight:400;color:var(--muted)">(podés agregar más de uno)</span></label>
-      <div id="m-tel-list"></div>
-      <div class="row2" style="margin-bottom:6px">
-        <input type="tel" id="m-tel-new" inputmode="tel" placeholder="Agregar número..." style="flex:1">
-        <button type="button" class="ct-int-savebtn" id="m-tel-add" style="width:auto;flex:0 0 auto;padding:0 16px;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink)">+ Agregar</button>
-      </div>
-    </div>
-    <div class="field"><label>Proveedor eléctrico actual</label><input id="m-proveedor" type="text" placeholder="Ej: Volta, Elecnor..."></div>
     <div class="field"><label>Materiales entregados</label>
       <div class="catalog-grid" id="modal-catalog-grid">
         <div class="catalog-item" data-val="Catálogo general"><div class="box"></div>Catálogo</div>
@@ -1051,9 +987,6 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
         <div class="catalog-item" data-val="Cotización enviada"><div class="box"></div>Cotización</div>
         <div class="catalog-item" data-val="Ficha técnica"><div class="box"></div>Ficha técnica</div>
       </div>
-    </div>
-    <div class="field"><label>Próxima acción</label>
-      <select id="m-followup"><option value="">Seleccionar...</option><option>Enviar cotización</option><option>Llamar la próxima semana</option><option>Visitar de nuevo en 2 semanas</option><option>Esperar que avance la obra</option><option>Cerrado - sin interés</option></select>
     </div>
     <div class="field"><label>¿Le interesa recibir información de...? <span style="text-transform:none;font-weight:400;color:var(--muted)">(agenda un envío para mañana 10:00)</span></label>
       <div class="quick-chips" id="m-productos-chips"></div>
@@ -1090,13 +1023,6 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       <button class="btn-secondary" id="modal-cancel">Cancelar</button>
       <button class="btn-primary" id="modal-save"><svg class="icn" viewBox="0 0 24 24" style="fill:currentColor;stroke:none"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg> Guardar</button>
     </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="detail-modal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div id="detail-body"></div>
   </div>
 </div>
 
@@ -2059,10 +1985,22 @@ document.getElementById('m-int-save').addEventListener('click', async ()=>{
 
 function openPinModal(entry,newLocation){
   editingId=entry?entry.id:null;pendingNewLatLng=newLocation||null;
-  document.getElementById('modal-title-text').textContent=entry?'Editar pin':'Nuevo pin';
+  document.getElementById('modal-title-text').textContent=entry?(entry.estudio||entry.empresa||'Editar ficha'):'Nuevo pin';
   document.getElementById('modal-del-pin').style.display=entry?'block':'none';
   document.getElementById('m-bitrix-sync-wrap').style.display=entry?'block':'none';
   document.getElementById('m-bitrix-status').textContent=entry&&entry.bitrix_contact_id?'Ya sincronizado con Bitrix (ID '+entry.bitrix_contact_id+')':'';
+  document.getElementById('pm-ministat').style.display=entry?'grid':'none';
+  if(entry){
+    const ints=Array.isArray(entry.interacciones)?entry.interacciones:[];
+    const hoyYMD=fmtYMD(new Date());
+    const actVencidas=agendaStore.filter(a=>a.tipo==='actividad' && a.estudio_id===entry.id && !a.completada && a.fecha<hoyYMD).length;
+    const ultimaTs=lsUltimaTs(entry);
+    document.getElementById('pm-ultimocontacto').textContent=ultimaTs?fmtRelativa(ultimaTs):'—';
+    document.getElementById('pm-interacciones').textContent=ints.length;
+    document.getElementById('pm-alta').textContent=entry.fecha||'—';
+    const actEl=document.getElementById('pm-actvencidas');
+    actEl.textContent=actVencidas; actEl.classList.toggle('warn',!!actVencidas);
+  }
   ['m-empresa','m-estudio','m-tipo','m-estado','m-nombre','m-cargo','m-email','m-proveedor','m-followup','m-notas','m-direccion','m-zona','m-web','m-tel-new','m-persona-nombre','m-persona-cargo','m-persona-telefono'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.querySelectorAll('#modal-temp-chips .temp-chip').forEach(x=>x.classList.remove('selected'));
   document.querySelectorAll('#modal-zona-chips .chip').forEach(x=>x.classList.remove('selected'));modalZonaSelected='';
@@ -2513,7 +2451,10 @@ function renderContactos(){
     el.addEventListener('click', (ev)=>{ ev.preventDefault(); copyAndOpenWebmail(el.dataset.emailcopy); });
   });
   wrap.querySelectorAll('[data-opendetail]').forEach(el=>{
-    el.addEventListener('click', ()=> openContactDetail(parseFloat(el.dataset.opendetail)));
+    el.addEventListener('click', ()=>{
+      const item=localStore.find(x=>x.id===parseFloat(el.dataset.opendetail));
+      if(item) openPinModal(item);
+    });
   });
   wrap.querySelectorAll('[data-gotoactid]').forEach(el=>{
     el.addEventListener('click', (ev)=>{ ev.stopPropagation(); jumpToActividadFromContact(parseFloat(el.dataset.gotoactid)); });
@@ -2531,132 +2472,6 @@ function renderContactos(){
   });
 }
 
-// ============================================================
-// MODAL DE DETALLE DE CONTACTO (ventana flotante, compacta, editable in-place)
-// ============================================================
-let detailModalId=null;
-function buildDetailModalHtml(e){
-  const hoyYMD=fmtYMD(new Date());
-  const ints = Array.isArray(e.interacciones) ? e.interacciones : [];
-  const personas = Array.isArray(e.personas) ? e.personas : [];
-  const actVencidas = agendaStore.filter(a=>a.tipo==='actividad' && a.estudio_id===e.id && !a.completada && a.fecha<hoyYMD).length;
-  const ultimaTs = lsUltimaTs(e);
-  const misNeg = negociacionesStore.filter(n=>n.estudio_id===e.id).sort((a,b)=>(b.orden||0)-(a.orden||0))[0];
-  const negLabel = misNeg ? ((NEG_ETAPAS.find(x=>x.key===misNeg.etapa)||{}).label || misNeg.etapa) : '';
-  const negColor = misNeg ? (misNeg.etapa==='ganada'?'#3ecf73':misNeg.etapa==='perdida'?'var(--hot)':'var(--acc)') : '';
-  const catStatus = getCatalogStatus(e.id);
-  const followupOpts=['Enviar cotización','Llamar la próxima semana','Visitar de nuevo en 2 semanas','Esperar que avance la obra','Cerrado - sin interés'];
-
-  return '<div class="modal-title"><span>'+esc(e.estudio||e.empresa||'(sin nombre)')+'</span><span class="del-pin" id="dm-close" style="color:var(--muted)">✕ Cerrar</span></div>'
-    +'<div class="dm-body-grid">'
-    +'<div class="ct-profile-grid">'
-
-      +'<div class="ct-side">'
-      +'<span class="ct-pill '+(e.contactado?'ok':'')+'">'+(e.contactado?ICONS.check+' Contactado':'Sin contactar')+(e.contactado_fecha?' · '+fmtCorta(e.contactado_fecha):'')+'</span>'
-      +'<span class="ct-pill '+(e.bitrix?'bx':'')+'">'+(e.bitrix?ICONS.check+' En Bitrix':'Falta pasar a Bitrix')+(e.bitrix_fecha?' · '+fmtCorta(e.bitrix_fecha):'')+'</span>'
-      +'<button class="ct-editbtn" id="dm-editbtn">'+ICONS.edit+' Editar ficha</button>'
-      +'<div class="dm-editactions"><button class="ct-editbtn" id="dm-save" style="background:var(--acc-tex-btn);color:var(--acc-btn-ink);border:none">Guardar</button><button class="ct-editbtn" id="dm-cancel">Cancelar</button></div>'
-      +'<div class="ct-ministat"><span class="l">Último contacto</span><span class="v">'+(ultimaTs?fmtRelativa(ultimaTs):'—')+'</span></div>'
-      +'<div class="ct-ministat"><span class="l">Interacciones</span><span class="v">'+ints.length+'</span></div>'
-      +'<div class="ct-ministat"><span class="l">Alta</span><span class="v">'+esc(e.fecha||'—')+'</span></div>'
-      +'<div class="ct-ministat"><span class="l">Activ. vencidas</span><span class="v'+(actVencidas?' warn':'')+'">'+actVencidas+'</span></div>'
-      +'<div class="ct-ministat"><span class="l">Proveedor</span><span class="v'+(e.proveedor?'':' empty')+'">'+(e.proveedor?esc(e.proveedor):'Sin datos')+'</span></div>'
-      +'<div class="ct-ministat"><span class="l">Sitio web</span><span class="v'+(e.web?'':' empty')+'">'+(e.web?esc(e.web):'Sin datos')+'</span></div>'
-      +'<div class="ct-nextaction"><b>Próxima acción</b>'
-        +'<span class="dm-view'+(e.followup?'':' empty')+'">'+(e.followup?esc(e.followup):'Sin definir')+'</span>'
-        +'<select class="dm-edit" id="dm-followup"><option value="">Seleccionar...</option>'+followupOpts.map(o=>'<option'+(e.followup===o?' selected':'')+'>'+esc(o)+'</option>').join('')+'</select>'
-      +'</div>'
-      +'</div>'
-
-      +'<div class="ct-main">'
-      +'<div class="ct-detail-notas"><span class="lbl">Notas</span>'
-        +'<span class="dm-view">'+(e.notas?esc(e.notas):'<i style="color:#555b66">Sin notas</i>')+'</span>'
-        +'<textarea class="dm-edit" id="dm-notas" placeholder="Detalles adicionales...">'+esc(e.notas||'')+'</textarea>'
-      +'</div>'
-      +(misNeg?('<div class="ct-neg" data-gotoneg="1"><div class="dot" style="background:'+negColor+'"></div>'
-        +'<div class="tx"><b>'+esc(negLabel)+'</b><span>Negociación actualizada '+fmtRelativa(misNeg.orden).toLowerCase()+'</span></div></div>'):'')
-
-      +'<div class="ct-split">'
-        +'<div><div class="ct-dcol-title">Catálogos</div>'
-        +(productosCatalogoStore.length?(
-          '<div class="cat-group"><div class="cat-group-h" style="color:#6fe39c">Enviados<span class="n">'+catStatus.sent.length+'</span></div>'
-          +'<div class="cat-chips">'+(catStatus.sent.length?catStatus.sent.map(p=>'<span class="cat-chip sent">'+ICONS.check+esc(p)+'</span>').join(''):'<span style="font-size:10.5px;color:var(--muted)">Ninguno todavía</span>')+'</div></div>'
-          +'<div class="cat-group"><div class="cat-group-h" style="color:#7fb8ff">Pendientes<span class="n">'+catStatus.queued.length+'</span></div>'
-          +'<div class="cat-chips">'+(catStatus.queued.length?catStatus.queued.map(p=>'<span class="cat-chip queued">'+ICONS.clock+esc(p)+'</span>').join(''):'<span style="font-size:10.5px;color:var(--muted)">Ninguno agendado</span>')+'</div></div>'
-        ):'<div style="font-size:11px;color:var(--muted)">Sin catálogos cargados.</div>')
-        +'</div>'
-
-        +'<div><div class="ct-dcol-title">Personas de contacto</div>'
-        +(personas.length?personas.map(p=>'<div class="persona-row"><span class="txt">'+ICONS.user+' '+esc(p.nombre||'')+(p.cargo?' · '+esc(p.cargo):'')+(p.telefono?' · '+esc(p.telefono):'')+'</span></div>').join(''):'<div style="font-size:11px;color:var(--muted)">Sin personas adicionales.</div>')
-        +'</div>'
-      +'</div>'
-      +'</div>'
-
-    +'</div>'
-    +'<div class="ct-timeline"><div class="ct-dcol-title">Historial completo ('+ints.length+')</div>'
-    +(ints.length?('<div class="tl-scroll">'+ints.map((h,i)=>'<div class="tl-item"><div class="tl-dot-col"><div class="tl-dot'+(h.auto?' auto':'')+'"></div>'+(i<ints.length-1?'<div class="tl-line"></div>':'')+'</div><div class="tl-content"><div class="m">'+esc(h.fecha)+(h.auto?' · automático':'')+'</div><div class="txt">'+esc(h.texto)+'</div></div></div>').join('')+'</div>'):'<div style="font-size:11px;color:var(--muted);margin-bottom:8px">Sin interacciones todavía.</div>')
-    +'<div class="ct-int-box">'
-    +'<textarea placeholder="¿Qué hiciste o qué tenés que hacer?" id="dm-inttext"></textarea>'
-    +'<div class="row2" style="margin-bottom:6px"><input type="date" id="dm-intfecha" style="flex:1"><input type="time" id="dm-inthora" style="flex:1"></div>'
-    +'<button class="ct-int-savebtn" id="dm-intsave">+ Guardar interacción</button>'
-    +'</div>'
-    +'</div>'
-    +'</div>'
-    +'<button class="ct-editbtn" id="dm-fullform" style="background:none;border:none;color:var(--muted);margin-top:2px">Editar todos los campos (dirección, zona, catálogo, personas, foto...) →</button>';
-}
-function openContactDetail(id){
-  const item=localStore.find(x=>x.id===id); if(!item) return;
-  detailModalId=id;
-  renderDetailModal();
-  document.getElementById('detail-modal').classList.add('show');
-}
-function closeDetailModal(){
-  document.getElementById('detail-modal').classList.remove('show');
-  document.getElementById('detail-body').classList.remove('editing');
-  detailModalId=null;
-}
-function renderDetailModal(){
-  const item=localStore.find(x=>x.id===detailModalId); if(!item) return;
-  const body=document.getElementById('detail-body');
-  body.classList.remove('editing');
-  body.innerHTML=buildDetailModalHtml(item);
-  document.getElementById('dm-close').addEventListener('click', closeDetailModal);
-  document.getElementById('dm-editbtn').addEventListener('click', ()=> body.classList.add('editing'));
-  document.getElementById('dm-cancel').addEventListener('click', ()=> renderDetailModal());
-  document.getElementById('dm-save').addEventListener('click', async ()=>{
-    item.notas=document.getElementById('dm-notas').value.trim();
-    item.followup=document.getElementById('dm-followup').value;
-    item.bitrix=false; item.bitrix_fecha=null;
-    const ok=await saveEntry(item);
-    if(!ok) return;
-    toast('Ficha actualizada ✓');
-    renderDetailModal();
-    renderContactos();
-  });
-  document.getElementById('dm-fullform').addEventListener('click', ()=>{ closeDetailModal(); openPinModal(item); });
-  const negEl=body.querySelector('[data-gotoneg]');
-  if(negEl) negEl.addEventListener('click', ()=>{ closeDetailModal(); document.querySelector('.tab[data-tab="negociaciones"]').click(); });
-  document.getElementById('dm-intsave').addEventListener('click', async ()=>{
-    const ta=document.getElementById('dm-inttext');
-    const texto=ta.value.trim(); if(!texto) return;
-    if(!Array.isArray(item.interacciones)) item.interacciones=[];
-    item.interacciones.unshift({fecha:new Date().toLocaleDateString('es-UY')+' '+new Date().toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'}),texto,auto:false});
-    item.bitrix=false; item.bitrix_fecha=null;
-    const okSave=await saveEntry(item);
-    if(!okSave) return;
-    const fechaEl=document.getElementById('dm-intfecha');
-    const horaEl=document.getElementById('dm-inthora');
-    if(fechaEl.value){
-      const res = await crearActividadAgenda({fecha:fechaEl.value, hora:horaEl.value, tipo:'actividad', texto, estudioId:item.id});
-      if(res.ok) toast('Interacción guardada y agendada ✓'); else toast(res.msg, true);
-    } else {
-      toast('Interacción guardada ✓');
-    }
-    renderDetailModal();
-    renderContactos();
-  });
-}
-document.getElementById('detail-modal').addEventListener('click', (ev)=>{ if(ev.target.id==='detail-modal') closeDetailModal(); });
 document.getElementById('ct-search').addEventListener('input', e=>{ ctSearch=e.target.value; renderContactos(); });
 document.querySelectorAll('[data-ctf]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-ctf]').forEach(x=>x.classList.remove('active'));b.classList.add('active');ctFilter=b.dataset.ctf;renderContactos();}));
 document.querySelectorAll('[data-ctbx]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-ctbx]').forEach(x=>x.classList.remove('active'));b.classList.add('active');ctBitrixFilter=b.dataset.ctbx;renderContactos();}));
@@ -3258,7 +3073,7 @@ function jumpToContactFromActivity(estudioId){
   const item = localStore.find(x=>x.id===estudioId);
   if(!item) return;
   document.querySelector('.tab[data-tab="contactos"]').click();
-  setTimeout(()=> openContactDetail(estudioId), 80);
+  setTimeout(()=> openPinModal(item), 80);
 }
 
 function jumpToActividadFromContact(actId){
