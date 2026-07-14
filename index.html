@@ -2564,6 +2564,20 @@ function waLinkMsg(tel,msg){
   const clean=(tel||'').split('/')[0].replace(/[^0-9+]/g,'');
   return clean ? 'https://wa.me/598'+clean.replace(/^0/,'')+'?text='+encodeURIComponent(msg||'') : null;
 }
+// Contactos agendados en MAYÚSCULA -> mostrarlos como nombre propio (Primera Letra De Cada Palabra)
+function toTitleCase(str){
+  return (str||'').toLowerCase().split(/\s+/).filter(Boolean).map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+}
+// Asunto y mensaje predeterminados para enviar catálogos por email / WhatsApp
+const CATALOGO_ASUNTO='CATALOGOS MGI - SOLUCIONES EN INGENIERIA ELECTRICA';
+function buildCatalogoMensaje(contacto){
+  const nombre=toTitleCase(contacto&&contacto.nombre||'');
+  const saludo=nombre?'Buenas '+nombre+', ':'Buenas, ';
+  return saludo+'le habla el Arq. Martín Crespo Bonjour de MGI - Soluciones en Ingeniería Eléctrica, con quien conversó.\n'
+    +'Le comparto la información de los productos que pueden ser de interés para incorporar a sus proyectos.\n'
+    +'Cualquier consulta quedo a disposición.\n'
+    +'Saludos!';
+}
 function copyAndOpenWebmail(email,subject,body){
   const partes=['Para: '+(email||'')];
   if(subject) partes.push('Asunto: '+subject);
@@ -3503,18 +3517,14 @@ function renderActividades(){
     const ev=agendaStore.find(x=>x.id===parseFloat(b.dataset.sendmail)); if(!ev) return;
     const contacto = ev.estudio_id ? localStore.find(x=>x.id===ev.estudio_id) : null;
     if(!contacto?.email){ toast('Este contacto no tiene email cargado', true); return; }
-    const nombre = contacto?.nombre || '';
-    const mensaje = 'Hola'+(nombre?' '+nombre:'')+', te comparto la información de '+ev.productos+' que solicitaste. Cualquier consulta quedo a disposición. Saludos!';
-    copyAndOpenWebmail(contacto.email,'Información solicitada - MGI',mensaje);
+    copyAndOpenWebmail(contacto.email,CATALOGO_ASUNTO,buildCatalogoMensaje(contacto));
   }));
   wrap.querySelectorAll('[data-sendwa]').forEach(b=>b.addEventListener('click', ()=>{
     const ev=agendaStore.find(x=>x.id===parseFloat(b.dataset.sendwa)); if(!ev) return;
     const contacto = ev.estudio_id ? localStore.find(x=>x.id===ev.estudio_id) : null;
     const tel = contacto ? parsePhones(contacto.telefono)[0] : null;
     if(!tel){ toast('Este contacto no tiene teléfono cargado', true); return; }
-    const nombre = contacto?.nombre || '';
-    const mensaje = 'Hola'+(nombre?' '+nombre:'')+', te comparto la información de '+ev.productos+' que solicitaste. Cualquier consulta quedo a disposición. Saludos!';
-    window.open(waLinkMsg(tel,mensaje),'_blank');
+    window.open(waLinkMsg(tel,buildCatalogoMensaje(contacto)),'_blank');
   }));
 }
 
