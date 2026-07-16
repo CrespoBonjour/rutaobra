@@ -322,7 +322,8 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .ct-strip-row.activity:hover{background:rgba(224,179,61,.22)}
 .ct-strip-row.activity .icn{margin-top:1.5px}
 .ct-strip-row .icn{width:11px;height:11px;opacity:.8;flex-shrink:0}
-.ct-badge-activity{position:absolute;top:-6px;right:-6px;width:14px;height:14px;border-radius:50%;background:var(--hot);border:2px solid var(--bg);box-shadow:0 0 6px rgba(255,77,77,.6)}
+.ct-badge-activity{position:absolute;top:-6px;right:-6px;width:14px;height:14px;border-radius:50%;background:#e0b33d;border:2px solid var(--bg);box-shadow:0 0 6px rgba(224,179,61,.6)}
+.ct-badge-activity.venc{background:var(--hot);box-shadow:0 0 6px rgba(255,77,77,.6)}
 .ct-expand-toggle{width:100%;text-align:center;padding:5px;background:none;border:none;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;justify-content:center;gap:4px;margin-top:2px}
 .ct-expand-toggle:hover{color:var(--acc)}
 .ct-expand-toggle .chev{display:inline-block}
@@ -867,6 +868,26 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 <section class="view" id="view-lista">
   <div class="ct-toolbar">
     <input type="text" class="ct-search" id="ls-search" placeholder="Buscar estudio, contacto, zona, teléfono...">
+    <div class="ct-fgroup">
+      <button class="ct-fbtn active" data-lsf="all">Todos</button>
+      <button class="ct-fbtn" data-lsf="pending">Sin contactar</button>
+      <button class="ct-fbtn" data-lsf="done">Contactados</button>
+    </div>
+    <div class="ct-fgroup">
+      <button class="ct-fbtn bx active" data-lsbx="all">Bitrix: Todos</button>
+      <button class="ct-fbtn bx" data-lsbx="yes">En Bitrix</button>
+      <button class="ct-fbtn bx" data-lsbx="no">Falta pasar</button>
+    </div>
+    <div class="ct-fgroup">
+      <button class="ct-fbtn active" data-lstemp="all">Todas las temp.</button>
+      <button class="ct-fbtn cold" data-lstemp="cold">Frío</button>
+      <button class="ct-fbtn warm" data-lstemp="warm">Tibio</button>
+      <button class="ct-fbtn hot" data-lstemp="hot">Caliente</button>
+    </div>
+    <div class="ct-fgroup">
+      <button class="ct-fbtn active" data-lsact="all">Todas</button>
+      <button class="ct-fbtn" data-lsact="pending">Actividad pendiente</button>
+    </div>
     <div class="ls-count" id="ls-count"></div>
     <button class="io-btn" id="ls-export-btn">⬇ CSV</button>
   </div>
@@ -2121,12 +2142,16 @@ function renderModalActividades(){
   if(!acts.length){ wrap.innerHTML='<div style="font-size:11px;color:var(--muted)">Sin actividades para este contacto.</div>'; return; }
   wrap.innerHTML = acts.map(a=>{
     const venc = !a.completada && a.fecha<hoyYMD;
-    return '<div class="act-item"><input type="checkbox" data-toggleact="'+a.id+'" '+(a.completada?'checked':'')+'><span class="txt'+(venc?' venc':'')+'">'+esc(a.texto)+'</span><span class="when">'+esc(a.fecha)+(a.hora?' '+esc(a.hora):'')+(venc?' · vencida':'')+'</span></div>';
+    return '<div class="act-item"><input type="checkbox" data-toggleact="'+a.id+'" '+(a.completada?'checked':'')+'><span class="txt'+(venc?' venc':'')+'" data-jumpactid="'+a.id+'" title="Ir a esta actividad en la pestaña Actividades" style="cursor:pointer">'+esc(a.texto)+'</span><span class="when">'+esc(a.fecha)+(a.hora?' '+esc(a.hora):'')+(venc?' · vencida':'')+'</span></div>';
   }).join('');
   wrap.querySelectorAll('[data-toggleact]').forEach(cb=>cb.addEventListener('change', async ()=>{
     await toggleActividadCompletada(parseFloat(cb.dataset.toggleact));
     renderModalActividades();
     renderModalCharts();
+  }));
+  wrap.querySelectorAll('[data-jumpactid]').forEach(el=>el.addEventListener('click', ()=>{
+    document.getElementById('pin-modal').classList.remove('show'); editingId=null;
+    jumpToActividadFromContact(parseFloat(el.dataset.jumpactid));
   }));
 }
 document.getElementById('m-act-add').addEventListener('click', async ()=>{
@@ -2675,7 +2700,7 @@ function renderContactos(){
     const catStatus = getCatalogStatus(e.id);
 
     return '<div class="ct-card '+(e.contactado?'contacted':'')+' '+(e.bitrix?'inbitrix':'')+'" data-id="'+e.id+'">'
-      +(proximaActividad?'<div class="ct-badge-activity" title="Tiene una actividad pendiente"></div>':'')
+      +(proximaActividad?'<div class="ct-badge-activity'+(actVencidas?' venc':'')+'" title="'+(actVencidas?'Tiene una actividad vencida':'Tiene una actividad pendiente')+'"></div>':'')
       +'<div class="ct-top">'
       +'<div class="ct-info" data-opendetail="'+e.id+'" style="cursor:pointer">'
         +'<div class="ct-empresa">'+esc(e.estudio||e.empresa||'(sin nombre)')+'</div>'
@@ -2687,15 +2712,7 @@ function renderContactos(){
       +'<button class="ct-tgl ok '+(e.contactado?'on':'')+'" data-toggle="contactado" data-id="'+e.id+'" title="Contactado"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>'
       +'<button class="ct-tgl bx '+(e.bitrix?'on':'')+'" data-toggle="bitrix" data-id="'+e.id+'" title="En Bitrix"><svg width="9" height="9" viewBox="0 0 24 24" fill="#fff"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></button>'
       +'</div></div>'
-      +(metaChips.length?'<div class="ct-meta">'+metaChips.map(c=>'<span class="ct-pill" title="'+esc(c.replace(/<[^>]+>/g,'').trim())+'">'+c+'</span>').join('')+'</div>':'')
       +phoneRowsHtml(e.telefono)
-      +emailRowHtml(e.email)
-      +'<div class="ct-strip">'
-      +(e.notas?'<div class="ct-strip-row" title="'+esc(e.notas)+'">'+ICONS.notes+'<span>'+esc(e.notas)+'</span></div>':'')
-      +(previewInt?'<div class="ct-strip-row" title="'+esc(previewInt)+'">'+ICONS.chat+'<span>'+esc(previewInt)+'</span></div>':'')
-      +(proximaActividad?'<div class="ct-strip-row activity" data-gotoactid="'+proximaActividad.id+'">'+ICONS.clock+'<span>'+esc(proximaActividad.texto)+'</span></div>':'')
-      +'</div>'
-      +(personas.length?'<div class="ct-persons-note" data-opendetail="'+e.id+'">'+ICONS.users+' +'+personas.length+' persona'+(personas.length>1?'s':'')+' de contacto</div>':'')
       +'<button class="ct-expand-toggle" data-opendetail="'+e.id+'"><span class="chev">▾</span> Ver detalle</button>'
       +'</div>';
   }).join('');
@@ -3162,6 +3179,7 @@ function renderAnalisis(){
 // LISTA (tabla tipo planilla: ordenable, con buscador; click → ficha)
 // ============================================================
 let lsSearch='', lsSortKey='estudio', lsSortDir=1, lsLastList=[];
+let lsFilter='all', lsBitrixFilter='all', lsTempFilter='all', lsActFilter='all';
 const LS_COLS=[
   {key:'estudio', label:'Estudio / Empresa'},
   {key:'nombre', label:'Contacto'},
@@ -3190,6 +3208,12 @@ function lsVal(e,key){
 function renderLista(){
   const head=document.getElementById('ls-head'), body=document.getElementById('ls-body');
   let list=getFilteredStore().filter(e=>{
+    if(lsFilter==='pending' && e.contactado) return false;
+    if(lsFilter==='done' && !e.contactado) return false;
+    if(lsBitrixFilter==='yes' && !e.bitrix) return false;
+    if(lsBitrixFilter==='no' && e.bitrix) return false;
+    if(lsTempFilter!=='all' && e.temp!==lsTempFilter) return false;
+    if(lsActFilter==='pending' && !agendaStore.some(a=>a.tipo==='actividad' && !a.completada && a.estudio_id===e.id)) return false;
     if(!lsSearch) return true;
     const hay=((e.estudio||'')+' '+(e.empresa||'')+' '+(e.nombre||'')+' '+(e.telefono||'')+' '+(e.zona||'')+' '+(e.estado||'')+' '+(e.user_name||'')).toLowerCase();
     return hay.includes(lsSearch.toLowerCase());
@@ -3236,6 +3260,10 @@ function renderLista(){
   }));
 }
 document.getElementById('ls-search').addEventListener('input',e=>{ lsSearch=e.target.value; renderLista(); });
+document.querySelectorAll('[data-lsf]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-lsf]').forEach(x=>x.classList.remove('active'));b.classList.add('active');lsFilter=b.dataset.lsf;renderLista();}));
+document.querySelectorAll('[data-lsbx]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-lsbx]').forEach(x=>x.classList.remove('active'));b.classList.add('active');lsBitrixFilter=b.dataset.lsbx;renderLista();}));
+document.querySelectorAll('[data-lstemp]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-lstemp]').forEach(x=>x.classList.remove('active'));b.classList.add('active');lsTempFilter=b.dataset.lstemp;renderLista();}));
+document.querySelectorAll('[data-lsact]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-lsact]').forEach(x=>x.classList.remove('active'));b.classList.add('active');lsActFilter=b.dataset.lsact;renderLista();}));
 
 // ============================================================
 // TAB AGENDA (calendario: visitas pautadas + actividades)
@@ -3333,7 +3361,9 @@ function jumpToActividadFromContact(actId){
   if(!actId) return;
   const ev = agendaStore.find(a=>a.id===actId);
   if(!ev) return;
-  goToActividadesFiltered('pendientes');
+  const hoyYMD=fmtYMD(new Date());
+  const filtro = ev.completada ? 'completadas' : (ev.fecha<hoyYMD ? 'vencidas' : 'pendientes');
+  goToActividadesFiltered(filtro);
   setTimeout(()=>{
     const row = document.querySelector('.act-row[data-id="'+actId+'"]');
     if(row){
