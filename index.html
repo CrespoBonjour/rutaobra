@@ -722,7 +722,8 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
     <div class="tab" data-tab="lista">Lista</div>
     <div class="tab" data-tab="agenda">Agenda</div>
     <div class="tab" data-tab="actividades">Actividades</div>
-    <div class="tab" data-tab="negociaciones">Negociaciones</div>
+    <!-- Negociaciones: se maneja desde Bitrix. Pestaña oculta pero código intacto; para reactivar, quitar el style display:none. -->
+    <div class="tab" data-tab="negociaciones" style="display:none">Negociaciones</div>
     <div class="tab" data-tab="map">Mapa</div>
     <div class="tab" data-tab="importar">Importar</div>
     <div class="tab" data-tab="panel" id="tab-panel" style="display:none">Panel</div>
@@ -983,8 +984,11 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 <!-- PANEL DE KPIS (solo admin) -->
 <section class="view" id="view-panel">
   <div class="kpi-grid" id="kpi-grid"></div>
-  <div class="kpi-section-label">Embudo comercial</div>
-  <div id="an-funnel"></div>
+  <!-- Embudo comercial = pipeline de Negociaciones (se maneja desde Bitrix). Oculto pero intacto; para reactivar, quitar display:none del wrap. -->
+  <div id="panel-embudo-wrap" style="display:none">
+    <div class="kpi-section-label">Embudo comercial</div>
+    <div id="an-funnel"></div>
+  </div>
   <div class="kpi-section-label">Cruces de cartera</div>
   <div class="an-grid" id="an-grid"></div>
   <div class="kpi-section-label">Ranking por vendedor × temperatura</div>
