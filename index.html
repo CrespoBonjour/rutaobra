@@ -748,9 +748,10 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
     <div class="field"><label>Tipo de construcción</label>
       <select id="f-tipo"><option value="">Seleccionar...</option><option>Torre residencial</option><option>Hotel</option><option>Uso mixto (shopping + torres)</option><option>Casa / chalet</option><option>Edificio comercial / oficinas</option><option>Reforma / ampliación</option><option>Otro</option></select>
     </div>
-    <div class="field"><label>Estado actual de la obra</label>
-      <select id="f-estado"><option value="">Seleccionar...</option><option>Cotización de obra</option><option>Excavación / fundaciones</option><option>Estructura en ejecución</option><option>Mampostería / cerramiento</option><option>Instalaciones (etapa ideal)</option><option>Terminaciones</option><option>Finalizada</option></select>
+    <div class="field"><label>Estado actual de la obra <span style="text-transform:none;font-weight:400;color:var(--muted)">(elegí una o escribí una nueva)</span></label>
+      <input id="f-estado" list="etapas-datalist" placeholder="Etapa de obra...">
     </div>
+    <datalist id="etapas-datalist"></datalist>
   </div>
   <div class="group">
     <div class="group-label">Persona de contacto</div>
@@ -1131,8 +1132,8 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
         <div class="field"><label>Tipo de obra</label>
           <select id="m-tipo"><option value="">Seleccionar...</option><option>Torre residencial</option><option>Hotel</option><option>Uso mixto</option><option>Casa / chalet</option><option>Edificio comercial</option><option>Reforma</option><option>Otro</option></select>
         </div>
-        <div class="field"><label>Estado actual</label>
-          <select id="m-estado"><option value="">Seleccionar...</option><option>Cotización de obra</option><option>Excavación / fundaciones</option><option>Estructura en ejecución</option><option>Mampostería / cerramiento</option><option>Instalaciones (etapa ideal)</option><option>Terminaciones</option><option>Finalizada</option></select>
+        <div class="field"><label>Estado actual <span style="text-transform:none;font-weight:400;color:var(--muted)">(elegí o escribí una nueva)</span></label>
+          <input id="m-estado" list="etapas-datalist" placeholder="Etapa de obra...">
         </div>
         <div class="field" id="m-bitrix-sync-wrap" style="display:none">
           <button type="button" class="ct-int-savebtn" id="m-bitrix-sync-btn" style="background:#4a9eff"><svg class="icn" viewBox="0 0 24 24" style="fill:currentColor;stroke:none"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg> Enviar a Bitrix</button>
@@ -1470,6 +1471,7 @@ async function loadAll() {
     dbReady = true;
     if (isAdmin) buildVendedorFilter();
     renderProductosChips();
+    poblarEtapasDatalist();
     cargarFiltros(); sincronizarUIFiltros();
     renderList();
     if (mapInitialized) refreshMapMarkers();
@@ -2243,6 +2245,7 @@ function openPinModal(entry,newLocation){
   document.querySelectorAll('#modal-zona-chips .chip').forEach(x=>x.classList.remove('selected'));modalZonaSelected='';
   document.querySelectorAll('#modal-catalog-grid .catalog-item').forEach(x=>x.classList.remove('selected'));modalCatalogosSelected=new Set();
   modalProductosInteresSelected=new Set();renderProductosChips();
+  poblarEtapasDatalist();
   modalTempSelected='';mPhotoDataUrl=null;document.getElementById('m-photo-preview').style.display='none';
   modalContactado=!!(entry&&entry.contactado);modalBitrix=!!(entry&&entry.bitrix);
   modalInteracciones=entry&&Array.isArray(entry.interacciones)?entry.interacciones.slice():[];
@@ -2972,6 +2975,17 @@ function renderPanel(){
 // ============================================================
 const ETAPAS_OBRA=['Cotización de obra','Excavación / fundaciones','Estructura en ejecución','Mampostería / cerramiento','Instalaciones (etapa ideal)','Terminaciones','Finalizada'];
 const ETAPA_CORTA={'Cotización de obra':'Cotización','Excavación / fundaciones':'Excavación','Estructura en ejecución':'Estructura','Mampostería / cerramiento':'Mampostería','Instalaciones (etapa ideal)':'Instalaciones','Terminaciones':'Terminaciones','Finalizada':'Finalizada'};
+// Etapas conocidas = las 7 fijas + cualquier etapa personalizada ya escrita en algún contacto.
+// Así las etapas nuevas que se cargan a mano quedan disponibles para reusar, sin tabla en Supabase.
+function etapasConocidas(){
+  const set=new Set(ETAPAS_OBRA);
+  localStore.forEach(e=>{ const s=(e.estado||'').trim(); if(s) set.add(s); });
+  return Array.from(set);
+}
+function poblarEtapasDatalist(){
+  const dl=document.getElementById('etapas-datalist');
+  if(dl) dl.innerHTML=etapasConocidas().map(s=>'<option value="'+esc(s)+'"></option>').join('');
+}
 const TEMP_META=[
   {k:'cold',label:'Frío',plural:'Fríos',color:'var(--cold)'},
   {k:'warm',label:'Tibio',plural:'Tibios',color:'var(--acc)'},
@@ -3088,12 +3102,13 @@ function renderAnalisis(){
   bindAnExtras(fw);
 
   // --- Etapa de obra × temperatura ---
-  const etapaMap={}; ETAPAS_OBRA.forEach(s=>etapaMap[s]=mkCounts());
+  const etapasList=etapasConocidas();
+  const etapaMap={}; etapasList.forEach(s=>etapaMap[s]=mkCounts());
   let sinEtapa=0;
   store.forEach(e=>{ if(etapaMap[e.estado]) etapaMap[e.estado][tempKey(e)]++; else sinEtapa++; });
-  const etapaRows=ETAPAS_OBRA.map(s=>{
+  const etapaRows=etapasList.map(s=>{
     const c=etapaMap[s];
-    return {name:s, shortName:ETAPA_CORTA[s], counts:c, total:c.cold+c.warm+c.hot+c.none, click:s, ideal:s==='Instalaciones (etapa ideal)'};
+    return {name:s, shortName:ETAPA_CORTA[s]||s, counts:c, total:c.cold+c.warm+c.hot+c.none, click:s, ideal:s==='Instalaciones (etapa ideal)'};
   });
   const maxEtapa=Math.max.apply(null,etapaRows.map(r=>r.total).concat([1]));
   const ideal=etapaRows.find(r=>r.ideal);
@@ -3153,36 +3168,38 @@ function renderAnalisis(){
     note:prodRows.length?'Sirve para decidir qué catálogo llevar impreso y qué stock empujar.':''
   });
 
-  // --- Ritmo de captación (contactos nuevos por semana, últimas 8) ---
-  const thisMonday=mondayOf(new Date());
-  const weeks=[];
-  for(let i=7;i>=0;i--){ const d=new Date(thisMonday); d.setDate(d.getDate()-7*i); weeks.push({start:d,n:0}); }
+  // --- Proveedores eléctricos actuales (la competencia) ---
+  // Se ignoran las "no respuestas" (no recuerda / no sabe / ninguno) para no ensuciar el ranking.
+  const esSinDato=(s)=>!s || /^(no\s*recuerda|no\s*sabe|no\s*se|ninguno|ninguna|n\/?a|s\/?d|-+|\.+)$/i.test(s);
+  const provMap={}; let sinProv=0;
   store.forEach(e=>{
-    const t=parseFechaUY(e.fecha); if(!t) return;
-    for(const w of weeks){ const s=w.start.getTime(); if(t>=s && t<s+7*86400000){ w.n++; break; } }
+    const p=(e.proveedor||'').trim();
+    if(esSinDato(p)){ sinProv++; return; }
+    const k=p.toLowerCase();
+    if(!provMap[k]) provMap[k]={name:p,n:0};
+    provMap[k].n++;
   });
-  const maxW=Math.max.apply(null,weeks.map(w=>w.n).concat([1]));
-  let maxShown=false;
-  const cols=weeks.map((w,i)=>{
-    const isNow=i===weeks.length-1;
-    let showVal=isNow;
-    if(!showVal && w.n===maxW && w.n>0 && !maxShown){ showVal=true; maxShown=true; }
-    const lbl=w.start.getDate()+'/'+(w.start.getMonth()+1);
-    return '<div class="an-col'+(isNow?' now':'')+'" data-antip="Semana del '+lbl+'|'+w.n+' contacto'+(w.n===1?'':'s')+' nuevo'+(w.n===1?'':'s')+(isNow?' · semana en curso':'')+'">'
-      +'<div class="cv">'+(showVal?w.n:'')+'</div>'
-      +'<div class="bar" style="height:'+Math.max(w.n/maxW*100, w.n?4:1)+'%"></div>'
-      +'<div class="cl">'+lbl+'</div></div>';
-  }).join('');
-  const ritmoCard=anCard('ritmo',{
-    title:'Ritmo de captación',
-    sub:'Contactos nuevos por semana, últimas 8 semanas. La semana actual va en bronce.',
-    barsHtml:'<div class="an-cols">'+cols+'</div>',
-    tableHtml:'<table class="an-table"><tr><th>Semana del</th><th>Contactos nuevos</th></tr>'+weeks.map(w=>'<tr><td>'+w.start.getDate()+'/'+(w.start.getMonth()+1)+'</td><td>'+w.n+'</td></tr>').join('')+'</table>',
-    note:'Muestra si la recorrida se mantuvo o se frenó, semana a semana.'
+  let provRows=Object.values(provMap).sort((a,b)=>b.n-a.n);
+  if(provRows.length>8){
+    const extra=provRows.slice(8).reduce((a,r)=>a+r.n,0);
+    provRows=provRows.slice(0,8); provRows.push({name:'Otros',n:extra});
+  }
+  const maxProv=Math.max.apply(null,provRows.map(r=>r.n).concat([1]));
+  const provBars=provRows.map(r=>
+    '<div class="an-row"><div class="an-name">'+esc(r.name)+'</div>'
+    +'<div class="an-track"><div class="an-seg" style="width:'+(r.n/maxProv*100)+'%;background:var(--hot)" data-antip="'+esc(r.name)+'|'+r.n+' obra'+(r.n===1?'':'s')+' con este proveedor"></div></div>'
+    +'<div class="an-val">'+r.n+'</div></div>'
+  ).join('');
+  const provCard=anCard('prov',{
+    title:'Proveedores actuales (competencia)',
+    sub:'Qué proveedor eléctrico tienen hoy las obras. Los de arriba son tu mayor competencia.',
+    barsHtml:provRows.length?provBars:'<div class="an-note">Todavía no hay proveedores cargados.</div>',
+    tableHtml:provRows.length?('<table class="an-table"><tr><th>Proveedor</th><th>Obras</th></tr>'+provRows.map(r=>'<tr><td>'+esc(r.name)+'</td><td>'+r.n+'</td></tr>').join('')+'</table>'):null,
+    note:sinProv?(sinProv+' contacto'+(sinProv===1?'':'s')+' sin proveedor identificado (no se grafican).'):''
   });
 
   const gridEl=document.getElementById('an-grid');
-  gridEl.innerHTML=etapaCard+zonaCard+prodCard+ritmoCard;
+  gridEl.innerHTML=etapaCard+zonaCard+prodCard+provCard;
   bindAnExtras(gridEl);
 }
 
@@ -3198,7 +3215,7 @@ const LS_COLS=[
   {key:'temp', label:'Temp.'},
   {key:'contactado', label:'Contact.'},
   {key:'user_name', label:'Vendedor'},
-  {key:'ultima', label:'Últ. actividad'},
+  {key:'proveedor', label:'Proveedor actual'},
   {key:'catalogos', label:'Catálogos'}
 ];
 function lsUltimaTs(e){
@@ -3211,7 +3228,7 @@ function lsVal(e,key){
   if(key==='temp') return e.temp==='hot'?3:e.temp==='warm'?2:e.temp==='cold'?1:0;
   if(key==='contactado') return e.contactado?1:0;
   if(key==='ultima') return lsUltimaTs(e);
-  if(key==='estado') return ETAPAS_OBRA.indexOf(e.estado);
+  if(key==='estado') return etapasConocidas().indexOf(e.estado);
   if(key==='catalogos'){ const cs=getCatalogStatus(e.id); return cs.sent.length; }
   return (e[key]||'').toString().toLowerCase();
 }
@@ -3241,7 +3258,6 @@ function renderLista(){
   } else {
     body.innerHTML=list.map(e=>{
       const tm=TEMP_META.find(t=>t.k===e.temp);
-      const ts=lsUltimaTs(e);
       const cs=getCatalogStatus(e.id);
       const catTotal=cs.sent.length+cs.queued.length;
       const catPillClass = catTotal===0 ? 'none' : (cs.sent.length===catTotal ? 'full' : 'part');
@@ -3254,7 +3270,7 @@ function renderLista(){
         +'<td>'+(tm?'<span class="ls-pill"><i style="background:'+tm.color+'"></i>'+tm.label+'</span>':'—')+'</td>'
         +'<td>'+(e.contactado?'<span class="ls-ok">✓</span>':'—')+'</td>'
         +'<td>'+esc(e.user_name||'—')+'</td>'
-        +'<td>'+(ts?new Date(ts).toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit',year:'2-digit'}):'—')+'</td>'
+        +'<td>'+esc(e.proveedor||'—')+'</td>'
         +'<td><span class="cat-pill-sm '+catPillClass+'">'+catPillTxt+'</span></td>'
         +'</tr>';
     }).join('');
