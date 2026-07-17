@@ -765,6 +765,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       <input id="f-estado" list="etapas-datalist" placeholder="Etapa de obra...">
     </div>
     <datalist id="etapas-datalist"></datalist>
+    <div class="field"><label>Proveedor eléctrico actual</label><input id="f-proveedor" type="text" placeholder="Ej: Volta, Elecnor..."></div>
   </div>
   <div class="group">
     <div class="group-label">Persona de contacto</div>
@@ -776,20 +777,8 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       <div class="field"><label>Teléfono <span style="text-transform:none;font-weight:400;color:var(--muted)">(podés poner varios separados por coma)</span></label><input id="f-telefono" type="tel" placeholder="099 123 456, 4222 3344..." inputmode="tel"></div>
       <div class="field"><label>Email</label><input id="f-email" type="email" placeholder="nombre@empresa.com" inputmode="email"></div>
     </div>
+    <div class="field"><label>Sitio web</label><input id="f-web" type="text" placeholder="www.empresa.com"></div>
     <div id="f-dup-warn" class="dup-warn" style="display:none"></div>
-    <div class="field"><label>Próxima acción</label>
-      <select id="f-followup"><option value="">Seleccionar...</option><option>Enviar cotización</option><option>Llamar la próxima semana</option><option>Visitar de nuevo en 2 semanas</option><option>Enviar catálogo por WhatsApp</option><option>Esperar que avance la obra</option><option>Cerrado - sin interés</option></select>
-    </div>
-    <div class="field"><label>¿Le interesa recibir información de...? <span style="text-transform:none;font-weight:400;color:var(--muted)">(agenda un envío para mañana 10:00)</span></label>
-      <div class="quick-chips" id="f-productos-chips"></div>
-    </div>
-    <div class="field"><label>Agendar una actividad <span style="text-transform:none;font-weight:400;color:var(--muted)">(opcional, ej: llamar, visitar...)</span></label>
-      <textarea id="f-act-text" placeholder="¿Qué tenés que hacer con este contacto?" style="min-height:44px;margin-bottom:6px;"></textarea>
-      <div class="row2">
-        <input type="date" id="f-act-fecha" title="Fecha" style="flex:1">
-        <input type="time" id="f-act-hora" title="Hora (opcional)" style="flex:1">
-      </div>
-    </div>
   </div>
   <div class="group">
     <div class="group-label">Ubicación</div>
@@ -812,11 +801,22 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       </div>
       <input id="f-zona" type="text" placeholder="O escribí otra zona...">
     </div>
-    <div class="field"><label>Sitio web</label><input id="f-web" type="text" placeholder="www.empresa.com"></div>
   </div>
   <div class="group">
-    <div class="group-label">Info comercial</div>
-    <div class="field"><label>Proveedor eléctrico actual</label><input id="f-proveedor" type="text" placeholder="Ej: Volta, Elecnor..."></div>
+    <div class="group-label">Actividades</div>
+    <div class="field"><label>¿Le interesa recibir información de...? <span style="text-transform:none;font-weight:400;color:var(--muted)">(agenda un envío para mañana 10:00)</span></label>
+      <div class="quick-chips" id="f-productos-chips"></div>
+    </div>
+    <div class="field"><label>Agendar una actividad <span style="text-transform:none;font-weight:400;color:var(--muted)">(opcional, ej: llamar, visitar...)</span></label>
+      <textarea id="f-act-text" placeholder="¿Qué tenés que hacer con este contacto?" style="min-height:44px;margin-bottom:6px;"></textarea>
+      <div class="row2">
+        <input type="date" id="f-act-fecha" title="Fecha" style="flex:1">
+        <input type="time" id="f-act-hora" title="Hora (opcional)" style="flex:1">
+      </div>
+    </div>
+  </div>
+  <div class="group">
+    <div class="group-label">Info comercial <span style="text-transform:none;font-weight:400;color:var(--muted)">(entregables que dejaste en obra)</span></div>
     <div class="catalog-grid">
       <div class="catalog-item" data-val="Catálogo general"><div class="box"></div>Catálogo</div>
       <div class="catalog-item" data-val="Lista de precios"><div class="box"></div>Lista precios</div>
@@ -1683,7 +1683,7 @@ function renderProductosChips(){
 }
 
 function clearForm(){
-  ['f-empresa','f-estudio','f-nombre','f-cargo','f-telefono','f-email','f-direccion','f-zona','f-web','f-proveedor','f-notas','f-tipo','f-estado','f-followup'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f-empresa','f-estudio','f-nombre','f-cargo','f-telefono','f-email','f-direccion','f-zona','f-web','f-proveedor','f-notas','f-tipo','f-estado'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   hideDupWarn('f-dup-warn');
   document.querySelectorAll('#temp-chips .temp-chip').forEach(c=>c.classList.remove('selected'));tempSelected='';
   document.querySelectorAll('#zona-chips .chip').forEach(c=>c.classList.remove('selected'));zonaSelected='';
@@ -1712,7 +1712,7 @@ document.getElementById('save-btn').addEventListener('click',async()=>{
     nombre:document.getElementById('f-nombre').value.trim(),cargo:document.getElementById('f-cargo').value,
     telefono:document.getElementById('f-telefono').value.trim(),email:document.getElementById('f-email').value.trim(),
     direccion:document.getElementById('f-direccion').value.trim(),zona,web:document.getElementById('f-web').value.trim(),
-    followup:document.getElementById('f-followup').value,catalogos:Array.from(catalogosSelected),
+    followup:'',catalogos:Array.from(catalogosSelected),
     proveedor:document.getElementById('f-proveedor').value.trim(),notas:document.getElementById('f-notas').value.trim(),
     photo:photoDataUrl,lat:formPickedLatLng?formPickedLatLng.lat:null,lng:formPickedLatLng?formPickedLatLng.lng:null,
     historial:[{fecha:new Date().toLocaleDateString('es-UY'),nota:'Visita registrada por '+currentUser.name}]
