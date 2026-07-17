@@ -1471,6 +1471,7 @@ async function loadAll() {
     dbReady = true;
     if (isAdmin) buildVendedorFilter();
     renderProductosChips();
+    cargarFiltros(); sincronizarUIFiltros();
     renderList();
     if (mapInitialized) refreshMapMarkers();
     if(typeof checkRecordatorios==='function') checkRecordatorios();
@@ -1625,8 +1626,8 @@ document.querySelectorAll('.tab').forEach(tab=>{
     document.getElementById('view-'+t).classList.add('active');
     document.getElementById('save-bar').style.display=t==='form'?'block':'none';
     if(t==='map') setTimeout(()=>{if(!mapInitialized)initMap();else refreshMapMarkers();map.invalidateSize();buildMapContactFilter();},80);
-    if(t==='contactos') renderContactos();
-    if(t==='lista') renderLista();
+    if(t==='contactos'){ sincronizarUIFiltros(); renderContactos(); }
+    if(t==='lista'){ sincronizarUIFiltros(); renderLista(); }
     if(t==='agenda') renderAgendaTab();
     if(t==='actividades') renderActividades();
     if(t==='negociaciones') renderNegociaciones();
@@ -2579,7 +2580,20 @@ document.getElementById('import-run-btn').addEventListener('click', async ()=>{
 // ============================================================
 // TAB CONTACTOS (tarjetas con contactado / bitrix)
 // ============================================================
-let ctSearch='',ctFilter='all',ctBitrixFilter='all',ctTempFilter='all',ctActFilter='all';
+// ── Estado de filtros COMPARTIDO entre Contactos y Lista, recordado en localStorage ──
+const FILTROS_LS_KEY='rutaobra_filtros_v1';
+let flSearch='', flEstado='all', flBitrix='all', flTemp='all', flAct='all';
+function guardarFiltros(){ try{ localStorage.setItem(FILTROS_LS_KEY, JSON.stringify({s:flSearch,e:flEstado,b:flBitrix,t:flTemp,a:flAct})); }catch(_){} }
+function cargarFiltros(){ try{ const o=JSON.parse(localStorage.getItem(FILTROS_LS_KEY)||'{}'); flSearch=o.s||''; flEstado=o.e||'all'; flBitrix=o.b||'all'; flTemp=o.t||'all'; flAct=o.a||'all'; }catch(_){} }
+// Refleja el estado compartido en TODOS los botones e inputs de filtro (Contactos + Lista).
+function sincronizarUIFiltros(){
+  [['data-ctf',flEstado],['data-lsf',flEstado],['data-ctbx',flBitrix],['data-lsbx',flBitrix],['data-cttemp',flTemp],['data-lstemp',flTemp],['data-ctact',flAct],['data-lsact',flAct]]
+    .forEach(([attr,val])=>document.querySelectorAll('['+attr+']').forEach(b=>b.classList.toggle('active', b.getAttribute(attr)===val)));
+  const cs=document.getElementById('ct-search'); if(cs) cs.value=flSearch;
+  const ls=document.getElementById('ls-search'); if(ls) ls.value=flSearch;
+}
+// Al cambiar cualquier filtro: guarda, sincroniza los botones/inputs de ambas vistas y re-renderiza.
+function aplicarFiltros(){ guardarFiltros(); sincronizarUIFiltros(); renderContactos(); renderLista(); }
 
 function waLink(tel){
   const clean=(tel||'').split('/')[0].replace(/[^0-9+]/g,'');
@@ -2666,15 +2680,15 @@ function renderContactos(){
   const wrap=document.getElementById('ct-grid');
   const hoyYMD=fmtYMD(new Date());
   let list = getFilteredStore().filter(e=>{
-    if(ctFilter==='pending' && e.contactado) return false;
-    if(ctFilter==='done' && !e.contactado) return false;
-    if(ctBitrixFilter==='yes' && !e.bitrix) return false;
-    if(ctBitrixFilter==='no' && e.bitrix) return false;
-    if(ctTempFilter!=='all' && e.temp!==ctTempFilter) return false;
-    if(ctActFilter==='pending' && !agendaStore.some(a=>a.tipo==='actividad' && !a.completada && a.estudio_id===e.id)) return false;
-    if(ctSearch){
+    if(flEstado==='pending' && e.contactado) return false;
+    if(flEstado==='done' && !e.contactado) return false;
+    if(flBitrix==='yes' && !e.bitrix) return false;
+    if(flBitrix==='no' && e.bitrix) return false;
+    if(flTemp!=='all' && e.temp!==flTemp) return false;
+    if(flAct==='pending' && !agendaStore.some(a=>a.tipo==='actividad' && !a.completada && a.estudio_id===e.id)) return false;
+    if(flSearch){
       const hay=(e.estudio+' '+e.nombre+' '+e.telefono+' '+e.zona+' '+e.empresa+' '+(e.estado||'')).toLowerCase();
-      if(!hay.includes(ctSearch.toLowerCase())) return false;
+      if(!hay.includes(flSearch.toLowerCase())) return false;
     }
     return true;
   });
@@ -2742,18 +2756,15 @@ function renderContactos(){
   });
 }
 
-document.getElementById('ct-search').addEventListener('input', e=>{ ctSearch=e.target.value; renderContactos(); });
-document.querySelectorAll('[data-ctf]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-ctf]').forEach(x=>x.classList.remove('active'));b.classList.add('active');ctFilter=b.dataset.ctf;renderContactos();}));
-document.querySelectorAll('[data-ctbx]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-ctbx]').forEach(x=>x.classList.remove('active'));b.classList.add('active');ctBitrixFilter=b.dataset.ctbx;renderContactos();}));
-document.querySelectorAll('[data-cttemp]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-cttemp]').forEach(x=>x.classList.remove('active'));b.classList.add('active');ctTempFilter=b.dataset.cttemp;renderContactos();}));
-document.querySelectorAll('[data-ctact]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-ctact]').forEach(x=>x.classList.remove('active'));b.classList.add('active');ctActFilter=b.dataset.ctact;renderContactos();}));
+document.getElementById('ct-search').addEventListener('input', e=>{ flSearch=e.target.value; guardarFiltros(); renderContactos(); renderLista(); });
+document.querySelectorAll('[data-ctf]').forEach(b=>b.addEventListener('click',()=>{ flEstado=b.dataset.ctf; aplicarFiltros(); }));
+document.querySelectorAll('[data-ctbx]').forEach(b=>b.addEventListener('click',()=>{ flBitrix=b.dataset.ctbx; aplicarFiltros(); }));
+document.querySelectorAll('[data-cttemp]').forEach(b=>b.addEventListener('click',()=>{ flTemp=b.dataset.cttemp; aplicarFiltros(); }));
+document.querySelectorAll('[data-ctact]').forEach(b=>b.addEventListener('click',()=>{ flAct=b.dataset.ctact; aplicarFiltros(); }));
 
 function goToContactosFiltered(temp, estadoContacto){
-  ctTempFilter = temp; ctFilter = estadoContacto || 'all'; ctBitrixFilter = 'all'; ctSearch = '';
-  const ctSearchInput = document.getElementById('ct-search'); if(ctSearchInput) ctSearchInput.value = '';
-  document.querySelectorAll('[data-cttemp]').forEach(x=>x.classList.toggle('active', x.dataset.cttemp===temp));
-  document.querySelectorAll('[data-ctf]').forEach(x=>x.classList.toggle('active', x.dataset.ctf===ctFilter));
-  document.querySelectorAll('[data-ctbx]').forEach(x=>x.classList.toggle('active', x.dataset.ctbx==='all'));
+  flTemp = temp; flEstado = estadoContacto || 'all'; flBitrix = 'all'; flSearch = '';
+  guardarFiltros(); sincronizarUIFiltros();
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelector('.tab[data-tab="contactos"]').classList.add('active');
   positionTabIndicator();
@@ -2766,12 +2777,8 @@ function goToContactosFiltered(temp, estadoContacto){
 // Salta a Contactos con un texto de búsqueda prefijado (lo usan los gráficos del Panel:
 // zona y etapa de obra se filtran vía el buscador, que ya cubre esos campos).
 function goToContactosSearch(txt){
-  ctSearch=txt; ctFilter='all'; ctBitrixFilter='all'; ctTempFilter='all'; ctActFilter='all';
-  const inp=document.getElementById('ct-search'); if(inp) inp.value=txt;
-  document.querySelectorAll('[data-cttemp]').forEach(x=>x.classList.toggle('active', x.dataset.cttemp==='all'));
-  document.querySelectorAll('[data-ctf]').forEach(x=>x.classList.toggle('active', x.dataset.ctf==='all'));
-  document.querySelectorAll('[data-ctbx]').forEach(x=>x.classList.toggle('active', x.dataset.ctbx==='all'));
-  document.querySelectorAll('[data-ctact]').forEach(x=>x.classList.toggle('active', x.dataset.ctact==='all'));
+  flSearch=txt; flEstado='all'; flBitrix='all'; flTemp='all'; flAct='all';
+  guardarFiltros(); sincronizarUIFiltros();
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelector('.tab[data-tab="contactos"]').classList.add('active');
   positionTabIndicator();
@@ -3178,8 +3185,7 @@ function renderAnalisis(){
 // ============================================================
 // LISTA (tabla tipo planilla: ordenable, con buscador; click → ficha)
 // ============================================================
-let lsSearch='', lsSortKey='estudio', lsSortDir=1, lsLastList=[];
-let lsFilter='all', lsBitrixFilter='all', lsTempFilter='all', lsActFilter='all';
+let lsSortKey='estudio', lsSortDir=1, lsLastList=[];
 const LS_COLS=[
   {key:'estudio', label:'Estudio / Empresa'},
   {key:'nombre', label:'Contacto'},
@@ -3208,15 +3214,15 @@ function lsVal(e,key){
 function renderLista(){
   const head=document.getElementById('ls-head'), body=document.getElementById('ls-body');
   let list=getFilteredStore().filter(e=>{
-    if(lsFilter==='pending' && e.contactado) return false;
-    if(lsFilter==='done' && !e.contactado) return false;
-    if(lsBitrixFilter==='yes' && !e.bitrix) return false;
-    if(lsBitrixFilter==='no' && e.bitrix) return false;
-    if(lsTempFilter!=='all' && e.temp!==lsTempFilter) return false;
-    if(lsActFilter==='pending' && !agendaStore.some(a=>a.tipo==='actividad' && !a.completada && a.estudio_id===e.id)) return false;
-    if(!lsSearch) return true;
+    if(flEstado==='pending' && e.contactado) return false;
+    if(flEstado==='done' && !e.contactado) return false;
+    if(flBitrix==='yes' && !e.bitrix) return false;
+    if(flBitrix==='no' && e.bitrix) return false;
+    if(flTemp!=='all' && e.temp!==flTemp) return false;
+    if(flAct==='pending' && !agendaStore.some(a=>a.tipo==='actividad' && !a.completada && a.estudio_id===e.id)) return false;
+    if(!flSearch) return true;
     const hay=((e.estudio||'')+' '+(e.empresa||'')+' '+(e.nombre||'')+' '+(e.telefono||'')+' '+(e.zona||'')+' '+(e.estado||'')+' '+(e.user_name||'')).toLowerCase();
-    return hay.includes(lsSearch.toLowerCase());
+    return hay.includes(flSearch.toLowerCase());
   });
   list=list.slice().sort((a,b)=>{
     const va=lsVal(a,lsSortKey), vb=lsVal(b,lsSortKey);
@@ -3259,11 +3265,11 @@ function renderLista(){
     if(item) openPinModal(item);
   }));
 }
-document.getElementById('ls-search').addEventListener('input',e=>{ lsSearch=e.target.value; renderLista(); });
-document.querySelectorAll('[data-lsf]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-lsf]').forEach(x=>x.classList.remove('active'));b.classList.add('active');lsFilter=b.dataset.lsf;renderLista();}));
-document.querySelectorAll('[data-lsbx]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-lsbx]').forEach(x=>x.classList.remove('active'));b.classList.add('active');lsBitrixFilter=b.dataset.lsbx;renderLista();}));
-document.querySelectorAll('[data-lstemp]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-lstemp]').forEach(x=>x.classList.remove('active'));b.classList.add('active');lsTempFilter=b.dataset.lstemp;renderLista();}));
-document.querySelectorAll('[data-lsact]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-lsact]').forEach(x=>x.classList.remove('active'));b.classList.add('active');lsActFilter=b.dataset.lsact;renderLista();}));
+document.getElementById('ls-search').addEventListener('input',e=>{ flSearch=e.target.value; guardarFiltros(); renderLista(); renderContactos(); });
+document.querySelectorAll('[data-lsf]').forEach(b=>b.addEventListener('click',()=>{ flEstado=b.dataset.lsf; aplicarFiltros(); }));
+document.querySelectorAll('[data-lsbx]').forEach(b=>b.addEventListener('click',()=>{ flBitrix=b.dataset.lsbx; aplicarFiltros(); }));
+document.querySelectorAll('[data-lstemp]').forEach(b=>b.addEventListener('click',()=>{ flTemp=b.dataset.lstemp; aplicarFiltros(); }));
+document.querySelectorAll('[data-lsact]').forEach(b=>b.addEventListener('click',()=>{ flAct=b.dataset.lsact; aplicarFiltros(); }));
 
 // ============================================================
 // TAB AGENDA (calendario: visitas pautadas + actividades)
