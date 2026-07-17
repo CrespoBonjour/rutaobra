@@ -340,6 +340,14 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .obra-row button:hover,.persona-row button:hover{color:#ff4d4d}
 .obra-row .pm-tel-edit{flex:1;min-width:0;background:transparent;border:none;border-bottom:1px solid transparent;color:var(--ink);font-size:inherit;font-family:inherit;padding:2px 0}
 .obra-row .pm-tel-edit:focus{outline:none;border-bottom-color:var(--acc)}
+.dup-warn{background:rgba(224,179,61,.12);border:1px solid rgba(224,179,61,.5);border-left:3px solid #e0b33d;border-radius:8px;padding:8px 10px;margin-bottom:12px}
+.dup-warn-title{font-size:11.5px;font-weight:800;color:#e0b33d;margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px}
+.dup-warn-row{display:flex;align-items:center;gap:8px;padding:5px 7px;background:var(--panel2);border-radius:6px;margin-bottom:4px;cursor:pointer;font-size:11.5px;transition:background .15s}
+.dup-warn-row:hover{background:var(--acc-dim)}
+.dup-warn-name{font-weight:700;color:var(--ink);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dup-warn-motivo{color:var(--muted);font-size:10.5px;white-space:nowrap;flex-shrink:0}
+.dup-warn-open{color:var(--acc-light);font-size:10.5px;font-weight:700;flex-shrink:0}
+.dup-warn-more{font-size:10.5px;color:var(--muted);padding:2px 4px}
 .persona-add-form{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
 .persona-add-form input,.persona-add-form select{width:100%;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink);border-radius:7px;padding:9px 10px;font-size:13px;font-family:inherit}
 
@@ -763,6 +771,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       <div class="field"><label>Teléfono <span style="text-transform:none;font-weight:400;color:var(--muted)">(podés poner varios separados por coma)</span></label><input id="f-telefono" type="tel" placeholder="099 123 456, 4222 3344..." inputmode="tel"></div>
       <div class="field"><label>Email</label><input id="f-email" type="email" placeholder="nombre@empresa.com" inputmode="email"></div>
     </div>
+    <div id="f-dup-warn" class="dup-warn" style="display:none"></div>
     <div class="field"><label>Próxima acción</label>
       <select id="f-followup"><option value="">Seleccionar...</option><option>Enviar cotización</option><option>Llamar la próxima semana</option><option>Visitar de nuevo en 2 semanas</option><option>Enviar catálogo por WhatsApp</option><option>Esperar que avance la obra</option><option>Cerrado - sin interés</option></select>
     </div>
@@ -1074,6 +1083,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
           </div>
         </div>
         <div class="field"><label>Email</label><input id="m-email" type="email" placeholder="nombre@empresa.com" inputmode="email"></div>
+        <div id="m-dup-warn" class="dup-warn" style="display:none"></div>
         <div class="field"><label>Sitio web</label><input id="m-web" type="text" placeholder="www.empresa.com"></div>
         <div class="row2">
           <div class="field"><label>Dirección</label><input id="m-direccion" type="text" placeholder="Se completa al ubicar el pin"></div>
@@ -1666,6 +1676,7 @@ function renderProductosChips(){
 
 function clearForm(){
   ['f-empresa','f-estudio','f-nombre','f-cargo','f-telefono','f-email','f-direccion','f-zona','f-web','f-proveedor','f-notas','f-tipo','f-estado','f-followup'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  hideDupWarn('f-dup-warn');
   document.querySelectorAll('#temp-chips .temp-chip').forEach(c=>c.classList.remove('selected'));tempSelected='';
   document.querySelectorAll('#zona-chips .chip').forEach(c=>c.classList.remove('selected'));zonaSelected='';
   document.querySelectorAll('.catalog-item').forEach(c=>c.classList.remove('selected'));catalogosSelected=new Set();
@@ -2015,8 +2026,8 @@ function renderModalTelefonos(){
   const wrap=document.getElementById('m-tel-list');
   if(!modalTelefonos.length){ wrap.innerHTML='<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Sin números cargados todavía.</div>'; return; }
   wrap.innerHTML = modalTelefonos.map((t,i)=>'<div class="obra-row">'+ICONS.phone+'<input type="tel" inputmode="tel" class="pm-tel-edit" data-teledit="'+i+'" value="'+esc(t)+'"><button type="button" data-deltel="'+i+'">'+ICONS.x+'</button></div>').join('');
-  wrap.querySelectorAll('[data-teledit]').forEach(inp=>inp.addEventListener('input', ()=>{ modalTelefonos[parseFloat(inp.dataset.teledit)]=inp.value; }));
-  wrap.querySelectorAll('[data-deltel]').forEach(b=>b.addEventListener('click', ()=>{ modalTelefonos.splice(parseFloat(b.dataset.deltel),1); renderModalTelefonos(); }));
+  wrap.querySelectorAll('[data-teledit]').forEach(inp=>inp.addEventListener('input', ()=>{ modalTelefonos[parseFloat(inp.dataset.teledit)]=inp.value; checkDupModal(); }));
+  wrap.querySelectorAll('[data-deltel]').forEach(b=>b.addEventListener('click', ()=>{ modalTelefonos.splice(parseFloat(b.dataset.deltel),1); renderModalTelefonos(); checkDupModal(); }));
 }
 document.getElementById('m-tel-add').addEventListener('click', ()=>{
   const input=document.getElementById('m-tel-new');
@@ -2025,6 +2036,7 @@ document.getElementById('m-tel-add').addEventListener('click', ()=>{
   parsePhones(val).forEach(p=>modalTelefonos.push(p));
   input.value='';
   renderModalTelefonos();
+  checkDupModal();
 });
 document.getElementById('m-tel-new').addEventListener('keydown', (e)=>{
   if(e.key==='Enter'){ e.preventDefault(); document.getElementById('m-tel-add').click(); }
@@ -2255,6 +2267,7 @@ function openPinModal(entry,newLocation){
   renderModalObras();
   renderModalPersonas();
   renderModalTelefonos();
+  checkDupModal();
   document.getElementById('modal-contactado-chip').classList.toggle('selected',modalContactado);
   document.getElementById('modal-bitrix-chip').classList.toggle('selected',modalBitrix);
   document.getElementById('m-int-text').value='';
@@ -2659,6 +2672,56 @@ function parsePhones(str){
   return str.split(/[,;/]+/).map(s=>s.trim()).filter(Boolean);
 }
 function joinPhones(arr){ return arr.filter(Boolean).join(', '); }
+
+// ── Detección de posibles duplicados al cargar un contacto nuevo ──
+// Compara contra localStore por email, teléfono (últimos 8 dígitos) y nombre.
+// Solo avisa; nunca bloquea el guardado.
+function normTelDup(s){ const d=(s||'').replace(/\D/g,''); return d.length>8?d.slice(-8):d; }
+function buscarDuplicados(datos, excludeId){
+  const nEmail=(datos.email||'').trim().toLowerCase();
+  const nNombre=(datos.nombre||'').trim().toLowerCase();
+  const telsN=parsePhones(datos.telefono||'').map(normTelDup).filter(t=>t.length>=6);
+  const out=[];
+  for(const e of localStore){
+    if(excludeId && e.id===excludeId) continue;
+    const motivos=[];
+    if(nEmail && (e.email||'').trim().toLowerCase()===nEmail) motivos.push('mismo email');
+    if(telsN.length){ const telsE=parsePhones(e.telefono||'').map(normTelDup); if(telsN.some(t=>t&&telsE.includes(t))) motivos.push('mismo teléfono'); }
+    if(nNombre && (e.nombre||'').trim().toLowerCase()===nNombre) motivos.push('mismo nombre');
+    if(motivos.length) out.push({e, motivos});
+  }
+  return out;
+}
+function renderDupWarn(wrapId, datos, excludeId){
+  const wrap=document.getElementById(wrapId); if(!wrap) return;
+  const dups=buscarDuplicados(datos, excludeId);
+  if(!dups.length){ wrap.style.display='none'; wrap.innerHTML=''; return; }
+  wrap.style.display='block';
+  wrap.innerHTML='<div class="dup-warn-title">⚠ Ya existe un contacto parecido</div>'+dups.slice(0,4).map(d=>
+    '<div class="dup-warn-row" data-dupopen="'+d.e.id+'"><span class="dup-warn-name">'+esc(d.e.estudio||d.e.empresa||d.e.nombre||'(sin nombre)')+'</span><span class="dup-warn-motivo">'+esc(d.motivos.join(' · '))+'</span><span class="dup-warn-open">ver ↗</span></div>'
+  ).join('')+(dups.length>4?'<div class="dup-warn-more">y '+(dups.length-4)+' más…</div>':'');
+  wrap.querySelectorAll('[data-dupopen]').forEach(el=>el.addEventListener('click',()=>{
+    const it=localStore.find(x=>x.id===parseFloat(el.dataset.dupopen)); if(it) openPinModal(it);
+  }));
+}
+function hideDupWarn(wrapId){ const w=document.getElementById(wrapId); if(w){ w.style.display='none'; w.innerHTML=''; } }
+function checkDupForm(){
+  renderDupWarn('f-dup-warn', {
+    email:(document.getElementById('f-email')||{}).value,
+    nombre:(document.getElementById('f-nombre')||{}).value,
+    telefono:(document.getElementById('f-telefono')||{}).value
+  }, null);
+}
+function checkDupModal(){
+  if(editingId){ hideDupWarn('m-dup-warn'); return; } // solo al crear uno nuevo, no al editar
+  renderDupWarn('m-dup-warn', {
+    email:(document.getElementById('m-email')||{}).value,
+    nombre:(document.getElementById('m-nombre')||{}).value,
+    telefono:joinPhones(modalTelefonos)
+  }, null);
+}
+['f-nombre','f-telefono','f-email'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('input', checkDupForm); });
+['m-nombre','m-email'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('input', checkDupModal); });
 function phoneRowsHtml(str){
   const phones=parsePhones(str);
   if(!phones.length) return '';
@@ -2694,7 +2757,7 @@ function renderContactos(){
     if(flTemp!=='all' && e.temp!==flTemp) return false;
     if(flAct==='pending' && !agendaStore.some(a=>a.tipo==='actividad' && !a.completada && a.estudio_id===e.id)) return false;
     if(flSearch){
-      const hay=(e.estudio+' '+e.nombre+' '+e.telefono+' '+e.zona+' '+e.empresa+' '+(e.estado||'')).toLowerCase();
+      const hay=(e.estudio+' '+e.nombre+' '+e.telefono+' '+e.zona+' '+e.empresa+' '+(e.estado||'')+' '+(e.proveedor||'')).toLowerCase();
       if(!hay.includes(flSearch.toLowerCase())) return false;
     }
     return true;
@@ -3185,14 +3248,16 @@ function renderAnalisis(){
     provRows=provRows.slice(0,8); provRows.push({name:'Otros',n:extra});
   }
   const maxProv=Math.max.apply(null,provRows.map(r=>r.n).concat([1]));
-  const provBars=provRows.map(r=>
-    '<div class="an-row"><div class="an-name">'+esc(r.name)+'</div>'
+  const provBars=provRows.map(r=>{
+    const clickable = r.name!=='Otros';
+    return '<div class="an-row'+(clickable?' link':'')+'"'+(clickable?' data-ansearch="'+esc(r.name)+'"':'')+'>'
+    +'<div class="an-name">'+esc(r.name)+'</div>'
     +'<div class="an-track"><div class="an-seg" style="width:'+(r.n/maxProv*100)+'%;background:var(--hot)" data-antip="'+esc(r.name)+'|'+r.n+' obra'+(r.n===1?'':'s')+' con este proveedor"></div></div>'
-    +'<div class="an-val">'+r.n+'</div></div>'
-  ).join('');
+    +'<div class="an-val">'+r.n+'</div></div>';
+  }).join('');
   const provCard=anCard('prov',{
     title:'Proveedores actuales (competencia)',
-    sub:'Qué proveedor eléctrico tienen hoy las obras. Los de arriba son tu mayor competencia.',
+    sub:'Qué proveedor eléctrico tienen hoy las obras. Los de arriba son tu mayor competencia. Tocá uno para ver esas obras en Contactos y salir a captarlas.',
     barsHtml:provRows.length?provBars:'<div class="an-note">Todavía no hay proveedores cargados.</div>',
     tableHtml:provRows.length?('<table class="an-table"><tr><th>Proveedor</th><th>Obras</th></tr>'+provRows.map(r=>'<tr><td>'+esc(r.name)+'</td><td>'+r.n+'</td></tr>').join('')+'</table>'):null,
     note:sinProv?(sinProv+' contacto'+(sinProv===1?'':'s')+' sin proveedor identificado (no se grafican).'):''
@@ -3242,7 +3307,7 @@ function renderLista(){
     if(flTemp!=='all' && e.temp!==flTemp) return false;
     if(flAct==='pending' && !agendaStore.some(a=>a.tipo==='actividad' && !a.completada && a.estudio_id===e.id)) return false;
     if(!flSearch) return true;
-    const hay=((e.estudio||'')+' '+(e.empresa||'')+' '+(e.nombre||'')+' '+(e.telefono||'')+' '+(e.zona||'')+' '+(e.estado||'')+' '+(e.user_name||'')).toLowerCase();
+    const hay=((e.estudio||'')+' '+(e.empresa||'')+' '+(e.nombre||'')+' '+(e.telefono||'')+' '+(e.zona||'')+' '+(e.estado||'')+' '+(e.user_name||'')+' '+(e.proveedor||'')).toLowerCase();
     return hay.includes(flSearch.toLowerCase());
   });
   list=list.slice().sort((a,b)=>{
