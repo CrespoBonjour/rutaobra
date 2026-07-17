@@ -616,6 +616,10 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .act-del:hover{color:#ff4d4d}
 .act-send{background:var(--acc-dim);border:1.5px solid var(--acc);color:var(--acc-light);cursor:pointer;font-size:10.5px;font-weight:800;flex-shrink:0;border-radius:7px;padding:6px 9px;display:flex;align-items:center;gap:4px;text-transform:uppercase}
 .act-send:hover{background:var(--acc);color:#1a1300}
+.act-sendrow{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+.act-section-count{display:inline-block;background:var(--panel3);color:var(--ink-soft);border-radius:20px;padding:1px 8px;font-size:10px;margin-left:4px;vertical-align:middle}
+.ag-send{background:var(--acc-dim);border:1px solid var(--acc);color:var(--acc-light);border-radius:7px;padding:6px 9px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px}
+.ag-send:hover{background:var(--acc);color:#1a1300}
 .act-form-box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:16px}
 .act-empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px}
 
@@ -3550,11 +3554,13 @@ function renderAgDayPanel(){
   const el=document.getElementById('ag-daypanel');
   const nice=new Date(agSelectedDay+'T00:00:00').toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'});
   el.innerHTML = '<div class="ag-dayheader">'+nice+'</div>'
-    + (evs.length ? evs.map(e=>'<div class="ag-event '+e.tipo+'" style="'+(e.completada?'opacity:.55':'')+'"><div class="ag-evtop '+e.tipo+'"><span>'+(e.tipo==='visita'?'🏗️ Visita de obra':'📌 Actividad')+(e.completada?' · ✓ completada':'')+'</span>'+(e.hora?'<span style="color:var(--muted);font-family:monospace">'+esc(e.hora)+'</span>':'')+'</div><div class="ag-evtext">'+esc(e.texto)+'</div>'+(e.estudio_nombre?'<div style="font-size:11px;color:var(--muted);margin-top:3px;cursor:pointer" data-jumpact="'+e.estudio_id+'">→ '+esc(e.estudio_nombre)+'</div>':'')+'<div style="display:flex;gap:8px;margin-top:6px;">'+(e.tipo==='actividad'?'<button class="del" data-toggleact="'+e.id+'">'+(e.completada?'↺ Marcar pendiente':'✓ Marcar completada')+'</button>':'')+'<button class="del" data-delag="'+e.id+'">🗑️ Eliminar</button></div></div>').join('') : '<div style="font-size:11.5px;color:var(--muted);padding:6px 0">Sin eventos este día.</div>')
+    + (evs.length ? evs.map(e=>'<div class="ag-event '+e.tipo+'" style="'+(e.completada?'opacity:.55':'')+'"><div class="ag-evtop '+e.tipo+'"><span>'+(e.tipo==='visita'?'🏗️ Visita de obra':'📌 Actividad')+(e.completada?' · ✓ completada':'')+'</span>'+(e.hora?'<span style="color:var(--muted);font-family:monospace">'+esc(e.hora)+'</span>':'')+'</div><div class="ag-evtext">'+esc(e.texto)+'</div>'+(e.estudio_nombre?'<div style="font-size:11px;color:var(--muted);margin-top:3px;cursor:pointer" data-jumpact="'+e.estudio_id+'">→ '+esc(e.estudio_nombre)+'</div>':'')+'<div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">'+(e.productos?'<button class="ag-send" data-agsendmail="'+e.id+'">'+ICONS.mail+' Email</button><button class="ag-send" data-agsendwa="'+e.id+'">'+ICONS.arrowUpRight+' WhatsApp</button>':'')+(e.tipo==='actividad'?'<button class="del" data-toggleact="'+e.id+'">'+(e.completada?'↺ Marcar pendiente':'✓ Marcar completada')+'</button>':'')+'<button class="del" data-delag="'+e.id+'">🗑️ Eliminar</button></div></div>').join('') : '<div style="font-size:11.5px;color:var(--muted);padding:6px 0">Sin eventos este día.</div>')
     + '<div class="ag-addbtns"><button class="visita" data-newag="visita">+ Visita de obra</button><button class="actividad" data-newag="actividad">+ Actividad</button></div>'
     + '<div id="ag-form-wrap"></div>';
   el.querySelectorAll('[data-delag]').forEach(b=>b.addEventListener('click', ()=> eliminarActividad(parseFloat(b.dataset.delag))));
   el.querySelectorAll('[data-toggleact]').forEach(b=>b.addEventListener('click', ()=> toggleActividadCompletada(parseFloat(b.dataset.toggleact))));
+  el.querySelectorAll('[data-agsendmail]').forEach(b=>b.addEventListener('click', ()=> enviarCatalogoEmail(parseFloat(b.dataset.agsendmail))));
+  el.querySelectorAll('[data-agsendwa]').forEach(b=>b.addEventListener('click', ()=> enviarCatalogoWa(parseFloat(b.dataset.agsendwa))));
   el.querySelectorAll('[data-jumpact]').forEach(b=>b.addEventListener('click', ()=> jumpToContactFromActivity(parseFloat(b.dataset.jumpact))));
   el.querySelectorAll('[data-newag]').forEach(b=>b.addEventListener('click',()=>showAgForm(b.dataset.newag)));
 }
@@ -3596,11 +3602,43 @@ document.querySelectorAll('[data-agview]').forEach(b=>b.addEventListener('click'
 // ---- ACTIVIDADES (lista plana, conectada con Agenda y con las fichas) ----
 let actFilter='pendientes', actSearch='';
 
+// Enviar catálogo (email / WhatsApp) desde una actividad. Compartido entre Actividades y Agenda.
+function enviarCatalogoEmail(actId){
+  const ev=agendaStore.find(x=>x.id===actId); if(!ev) return;
+  const contacto = ev.estudio_id ? localStore.find(x=>x.id===ev.estudio_id) : null;
+  if(!contacto?.email){ toast('Este contacto no tiene email cargado', true); return; }
+  copyAndOpenWebmail(contacto.email,CATALOGO_ASUNTO,buildCatalogoMensaje(contacto));
+}
+function enviarCatalogoWa(actId){
+  const ev=agendaStore.find(x=>x.id===actId); if(!ev) return;
+  const contacto = ev.estudio_id ? localStore.find(x=>x.id===ev.estudio_id) : null;
+  const tel = contacto ? parsePhones(contacto.telefono)[0] : null;
+  if(!tel){ toast('Este contacto no tiene teléfono cargado', true); return; }
+  window.open(waLinkMsg(tel,buildCatalogoMensaje(contacto)),'_blank');
+}
+// Una fila de actividad. Los botones Email/WhatsApp van DENTRO del cuerpo (abajo del texto)
+// para que no aplasten el nombre del estudio en el celular.
+function actRowHtml(e){
+  const niceDate = new Date(e.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit',year:'2-digit'});
+  return '<div class="act-row '+(e.vencida?'vencida':'')+' '+(e.completada?'completada':'')+'" data-id="'+e.id+'">'
+    + '<button class="act-check '+(e.completada?'on':'')+'" data-toggleact="'+e.id+'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>'
+    + '<div class="act-body">'
+    + '<div class="act-top">'
+    + (e.estudio_nombre ? '<div class="act-estudio" data-jumpact="'+e.estudio_id+'">'+esc(e.estudio_nombre)+'</div>' : '<div class="act-estudio" style="color:var(--hot);cursor:pointer" data-vincular="'+e.id+'">(sin vincular, tocar para vincular)</div>')
+    + '<div class="act-when '+(e.vencida?'vencida':'')+'">'+niceDate+(e.hora?' · '+esc(e.hora):'')+'</div>'
+    + '</div>'
+    + '<div class="act-texto">'+esc(e.texto)+'</div>'
+    + (e.productos ? '<div class="act-sendrow"><button class="act-send" data-sendmail="'+e.id+'">'+ICONS.mail+' Email</button><button class="act-send" data-sendwa="'+e.id+'">'+ICONS.arrowUpRight+' WhatsApp</button></div>' : '')
+    + '</div>'
+    + '<button class="act-edit" data-editact="'+e.id+'">'+ICONS.edit+'</button>'
+    + '<button class="act-del" data-delag="'+e.id+'">'+ICONS.trash+'</button>'
+    + '</div>';
+}
 function renderActividades(){
   buildAgendaEstudiosList();
   const wrap=document.getElementById('act-list');
   const hoy = fmtYMD(new Date());
-  let items = agendaStore.filter(e=>e.tipo==='actividad');
+  let items = agendaStore.filter(e=>e.tipo==='actividad' || e.tipo==='visita');
   if(actSearch){
     const s=actSearch.toLowerCase();
     items = items.filter(e=>(e.texto||'').toLowerCase().includes(s) || (e.estudio_nombre||'').toLowerCase().includes(s));
@@ -3613,22 +3651,18 @@ function renderActividades(){
 
   if(!items.length){ wrap.innerHTML='<div class="act-empty">No hay actividades para mostrar con este filtro.</div>'; return; }
 
-  wrap.innerHTML = items.map(e=>{
-    const niceDate = new Date(e.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit',year:'2-digit'});
-    return '<div class="act-row '+(e.vencida?'vencida':'')+' '+(e.completada?'completada':'')+'" data-id="'+e.id+'">'
-      + '<button class="act-check '+(e.completada?'on':'')+'" data-toggleact="'+e.id+'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>'
-      + '<div class="act-body">'
-      + '<div class="act-top">'
-      + (e.estudio_nombre ? '<div class="act-estudio" data-jumpact="'+e.estudio_id+'">'+esc(e.estudio_nombre)+'</div>' : '<div class="act-estudio" style="color:var(--hot);cursor:pointer" data-vincular="'+e.id+'">(sin vincular, tocar para vincular)</div>')
-      + '<div class="act-when '+(e.vencida?'vencida':'')+'">'+niceDate+(e.hora?' · '+esc(e.hora):'')+'</div>'
-      + '</div>'
-      + '<div class="act-texto">'+esc(e.texto)+'</div>'
-      + '</div>'
-      + (e.productos ? '<button class="act-send" data-sendmail="'+e.id+'">'+ICONS.mail+' Email</button><button class="act-send" data-sendwa="'+e.id+'">'+ICONS.arrowUpRight+' WhatsApp</button>' : '')
-      + '<button class="act-edit" data-editact="'+e.id+'">'+ICONS.edit+'</button>'
-      + '<button class="act-del" data-delag="'+e.id+'">'+ICONS.trash+'</button>'
-      + '</div>';
-  }).join('');
+  // Sectorizado en 3 grupos: envío de catálogos (con productos), visitas de obra (tipo visita)
+  // y actividades particulares (el resto). Usa el campo `tipo` y `productos` que ya existen.
+  const grupos=[
+    {label:'📦 Envío de catálogos', items:items.filter(e=>e.tipo==='actividad' && e.productos)},
+    {label:'🏗️ Visitas de obra', items:items.filter(e=>e.tipo==='visita')},
+    {label:'📌 Actividades particulares', items:items.filter(e=>e.tipo==='actividad' && !e.productos)}
+  ];
+  wrap.innerHTML = grupos.filter(g=>g.items.length).map(g=>
+    '<div class="act-section-label">'+g.label+'<span class="act-section-count">'+g.items.length+'</span></div>'
+    + g.items.map(actRowHtml).join('')
+  ).join('');
+
   wrap.querySelectorAll('[data-toggleact]').forEach(b=>b.addEventListener('click', ()=> toggleActividadCompletada(parseFloat(b.dataset.toggleact))));
   wrap.querySelectorAll('[data-delag]').forEach(b=>b.addEventListener('click', ()=>{ if(confirm('¿Eliminar esta actividad?')) eliminarActividad(parseFloat(b.dataset.delag)); }));
   wrap.querySelectorAll('[data-jumpact]').forEach(b=>b.addEventListener('click', ()=> jumpToContactFromActivity(parseFloat(b.dataset.jumpact))));
@@ -3638,19 +3672,8 @@ function renderActividades(){
     showActForm(ev);
     document.getElementById('act-form-wrap').scrollIntoView({behavior:'smooth', block:'start'});
   }));
-  wrap.querySelectorAll('[data-sendmail]').forEach(b=>b.addEventListener('click', ()=>{
-    const ev=agendaStore.find(x=>x.id===parseFloat(b.dataset.sendmail)); if(!ev) return;
-    const contacto = ev.estudio_id ? localStore.find(x=>x.id===ev.estudio_id) : null;
-    if(!contacto?.email){ toast('Este contacto no tiene email cargado', true); return; }
-    copyAndOpenWebmail(contacto.email,CATALOGO_ASUNTO,buildCatalogoMensaje(contacto));
-  }));
-  wrap.querySelectorAll('[data-sendwa]').forEach(b=>b.addEventListener('click', ()=>{
-    const ev=agendaStore.find(x=>x.id===parseFloat(b.dataset.sendwa)); if(!ev) return;
-    const contacto = ev.estudio_id ? localStore.find(x=>x.id===ev.estudio_id) : null;
-    const tel = contacto ? parsePhones(contacto.telefono)[0] : null;
-    if(!tel){ toast('Este contacto no tiene teléfono cargado', true); return; }
-    window.open(waLinkMsg(tel,buildCatalogoMensaje(contacto)),'_blank');
-  }));
+  wrap.querySelectorAll('[data-sendmail]').forEach(b=>b.addEventListener('click', ()=> enviarCatalogoEmail(parseFloat(b.dataset.sendmail))));
+  wrap.querySelectorAll('[data-sendwa]').forEach(b=>b.addEventListener('click', ()=> enviarCatalogoWa(parseFloat(b.dataset.sendwa))));
 }
 
 document.getElementById('act-search').addEventListener('input', e=>{ actSearch=e.target.value; renderActividades(); });
