@@ -338,6 +338,8 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .obra-row .txt,.persona-row .txt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .obra-row button,.persona-row button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;flex-shrink:0}
 .obra-row button:hover,.persona-row button:hover{color:#ff4d4d}
+.obra-row .pm-tel-edit{flex:1;min-width:0;background:transparent;border:none;border-bottom:1px solid transparent;color:var(--ink);font-size:inherit;font-family:inherit;padding:2px 0}
+.obra-row .pm-tel-edit:focus{outline:none;border-bottom-color:var(--acc)}
 .persona-add-form{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
 .persona-add-form input,.persona-add-form select{width:100%;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink);border-radius:7px;padding:9px 10px;font-size:13px;font-family:inherit}
 
@@ -372,9 +374,10 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .pm-col .field label{font-size:9px;margin-bottom:3px;letter-spacing:.3px}
 .pm-col .field input,.pm-col .field select,.pm-col .field textarea{padding:8px 10px;font-size:12px;border-width:1px;box-shadow:none;max-width:100%}
 .pm-col .row2{gap:8px}
-.pm-col .catalog-grid{margin-bottom:0;gap:6px}
-.pm-col .catalog-item{font-size:11px;padding:8px 9px;border-width:1px}
-.pm-col .catalog-item .box{width:14px;height:14px}
+.pm-col .catalog-grid{margin-bottom:0;gap:5px}
+.pm-col .catalog-item{font-size:10px;padding:5px 7px;border-width:1px;gap:5px}
+.pm-col .catalog-item .box{width:12px;height:12px}
+.pm-col .catalog-item.selected .box::after{font-size:8px}
 .pm-col .quick-chips{margin:0;gap:5px}
 .pm-col .quick-chips .chip{font-size:10.5px;padding:6px 10px;border-radius:7px;border-width:1px}
 .pm-col .ct-int-savebtn{padding:8px;font-size:10.5px}
@@ -1055,11 +1058,9 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       <div class="pm-col pm-col-l pm-pane sel" data-pane="perfil">
         <div class="field"><label>Empresa constructora *</label><input id="m-empresa" type="text" placeholder="Nombre de la empresa"></div>
         <div class="field"><label>Estudio / Desarrolladora</label><input id="m-estudio" type="text" placeholder="Arquitectos o desarrolladora"></div>
-        <div class="row2">
-          <div class="field"><label>Contacto en obra</label><input id="m-nombre" type="text" placeholder="Con quién hablaste"></div>
-          <div class="field"><label>Cargo</label>
-            <select id="m-cargo"><option value="">Seleccionar...</option><option>Jefe de obra</option><option>Capataz</option><option>Encargado de compras</option><option>Arquitecto / Director de obra</option><option>Electricista a cargo</option><option>Otro</option></select>
-          </div>
+        <div class="field"><label>Contacto en obra</label><input id="m-nombre" type="text" placeholder="Con quién hablaste"></div>
+        <div class="field"><label>Cargo</label>
+          <select id="m-cargo"><option value="">Seleccionar...</option><option>Jefe de obra</option><option>Capataz</option><option>Encargado de compras</option><option>Arquitecto / Director de obra</option><option>Electricista a cargo</option><option>Otro</option></select>
         </div>
         <div class="field"><label>Teléfono</label>
           <div id="m-tel-list"></div>
@@ -1092,7 +1093,6 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
           <div id="m-obras-list"></div>
           <button type="button" class="ct-int-savebtn" id="m-obra-add" style="background:var(--cold)"><svg class="icn" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Agregar obra en el mapa</button>
         </div>
-        <div class="field"><label>Proveedor eléctrico actual</label><input id="m-proveedor" type="text" placeholder="Ej: Volta, Elecnor..."></div>
         <div class="pm-divider"></div>
         <div class="pm-sectitle">Otras personas de contacto</div>
         <div id="m-personas-list"></div>
@@ -1105,6 +1105,8 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
           </div>
           <button type="button" class="ct-int-savebtn" id="m-persona-add" style="background:var(--panel2);border:1.5px solid var(--line);color:var(--ink)">+ Agregar persona</button>
         </div>
+        <div class="pm-divider"></div>
+        <div class="field"><label>Proveedor eléctrico actual</label><input id="m-proveedor" type="text" placeholder="Ej: Volta, Elecnor..."></div>
       </div>
 
       <div class="pm-col pm-col-c pm-pane" data-pane="notas">
@@ -1131,9 +1133,6 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
         </div>
         <div class="field"><label>Estado actual</label>
           <select id="m-estado"><option value="">Seleccionar...</option><option>Cotización de obra</option><option>Excavación / fundaciones</option><option>Estructura en ejecución</option><option>Mampostería / cerramiento</option><option>Instalaciones (etapa ideal)</option><option>Terminaciones</option><option>Finalizada</option></select>
-        </div>
-        <div class="field"><label>Próxima acción</label>
-          <select id="m-followup"><option value="">Seleccionar...</option><option>Enviar cotización</option><option>Llamar la próxima semana</option><option>Visitar de nuevo en 2 semanas</option><option>Esperar que avance la obra</option><option>Cerrado - sin interés</option></select>
         </div>
         <div class="field" id="m-bitrix-sync-wrap" style="display:none">
           <button type="button" class="ct-int-savebtn" id="m-bitrix-sync-btn" style="background:#4a9eff"><svg class="icn" viewBox="0 0 24 24" style="fill:currentColor;stroke:none"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg> Enviar a Bitrix</button>
@@ -2013,7 +2012,8 @@ let modalTelefonos=[];
 function renderModalTelefonos(){
   const wrap=document.getElementById('m-tel-list');
   if(!modalTelefonos.length){ wrap.innerHTML='<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Sin números cargados todavía.</div>'; return; }
-  wrap.innerHTML = modalTelefonos.map((t,i)=>'<div class="obra-row"><span class="txt">'+ICONS.phone+' '+esc(t)+'</span><button type="button" data-deltel="'+i+'">'+ICONS.x+'</button></div>').join('');
+  wrap.innerHTML = modalTelefonos.map((t,i)=>'<div class="obra-row">'+ICONS.phone+'<input type="tel" inputmode="tel" class="pm-tel-edit" data-teledit="'+i+'" value="'+esc(t)+'"><button type="button" data-deltel="'+i+'">'+ICONS.x+'</button></div>').join('');
+  wrap.querySelectorAll('[data-teledit]').forEach(inp=>inp.addEventListener('input', ()=>{ modalTelefonos[parseFloat(inp.dataset.teledit)]=inp.value; }));
   wrap.querySelectorAll('[data-deltel]').forEach(b=>b.addEventListener('click', ()=>{ modalTelefonos.splice(parseFloat(b.dataset.deltel),1); renderModalTelefonos(); }));
 }
 document.getElementById('m-tel-add').addEventListener('click', ()=>{
@@ -2123,7 +2123,11 @@ document.getElementById('m-bitrix-sync-btn').addEventListener('click', async ()=
 });
 function renderModalInteracciones(){
   const wrap=document.getElementById('m-int-list');
-  wrap.innerHTML = modalInteracciones.length ? modalInteracciones.map(h=>'<div class="ct-int-item"><span class="m">'+esc(h.fecha)+(h.auto?' · automático':'')+'</span>'+esc(h.texto)+'</div>').join('') : '<div style="font-size:11px;color:var(--muted)">Sin interacciones registradas.</div>';
+  // Solo comentarios manuales de llamadas/reuniones: se ocultan los automáticos
+  // (marcado como contactado / pasado a Bitrix) y las actividades/visitas agendadas,
+  // que ya tienen su propio historial abajo. No se toca modalInteracciones (se sigue guardando todo).
+  const comentarios = modalInteracciones.filter(h=>!h.auto && !/^\[(Actividad|Visita) agendada\]/.test(h.texto||''));
+  wrap.innerHTML = comentarios.length ? comentarios.map(h=>'<div class="ct-int-item"><span class="m">'+esc(h.fecha)+'</span>'+esc(h.texto)+'</div>').join('') : '<div style="font-size:11px;color:var(--muted)">Sin comentarios registrados.</div>';
 }
 document.getElementById('m-int-save').addEventListener('click', ()=>{
   const ta=document.getElementById('m-int-text');
@@ -2234,7 +2238,7 @@ function openPinModal(entry,newLocation){
   }
   document.querySelectorAll('#pm-tabs .pm-tab').forEach(t=>t.classList.toggle('sel', t.dataset.pane==='perfil'));
   document.querySelectorAll('.pm-pane').forEach(p=>p.classList.toggle('sel', p.dataset.pane==='perfil'));
-  ['m-empresa','m-estudio','m-tipo','m-estado','m-nombre','m-cargo','m-email','m-proveedor','m-followup','m-notas','m-direccion','m-zona','m-web','m-tel-new','m-persona-nombre','m-persona-cargo','m-persona-telefono'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['m-empresa','m-estudio','m-tipo','m-estado','m-nombre','m-cargo','m-email','m-proveedor','m-notas','m-direccion','m-zona','m-web','m-tel-new','m-persona-nombre','m-persona-cargo','m-persona-telefono'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.querySelectorAll('#modal-temp-chips .temp-chip').forEach(x=>x.classList.remove('selected'));
   document.querySelectorAll('#modal-zona-chips .chip').forEach(x=>x.classList.remove('selected'));modalZonaSelected='';
   document.querySelectorAll('#modal-catalog-grid .catalog-item').forEach(x=>x.classList.remove('selected'));modalCatalogosSelected=new Set();
@@ -2261,7 +2265,7 @@ function openPinModal(entry,newLocation){
     document.getElementById('m-nombre').value=entry.nombre||'';document.getElementById('m-cargo').value=entry.cargo||'';
     document.getElementById('m-email').value=entry.email||'';
     document.getElementById('m-proveedor').value=entry.proveedor||'';
-    document.getElementById('m-followup').value=entry.followup||'';document.getElementById('m-notas').value=entry.notas||'';
+    document.getElementById('m-notas').value=entry.notas||'';
     document.getElementById('m-direccion').value=entry.direccion||'';
     document.getElementById('m-web').value=entry.web||'';
     if(entry.zona){const zc=document.querySelector('#modal-zona-chips .chip[data-val="'+entry.zona+'"]');if(zc){zc.classList.add('selected');modalZonaSelected=entry.zona;}else{document.getElementById('m-zona').value=entry.zona;}}
@@ -2343,7 +2347,7 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
       item.nombre=document.getElementById('m-nombre').value.trim();item.cargo=document.getElementById('m-cargo').value;
       item.email=document.getElementById('m-email').value.trim();
       item.telefono=joinPhones(modalTelefonos);item.proveedor=document.getElementById('m-proveedor').value.trim();
-      item.followup=document.getElementById('m-followup').value;item.notas=document.getElementById('m-notas').value.trim();
+      item.notas=document.getElementById('m-notas').value.trim();
       item.direccion=direccion;item.zona=zona;item.web=document.getElementById('m-web').value.trim();
       item.catalogos=Array.from(modalCatalogosSelected);
       if(mPhotoDataUrl)item.photo=mPhotoDataUrl;
@@ -2376,7 +2380,7 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
       tipo:document.getElementById('m-tipo').value,estado:document.getElementById('m-estado').value,
       nombre:document.getElementById('m-nombre').value.trim(),cargo:document.getElementById('m-cargo').value,
       telefono:joinPhones(modalTelefonos),email:document.getElementById('m-email').value.trim(),direccion,zona,web:document.getElementById('m-web').value.trim(),
-      proveedor:document.getElementById('m-proveedor').value.trim(),followup:document.getElementById('m-followup').value,
+      proveedor:document.getElementById('m-proveedor').value.trim(),followup:'',
       catalogos:Array.from(modalCatalogosSelected),notas:document.getElementById('m-notas').value.trim(),photo:mPhotoDataUrl,
       lat:pendingNewLatLng?pendingNewLatLng.lat:null,lng:pendingNewLatLng?pendingNewLatLng.lng:null,
       historial:[{fecha:new Date().toLocaleDateString('es-UY'),nota:'Pin creado por '+currentUser.name}],
