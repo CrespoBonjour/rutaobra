@@ -1917,7 +1917,10 @@ document.getElementById('f-pin-map-btn').addEventListener('click', ()=>{
 document.getElementById('save-btn').addEventListener('click',async()=>{
   if(!currentUser){toast('Sesión expirada, reiniciá la app',true);return;}
   const empresa=document.getElementById('f-empresa').value.trim();
-  if(!empresa){document.getElementById('f-empresa').style.borderColor='#ff4d4d';setTimeout(()=>document.getElementById('f-empresa').style.borderColor='',1200);return;}
+  if(!empresa && !document.getElementById('f-obra').value.trim() && !document.getElementById('f-estudio').value.trim() && !document.getElementById('f-nombre').value.trim()){
+    const fo=document.getElementById('f-obra'); fo.style.borderColor='#ff4d4d'; setTimeout(()=>fo.style.borderColor='',1400);
+    toast('Cargá al menos un dato: nombre de obra, constructora, estudio o persona.', true); return;
+  }
   const zona=zonaSelected||document.getElementById('f-zona').value.trim();
   const entry={
     id:Date.now(),fecha:new Date().toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit',year:'numeric'}),
@@ -2586,7 +2589,10 @@ document.getElementById('modal-del-pin').addEventListener('click',async()=>{if(!
 
 document.getElementById('modal-save').addEventListener('click',async()=>{
   const empresa=document.getElementById('m-empresa').value.trim();
-  if(!empresa){document.getElementById('m-empresa').style.borderColor='#ff4d4d';setTimeout(()=>document.getElementById('m-empresa').style.borderColor='',1200);return;}
+  if(!empresa && !document.getElementById('m-obra').value.trim() && !document.getElementById('m-estudio').value.trim() && !document.getElementById('m-nombre').value.trim()){
+    const mo=document.getElementById('m-obra'); mo.style.borderColor='#ff4d4d'; setTimeout(()=>mo.style.borderColor='',1400);
+    toast('Cargá al menos un dato: nombre de obra, constructora, estudio o persona.', true); return;
+  }
   const direccion=document.getElementById('m-direccion').value.trim();
   const zona=modalZonaSelected||document.getElementById('m-zona').value.trim();
   const productosElegidosModal=Array.from(modalProductosInteresSelected);
