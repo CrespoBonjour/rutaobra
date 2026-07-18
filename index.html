@@ -868,8 +868,17 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
   </div>
   <div class="group">
     <div class="group-label">Empresa y obra</div>
-    <div class="field"><label>Empresa constructora</label><input id="f-empresa" type="text" placeholder="Ej: CRIBA, Liderus..."></div>
-    <div class="field"><label>Estudio / Desarrolladora</label><input id="f-estudio" type="text" placeholder="Estudio o desarrolladora responsable"></div>
+    <div class="field"><label>Tipo de contacto</label>
+      <div class="quick-chips" id="f-tipocli-chips">
+        <div class="chip selected" data-val="empresa">🏗 Obra de empresa</div>
+        <div class="chip" data-val="particular">🏠 Cliente particular</div>
+      </div>
+    </div>
+    <div class="field"><label>Nombre de la obra <span style="text-transform:none;font-weight:400;color:var(--muted)">(ej: Torre Trump; opcional)</span></label><input id="f-obra" type="text" placeholder="Nombre de la obra..."></div>
+    <div class="field"><label>Empresa constructora</label><input id="f-empresa" type="text" list="empresas-datalist" placeholder="Ej: CRIBA, Liderus..."></div>
+    <datalist id="empresas-datalist"></datalist>
+    <div class="field"><label>Estudio / Desarrolladora</label><input id="f-estudio" type="text" list="estudios-datalist" placeholder="Estudio o desarrolladora responsable"></div>
+    <datalist id="estudios-datalist"></datalist>
     <div class="field"><label>Tipo de construcción</label>
       <select id="f-tipo"><option value="">Seleccionar...</option><option>Torre residencial</option><option>Hotel</option><option>Uso mixto (shopping + torres)</option><option>Casa / chalet</option><option>Edificio comercial / oficinas</option><option>Reforma / ampliación</option><option>Otro</option></select>
     </div>
@@ -1222,8 +1231,15 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 
     <div class="pm-cols">
       <div class="pm-col pm-col-l pm-pane sel" data-pane="perfil">
-        <div class="field"><label>Empresa constructora *</label><input id="m-empresa" type="text" placeholder="Nombre de la empresa"></div>
-        <div class="field"><label>Estudio / Desarrolladora</label><input id="m-estudio" type="text" placeholder="Arquitectos o desarrolladora"></div>
+        <div class="field"><label>Tipo de contacto</label>
+          <div class="quick-chips" id="m-tipocli-chips">
+            <div class="chip selected" data-val="empresa">🏗 Obra de empresa</div>
+            <div class="chip" data-val="particular">🏠 Cliente particular</div>
+          </div>
+        </div>
+        <div class="field"><label>Nombre de la obra <span style="text-transform:none;font-weight:400;color:var(--muted)">(ej: Torre Trump; opcional)</span></label><input id="m-obra" type="text" placeholder="Nombre de la obra..."></div>
+        <div class="field"><label>Empresa constructora</label><input id="m-empresa" type="text" list="empresas-datalist" placeholder="Nombre de la empresa"></div>
+        <div class="field"><label>Estudio / Desarrolladora</label><input id="m-estudio" type="text" list="estudios-datalist" placeholder="Arquitectos o desarrolladora"></div>
         <div class="field"><label>Contacto en obra</label><input id="m-nombre" type="text" placeholder="Con quién hablaste"></div>
         <div class="field"><label>Cargo</label>
           <select id="m-cargo"><option value="">Seleccionar...</option><option>Jefe de obra</option><option>Capataz</option><option>Encargado de compras</option><option>Arquitecto / Director de obra</option><option>Electricista a cargo</option><option>Otro</option></select>
@@ -1657,7 +1673,7 @@ async function loadAll() {
     dbReady = true;
     if (isAdmin) buildVendedorFilter();
     renderProductosChips();
-    poblarEtapasDatalist();
+    poblarEtapasDatalist(); poblarEmpresasEstudios();
     cargarFiltros(); sincronizarUIFiltros();
     renderList();
     if (mapInitialized) refreshMapMarkers();
@@ -1708,7 +1724,7 @@ async function saveEntry(entry) {
   catch(e) {
     // Red de seguridad: si todavía no se corrió el SQL de alguna columna nueva,
     // reintenta el guardado sin esos campos (quedan en memoria hasta correr el SQL).
-    const COLS_OPCIONALES=['fotos','tamano_obra','fecha_instalacion'];
+    const COLS_OPCIONALES=['fotos','tamano_obra','fecha_instalacion','obra','tipo_cliente'];
     const errTxt=String(e).toLowerCase();
     if(COLS_OPCIONALES.some(c=>errTxt.includes(c))){
       try { const rest={...entry}; COLS_OPCIONALES.forEach(c=>delete rest[c]); await sbUpsert('visitas', rest, currentUser.token); toast('Guardado. Faltan correr los SQL nuevos en Supabase (fotos / tamaño / fecha de instalación) para que esos campos se guarden.', true); return true; }
@@ -1789,13 +1805,13 @@ function esc(s){const d=document.createElement('div');d.textContent=s||'';return
 // ============================================================
 // TABS
 // ============================================================
-let zonaSelected='',tempSelected='',catalogosSelected=new Set(),photoDataUrl=null,formFotos=[],tamanoSelected='';
+let zonaSelected='',tempSelected='',catalogosSelected=new Set(),photoDataUrl=null,formFotos=[],tamanoSelected='',tipoCliSelected='empresa';
 let productosInteresSelected=new Set();
 let mapInitialized=false,map,markersLayer,zonesLayer;
 let drawingZone=false,zonePoints=[],zoneTempMarkers=[],zonePoly=null;
 let modalTempSelected='',mPhotoDataUrl=null,modalFotos=[],editingId=null;
 let modalContactado=false,modalBitrix=false,modalInteracciones=[];
-let modalZonaSelected='',modalCatalogosSelected=new Set(),modalTamano='';
+let modalZonaSelected='',modalCatalogosSelected=new Set(),modalTamano='',modalTipoCli='empresa';
 let modalProductosInteresSelected=new Set();
 let pickedLatLng=null,pickedAddress='',pickerMap=null,geocodeTimeout=null,pendingNewLatLng=null;
 let modalObras=[],pickingObraMode=false;
@@ -1837,6 +1853,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
 document.querySelectorAll('#temp-chips .temp-chip').forEach(c=>{ c.addEventListener('click',()=>{document.querySelectorAll('#temp-chips .temp-chip').forEach(x=>x.classList.remove('selected'));c.classList.add('selected');tempSelected=c.dataset.val;}); });
 document.querySelectorAll('#zona-chips .chip').forEach(c=>{ c.addEventListener('click',()=>{document.querySelectorAll('#zona-chips .chip').forEach(x=>x.classList.remove('selected'));c.classList.add('selected');zonaSelected=c.dataset.val;document.getElementById('f-zona').value='';}); });
 document.querySelectorAll('#f-tamano-chips .chip').forEach(c=>{ c.addEventListener('click',()=>{ const sel=c.classList.contains('selected'); document.querySelectorAll('#f-tamano-chips .chip').forEach(x=>x.classList.remove('selected')); if(!sel){c.classList.add('selected');tamanoSelected=c.dataset.val;}else{tamanoSelected='';} }); });
+document.querySelectorAll('#f-tipocli-chips .chip').forEach(c=>{ c.addEventListener('click',()=>{ document.querySelectorAll('#f-tipocli-chips .chip').forEach(x=>x.classList.remove('selected')); c.classList.add('selected'); tipoCliSelected=c.dataset.val; }); });
 document.getElementById('f-zona').addEventListener('input',e=>{if(e.target.value){document.querySelectorAll('#zona-chips .chip').forEach(x=>x.classList.remove('selected'));zonaSelected='';}});
 document.querySelectorAll('.catalog-item').forEach(c=>{ c.addEventListener('click',()=>{c.classList.toggle('selected');const v=c.dataset.val;catalogosSelected.has(v)?catalogosSelected.delete(v):catalogosSelected.add(v);}); });
 document.getElementById('photo-input').addEventListener('change',function(){ leerFotos(this.files, formFotos, renderFormFotos); this.value=''; });
@@ -1863,8 +1880,9 @@ function renderProductosChips(){
 }
 
 function clearForm(){
-  ['f-empresa','f-estudio','f-nombre','f-cargo','f-telefono','f-email','f-direccion','f-zona','f-web','f-proveedor','f-notas','f-tipo','f-estado'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f-obra','f-empresa','f-estudio','f-nombre','f-cargo','f-telefono','f-email','f-direccion','f-zona','f-web','f-proveedor','f-notas','f-tipo','f-estado'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   hideDupWarn('f-dup-warn');
+  document.querySelectorAll('#f-tipocli-chips .chip').forEach(c=>c.classList.toggle('selected', c.dataset.val==='empresa'));tipoCliSelected='empresa';
   document.querySelectorAll('#temp-chips .temp-chip').forEach(c=>c.classList.remove('selected'));tempSelected='';
   document.querySelectorAll('#zona-chips .chip').forEach(c=>c.classList.remove('selected'));zonaSelected='';
   document.querySelectorAll('#f-tamano-chips .chip').forEach(c=>c.classList.remove('selected'));tamanoSelected='';
@@ -1890,6 +1908,7 @@ document.getElementById('save-btn').addEventListener('click',async()=>{
     id:Date.now(),fecha:new Date().toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit',year:'numeric'}),
     hora:new Date().toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'}),
     source:'form',temp:tempSelected,empresa,estudio:document.getElementById('f-estudio').value.trim(),
+    obra:document.getElementById('f-obra').value.trim(),tipo_cliente:tipoCliSelected,
     tipo:document.getElementById('f-tipo').value,estado:document.getElementById('f-estado').value,
     nombre:document.getElementById('f-nombre').value.trim(),cargo:document.getElementById('f-cargo').value,
     telefono:document.getElementById('f-telefono').value.trim(),email:document.getElementById('f-email').value.trim(),
@@ -2198,6 +2217,7 @@ document.getElementById('picker-confirm').addEventListener('click',()=>{
 document.querySelectorAll('#modal-temp-chips .temp-chip').forEach(c=>{c.addEventListener('click',()=>{document.querySelectorAll('#modal-temp-chips .temp-chip').forEach(x=>x.classList.remove('selected'));c.classList.add('selected');modalTempSelected=c.dataset.val;});});
 document.querySelectorAll('#modal-zona-chips .chip').forEach(c=>{c.addEventListener('click',()=>{document.querySelectorAll('#modal-zona-chips .chip').forEach(x=>x.classList.remove('selected'));c.classList.add('selected');modalZonaSelected=c.dataset.val;document.getElementById('m-zona').value='';});});
 document.querySelectorAll('#m-tamano-chips .chip').forEach(c=>{c.addEventListener('click',()=>{ const sel=c.classList.contains('selected'); document.querySelectorAll('#m-tamano-chips .chip').forEach(x=>x.classList.remove('selected')); if(!sel){c.classList.add('selected');modalTamano=c.dataset.val;}else{modalTamano='';} });});
+document.querySelectorAll('#m-tipocli-chips .chip').forEach(c=>{c.addEventListener('click',()=>{ document.querySelectorAll('#m-tipocli-chips .chip').forEach(x=>x.classList.remove('selected')); c.classList.add('selected'); modalTipoCli=c.dataset.val; });});
 document.getElementById('m-zona').addEventListener('input',e=>{if(e.target.value){document.querySelectorAll('#modal-zona-chips .chip').forEach(x=>x.classList.remove('selected'));modalZonaSelected='';}});
 document.querySelectorAll('#modal-catalog-grid .catalog-item').forEach(c=>{c.addEventListener('click',()=>{c.classList.toggle('selected');const v=c.dataset.val;modalCatalogosSelected.has(v)?modalCatalogosSelected.delete(v):modalCatalogosSelected.add(v);});});
 document.getElementById('m-photo-input').addEventListener('change',function(){ leerFotos(this.files, modalFotos, renderModalFotos); this.value=''; });
@@ -2428,7 +2448,7 @@ function renderModalCharts(){
 
 function openPinModal(entry,newLocation){
   editingId=entry?entry.id:null;pendingNewLatLng=newLocation||null;
-  document.getElementById('modal-title-text').textContent=entry?(entry.estudio||entry.empresa||'Editar ficha'):'Nuevo pin';
+  document.getElementById('modal-title-text').textContent=entry?tituloFicha(entry):'Nuevo pin';
   document.getElementById('modal-del-pin').style.display=entry?'block':'none';
   document.getElementById('m-bitrix-sync-wrap').style.display=entry?'block':'none';
   document.getElementById('m-bitrix-status').textContent=entry&&entry.bitrix_contact_id?'Ya sincronizado con Bitrix (ID '+entry.bitrix_contact_id+')':'';
@@ -2445,14 +2465,15 @@ function openPinModal(entry,newLocation){
   }
   document.querySelectorAll('#pm-tabs .pm-tab').forEach(t=>t.classList.toggle('sel', t.dataset.pane==='perfil'));
   document.querySelectorAll('.pm-pane').forEach(p=>p.classList.toggle('sel', p.dataset.pane==='perfil'));
-  ['m-empresa','m-estudio','m-tipo','m-estado','m-nombre','m-cargo','m-email','m-proveedor','m-notas','m-direccion','m-zona','m-web','m-tel-new','m-persona-nombre','m-persona-cargo','m-persona-telefono'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['m-obra','m-empresa','m-estudio','m-tipo','m-estado','m-nombre','m-cargo','m-email','m-proveedor','m-notas','m-direccion','m-zona','m-web','m-tel-new','m-persona-nombre','m-persona-cargo','m-persona-telefono'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.querySelectorAll('#m-tipocli-chips .chip').forEach(c=>c.classList.toggle('selected', c.dataset.val==='empresa'));modalTipoCli='empresa';
   document.querySelectorAll('#modal-temp-chips .temp-chip').forEach(x=>x.classList.remove('selected'));
   document.querySelectorAll('#modal-zona-chips .chip').forEach(x=>x.classList.remove('selected'));modalZonaSelected='';
   document.querySelectorAll('#m-tamano-chips .chip').forEach(x=>x.classList.remove('selected'));modalTamano='';
   document.getElementById('m-instalacion').value='';
   document.querySelectorAll('#modal-catalog-grid .catalog-item').forEach(x=>x.classList.remove('selected'));modalCatalogosSelected=new Set();
   modalProductosInteresSelected=new Set();renderProductosChips();
-  poblarEtapasDatalist();
+  poblarEtapasDatalist(); poblarEmpresasEstudios();
   modalTempSelected='';modalFotos=[];renderModalFotos();
   modalContactado=!!(entry&&entry.contactado);modalBitrix=!!(entry&&entry.bitrix);
   modalInteracciones=entry&&Array.isArray(entry.interacciones)?entry.interacciones.slice():[];
@@ -2471,6 +2492,8 @@ function openPinModal(entry,newLocation){
   renderModalActividades();
   renderModalCharts();
   if(entry){
+    document.getElementById('m-obra').value=entry.obra||'';
+    { const tv=entry.tipo_cliente==='particular'?'particular':'empresa'; document.querySelectorAll('#m-tipocli-chips .chip').forEach(c=>c.classList.toggle('selected', c.dataset.val===tv)); modalTipoCli=tv; }
     document.getElementById('m-empresa').value=entry.empresa||'';document.getElementById('m-estudio').value=entry.estudio||'';
     document.getElementById('m-tipo').value=entry.tipo||'';document.getElementById('m-estado').value=entry.estado||'';
     document.getElementById('m-nombre').value=entry.nombre||'';document.getElementById('m-cargo').value=entry.cargo||'';
@@ -2556,6 +2579,7 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
     const item=localStore.find(x=>x.id===editingId);
     if(item){
       item.temp=modalTempSelected;item.empresa=empresa;item.estudio=document.getElementById('m-estudio').value.trim();
+      item.obra=document.getElementById('m-obra').value.trim();item.tipo_cliente=modalTipoCli;
       item.tipo=document.getElementById('m-tipo').value;item.estado=document.getElementById('m-estado').value;
       item.nombre=document.getElementById('m-nombre').value.trim();item.cargo=document.getElementById('m-cargo').value;
       item.email=document.getElementById('m-email').value.trim();
@@ -2591,6 +2615,7 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
       id:Date.now(),fecha:new Date().toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit',year:'numeric'}),
       hora:new Date().toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'}),
       source:'map',temp:modalTempSelected,empresa,estudio:document.getElementById('m-estudio').value.trim(),
+      obra:document.getElementById('m-obra').value.trim(),tipo_cliente:modalTipoCli,
       tipo:document.getElementById('m-tipo').value,estado:document.getElementById('m-estado').value,
       nombre:document.getElementById('m-nombre').value.trim(),cargo:document.getElementById('m-cargo').value,
       telefono:joinPhones(modalTelefonos),email:document.getElementById('m-email').value.trim(),direccion,zona,web:document.getElementById('m-web').value.trim(),
@@ -3057,7 +3082,8 @@ function renderContactos(){
       +(proximaActividad?'<div class="ct-badge-activity'+(actVencidas?' venc':'')+'" title="'+(actVencidas?'Tiene una actividad vencida':'Tiene una actividad pendiente')+'"></div>':'')
       +'<div class="ct-top">'
       +'<div class="ct-info" data-opendetail="'+e.id+'" style="cursor:pointer">'
-        +'<div class="ct-empresa">'+esc(e.estudio||e.empresa||'(sin nombre)')+'</div>'
+        +'<div class="ct-empresa">'+esc(tituloFicha(e))+'</div>'
+        +(subtituloFicha(e)?'<div class="ct-nombre" style="color:var(--acc-light)">'+esc(subtituloFicha(e))+'</div>':'')
         +'<div class="ct-nombre">'+esc(e.nombre||'')+(e.cargo?' · '+esc(e.cargo):'')+'</div>'
         +(tempLabel?'<div class="ct-badge-temp '+e.temp+'">'+tempLabel+'</div>':'')
       +'</div>'
@@ -3318,6 +3344,24 @@ function poblarEtapasDatalist(){
   const dl=document.getElementById('etapas-datalist');
   if(dl) dl.innerHTML=etapasConocidas().map(s=>'<option value="'+esc(s)+'"></option>').join('');
 }
+// Título de una ficha: la obra manda; si falta, cae a constructora → estudio → persona.
+function tituloFicha(e){
+  return (e.obra||'').trim() || (e.empresa||'').trim() || (e.estudio||'').trim() || (e.nombre||'').trim() || '(sin nombre)';
+}
+// Debajo del título: las etiquetas de empresa (constructora / estudio), sin repetir lo que ya es el título.
+function subtituloFicha(e){
+  const t=tituloFicha(e), emp=(e.empresa||'').trim(), est=(e.estudio||'').trim(), parts=[];
+  if(emp && emp!==t) parts.push(emp);
+  if(est && est!==t) parts.push('Est. '+est);
+  return parts.join(' · ');
+}
+// Autocompletado de constructoras y estudios ya cargados, para no duplicar nombres y cargar más rápido.
+function poblarEmpresasEstudios(){
+  const emp=new Set(), est=new Set();
+  localStore.forEach(e=>{ const a=(e.empresa||'').trim(); if(a)emp.add(a); const b=(e.estudio||'').trim(); if(b)est.add(b); });
+  const dlE=document.getElementById('empresas-datalist'); if(dlE) dlE.innerHTML=Array.from(emp).sort().map(s=>'<option value="'+esc(s)+'"></option>').join('');
+  const dlS=document.getElementById('estudios-datalist'); if(dlS) dlS.innerHTML=Array.from(est).sort().map(s=>'<option value="'+esc(s)+'"></option>').join('');
+}
 const TEMP_META=[
   {k:'cold',label:'Frío',plural:'Fríos',color:'var(--cold)'},
   {k:'warm',label:'Tibio',plural:'Tibios',color:'var(--acc)'},
@@ -3542,7 +3586,7 @@ function renderAnalisis(){
 // ============================================================
 let lsSortKey='estudio', lsSortDir=1, lsLastList=[];
 const LS_COLS=[
-  {key:'estudio', label:'Estudio / Empresa'},
+  {key:'estudio', label:'Obra / Cliente'},
   {key:'nombre', label:'Contacto'},
   {key:'zona', label:'Zona'},
   {key:'estado', label:'Etapa de obra'},
@@ -3558,7 +3602,7 @@ function lsUltimaTs(e){
   return parseFechaUY((e.fecha||'')+' '+(e.hora||''));
 }
 function lsVal(e,key){
-  if(key==='estudio') return ((e.estudio||e.empresa)||'').toLowerCase();
+  if(key==='estudio') return tituloFicha(e).toLowerCase();
   if(key==='temp') return e.temp==='hot'?3:e.temp==='warm'?2:e.temp==='cold'?1:0;
   if(key==='contactado') return e.contactado?1:0;
   if(key==='ultima') return lsUltimaTs(e);
@@ -3597,7 +3641,7 @@ function renderLista(){
       const catPillClass = catTotal===0 ? 'none' : (cs.sent.length===catTotal ? 'full' : 'part');
       const catPillTxt = catTotal===0 ? 'Sin pedidos' : (cs.sent.length+'/'+catTotal+' enviados');
       return '<tr data-lsid="'+e.id+'">'
-        +'<td class="ls-est">'+esc(e.estudio||e.empresa||'(sin nombre)')+'</td>'
+        +'<td class="ls-est">'+esc(tituloFicha(e))+'</td>'
         +'<td>'+esc(e.nombre||'—')+'</td>'
         +'<td>'+esc(e.zona||'—')+'</td>'
         +'<td>'+esc(e.estado?(ETAPA_CORTA[e.estado]||e.estado):'—')+'</td>'
@@ -4044,7 +4088,7 @@ function renderHoy(){
     const s=sugerenciaContacto(e);
     const tsz=e.tamano_obra==='chico'?'Chica':e.tamano_obra==='mediano'?'Mediana':e.tamano_obra==='grande'?'Grande':'';
     return '<div class="enf-card '+tk+'">'
-      +'<div class="enf-top"><span class="enf-name" data-hoyopen="'+e.id+'">'+esc(e.estudio||e.empresa||'(sin nombre)')+'</span><span style="display:flex;gap:5px;flex-shrink:0">'+(tsz?'<span class="hoy-pill warm">🏗 '+tsz+'</span>':'')+'<span class="hoy-pill '+tk+'">'+tlabel+'</span></span></div>'
+      +'<div class="enf-top"><span class="enf-name" data-hoyopen="'+e.id+'">'+esc(tituloFicha(e))+'</span><span style="display:flex;gap:5px;flex-shrink:0">'+(tsz?'<span class="hoy-pill warm">🏗 '+tsz+'</span>':'')+'<span class="hoy-pill '+tk+'">'+tlabel+'</span></span></div>'
       +'<div class="enf-when">Hace '+o.dias+' días · cadencia '+o.cad+' · atrasado '+o.atraso+' día'+(o.atraso===1?'':'s')+'</div>'
       +'<div class="enf-agebar"><i style="width:'+pct+'%;background:'+color+'"></i></div>'
       +'<div class="enf-sugg"><div class="lbl">💡 Próximo paso sugerido</div><div class="txt">'+esc(s.txt)+'</div><div class="why">Por qué: '+esc(s.why)+'</div></div>'
@@ -4063,7 +4107,7 @@ function renderHoy(){
     const tsz=e.tamano_obra==='chico'?'Chica':e.tamano_obra==='mediano'?'Mediana':e.tamano_obra==='grande'?'Grande':'';
     const sub=[e.zona||'', e.estado?(ETAPA_CORTA[e.estado]||e.estado):''].filter(Boolean).join(' · ');
     return '<div class="enf-card acc">'
-      +'<div class="enf-top"><span class="enf-name" data-hoyopen="'+e.id+'">'+esc(e.estudio||e.empresa||'(sin nombre)')+'</span><span class="hoy-pill '+f.cls+'">📅 '+esc(f.t)+'</span></div>'
+      +'<div class="enf-top"><span class="enf-name" data-hoyopen="'+e.id+'">'+esc(tituloFicha(e))+'</span><span class="hoy-pill '+f.cls+'">📅 '+esc(f.t)+'</span></div>'
       +(sub?'<div class="enf-when" style="color:var(--muted)">'+esc(sub)+'</div>':'')
       +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:9px">'
         +(tsz?'<span class="hoy-pill warm">🏗 '+tsz+'</span>':'')
