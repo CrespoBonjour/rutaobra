@@ -98,6 +98,9 @@ header::after{content:"";position:absolute;bottom:-1px;left:0;right:0;height:3px
 .tab.active{color:var(--acc)}
 .tab-indicator{position:absolute;bottom:0;height:100%;background:var(--bg);border-radius:8px 8px 0 0;box-shadow:0 -1px 0 var(--acc) inset;transition:transform .28s var(--ease),width .28s var(--ease);z-index:0;will-change:transform,width}
 .tab-indicator::after{content:"";position:absolute;top:0;left:8%;right:8%;height:2px;background:var(--acc);border-radius:2px;box-shadow:0 0 10px var(--acc-glow)}
+.tabs-group{display:flex;gap:3px;flex:0 0 auto}
+.tabs-right{margin-left:auto}
+@media (max-width:720px){.tabs-right{margin-left:0}}
 @media (max-width:480px){.tab{font-size:10px;letter-spacing:.1px}}
 
 /* ── MAIN ── */
@@ -107,12 +110,13 @@ main{flex:1;overflow:hidden;position:relative;z-index:1}
 #view-map.active{padding:0;overflow:hidden}
 
 /* ── ADMIN FILTER BAR ── */
-.admin-filter{background:var(--panel);border-bottom:1px solid var(--line);padding:10px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.admin-filter{background:var(--panel);border-bottom:1px solid var(--line);padding:10px 14px;display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-shrink:0}
 .admin-filter label{font-size:11px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.6px;white-space:nowrap;display:flex;align-items:center;gap:5px}
 .nice-select{flex:1;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink);border-radius:20px;padding:9px 34px 9px 14px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--acc) 50%),linear-gradient(135deg,var(--acc) 50%,transparent 50%);background-position:calc(100% - 18px) center,calc(100% - 13px) center;background-size:5px 5px;background-repeat:no-repeat;transition:.15s}
 .nice-select:hover{border-color:var(--acc)}
 .nice-select:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-dim)}
-.admin-filter select{flex:1}
+.admin-filter select{flex:0 0 auto;min-width:220px;max-width:300px}
+@media (max-width:520px){.admin-filter{justify-content:stretch}.admin-filter select{flex:1;max-width:none}}
 #admin-filter-bar{display:none}
 
 /* ── GROUPS / FIELDS ── */
@@ -824,17 +828,21 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
   </div>
   <div class="tabs">
     <div class="tab-indicator" id="tab-indicator"></div>
-    <div class="tab active" data-tab="form">＋ Nuevo</div>
-    <div class="tab" data-tab="hoy">Hoy</div>
-    <div class="tab" data-tab="contactos">Contactos</div>
-    <div class="tab" data-tab="agenda">Agenda</div>
-    <div class="tab" data-tab="actividades">Actividades</div>
-    <!-- Negociaciones: se maneja desde Bitrix. Pestaña oculta pero código intacto; para reactivar, quitar el style display:none. -->
-    <div class="tab" data-tab="negociaciones" style="display:none">Negociaciones</div>
-    <div class="tab" data-tab="map">Mapa</div>
-    <div class="tab" data-tab="importar">Importar</div>
-    <div class="tab" data-tab="constructoras" id="tab-constructoras" style="display:none">Constructoras</div>
-    <div class="tab" data-tab="panel" id="tab-panel" style="display:none">Panel</div>
+    <div class="tabs-group">
+      <div class="tab active" data-tab="form">＋ Nuevo</div>
+      <div class="tab" data-tab="contactos">Contactos</div>
+      <div class="tab" data-tab="constructoras" id="tab-constructoras" style="display:none">Constructoras</div>
+      <div class="tab" data-tab="map">Mapa</div>
+    </div>
+    <div class="tabs-group tabs-right">
+      <div class="tab" data-tab="hoy">Hoy</div>
+      <div class="tab" data-tab="actividades">Actividades</div>
+      <div class="tab" data-tab="agenda">Agenda</div>
+      <div class="tab" data-tab="panel" id="tab-panel" style="display:none">Panel</div>
+      <div class="tab" data-tab="importar">Importar</div>
+      <!-- Negociaciones: se maneja desde Bitrix. Pestaña oculta pero código intacto; para reactivar, quitar el style display:none. -->
+      <div class="tab" data-tab="negociaciones" style="display:none">Negociaciones</div>
+    </div>
   </div>
 </header>
 
