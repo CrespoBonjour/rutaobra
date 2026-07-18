@@ -705,6 +705,24 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .cons-focus-clear{background:var(--panel2);border:1px solid var(--line);color:var(--acc-light);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit}
 .cons-focus-clear:hover{border-color:var(--acc)}
 .cons-focus-list{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:6px 14px}
+
+/* ===== CONTACTOS (directorio de personas) ===== */
+.per-count{align-self:center;font-size:11px;color:var(--muted);font-weight:700;white-space:nowrap}
+.per-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:9px}
+.per-row{display:flex;align-items:center;gap:11px;background:linear-gradient(165deg,var(--panel3),var(--panel) 65%);border:1px solid var(--line);border-radius:12px;padding:11px 12px;cursor:pointer;transition:border-color .15s}
+.per-row:hover{border-color:var(--acc)}
+.per-avatar{width:38px;height:38px;border-radius:50%;background:var(--acc-dim);border:1.5px solid var(--acc-deep);color:var(--acc-light);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;font-family:var(--font-display)}
+.per-body{flex:1;min-width:0}
+.per-name{font-weight:800;font-size:13.5px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.per-cargo{font-weight:600;color:var(--muted);font-size:11.5px}
+.per-affil{font-size:11px;color:var(--ink-soft);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.per-affil .sep{color:var(--muted)}
+.per-tel{font-size:11.5px;color:var(--ink-soft);font-variant-numeric:tabular-nums;white-space:nowrap;margin-top:3px;display:flex;align-items:center;gap:5px}
+.per-tel svg{width:11px;height:11px;opacity:.8}
+.per-actions{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
+.per-wa{background:var(--acc-dim);border:1px solid var(--acc);color:var(--acc-light);border-radius:7px;padding:5px 9px;font-size:10.5px;font-weight:800;text-decoration:none;white-space:nowrap;text-transform:uppercase;letter-spacing:.2px}
+.per-wa:hover{background:var(--acc);color:#1a1300}
+.per-badge{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);background:var(--panel2);border:1px solid var(--line);border-radius:20px;padding:2px 7px}
 .cons-kpi.a::before{background:var(--acc)}.cons-kpi.b::before{background:var(--ok)}.cons-kpi.c::before{background:var(--warm)}.cons-kpi.d::before{background:var(--muted)}
 .cons-kpi .n{font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
 .cons-kpi.a .n{color:var(--acc-light)}.cons-kpi.b .n{color:#6fe0a0}.cons-kpi.c .n{color:#e8c876}.cons-kpi.d .n{color:var(--ink-soft)}
@@ -851,12 +869,13 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
     <div class="tab-indicator" id="tab-indicator"></div>
     <div class="tabs-group">
       <div class="tab active" data-tab="form">＋ Nuevo</div>
-      <div class="tab" data-tab="contactos">Contactos</div>
+      <div class="tab" data-tab="contactos">Obras</div>
       <div class="tab" data-tab="constructoras" id="tab-constructoras" style="display:none">Constructoras</div>
       <div class="tab" data-tab="map">Mapa</div>
     </div>
     <div class="tabs-group tabs-right">
       <div class="tab" data-tab="hoy">Hoy</div>
+      <div class="tab" data-tab="personas">Contactos</div>
       <div class="tab" data-tab="actividades">Actividades</div>
       <div class="tab" data-tab="agenda">Agenda</div>
       <div class="tab" data-tab="panel" id="tab-panel" style="display:none">Panel</div>
@@ -992,6 +1011,15 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 <!-- HOY (foco del día) -->
 <section class="view" id="view-hoy">
   <div id="hoy-content"></div>
+</section>
+
+<!-- CONTACTOS (directorio de personas: quién es quién, con su teléfono y a qué obra/empresa pertenece) -->
+<section class="view" id="view-personas">
+  <div class="ct-toolbar">
+    <input type="text" class="ct-search" id="per-search" placeholder="Buscar por nombre, teléfono, cargo, empresa...">
+    <div class="per-count" id="per-count"></div>
+  </div>
+  <div id="per-content"></div>
 </section>
 
 <!-- CONSTRUCTORAS (agrupado por empresa; solo admin, en prueba) -->
@@ -1868,6 +1896,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
     document.getElementById('save-bar').style.display=t==='form'?'block':'none';
     if(t==='map') setTimeout(()=>{if(!mapInitialized)initMap();else refreshMapMarkers();map.invalidateSize();buildMapContactFilter();},80);
     if(t==='hoy') renderHoy();
+    if(t==='personas') renderPersonas();
     if(t==='constructoras') renderConstructoras();
     if(t==='contactos') aplicarVistaContactos();
     if(t==='agenda') renderAgendaTab();
@@ -1991,6 +2020,7 @@ function refreshActiveView(){
   const active = document.querySelector('.tab.active');
   const t = active ? active.dataset.tab : '';
   if(t==='hoy') renderHoy();
+  else if(t==='personas') renderPersonas();
   else if(t==='constructoras') renderConstructoras();
   else if(t==='contactos'){ if(contactosVista==='lista') renderLista(); else renderContactos(); }
   else if(t==='agenda') renderAgendaTab();
@@ -4319,6 +4349,48 @@ function renderConstructoras(){
 document.getElementById('cons-search').addEventListener('input', e=>{ consSearch=e.target.value; consFocus='all'; renderConstructoras(); });
 document.querySelectorAll('[data-consort]').forEach(b=>b.addEventListener('click',()=>{ document.querySelectorAll('[data-consort]').forEach(x=>x.classList.remove('active')); b.classList.add('active'); consSort=b.dataset.consort; renderConstructoras(); }));
 document.querySelectorAll('[data-conspivot]').forEach(b=>b.addEventListener('click',()=>{ consPivot=b.dataset.conspivot; consFocus='all'; renderConstructoras(); }));
+
+// ============================================================
+// TAB CONTACTOS (directorio de personas: se arma solo con las personas cargadas en cada obra)
+// ============================================================
+let personasSearch='';
+function inicialesNombre(nombre){ const p=(nombre||'').trim().split(/\s+/); return (((p[0]||'')[0]||'?')+((p[1]||'')[0]||'')).toUpperCase(); }
+function renderPersonas(){
+  const cont=document.getElementById('per-content');
+  const store=getFilteredStore();
+  const gente=[];
+  store.forEach(e=>{
+    if((e.nombre||'').trim()) gente.push({nombre:e.nombre.trim(), cargo:e.cargo||'', telefono:e.telefono||'', e, principal:true});
+    (Array.isArray(e.personas)?e.personas:[]).forEach(p=>{ if((p.nombre||'').trim()) gente.push({nombre:p.nombre.trim(), cargo:p.cargo||'', telefono:p.telefono||'', e, principal:false}); });
+  });
+  let lista=gente;
+  if(personasSearch){
+    const s=personasSearch.toLowerCase();
+    lista=lista.filter(g=>(g.nombre+' '+g.cargo+' '+g.telefono+' '+(g.e.empresa||'')+' '+(g.e.estudio||'')+' '+(g.e.obra||'')).toLowerCase().includes(s));
+  }
+  lista.sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
+  document.getElementById('per-count').textContent=lista.length+' contacto'+(lista.length===1?'':'s');
+  if(!lista.length){ cont.innerHTML='<div class="act-empty">No hay contactos cargados todavía. Se arman solos con las personas que cargás en cada obra.</div>'; return; }
+  cont.innerHTML='<div class="per-list">'+lista.map(g=>{
+    const tel=parsePhones(g.telefono)[0]||'';
+    const wa=tel?waLink(tel):'';
+    const afil=[ g.e.empresa?'🏗 '+esc(g.e.empresa):'', g.e.estudio?'📐 '+esc(g.e.estudio):'', g.e.obra?esc(g.e.obra):'' ].filter(Boolean).join(' <span class="sep">·</span> ');
+    return '<div class="per-row" data-peropen="'+g.e.id+'">'
+      +'<div class="per-avatar">'+esc(inicialesNombre(g.nombre))+'</div>'
+      +'<div class="per-body">'
+        +'<div class="per-name">'+esc(g.nombre)+(g.cargo?' <span class="per-cargo">· '+esc(g.cargo)+'</span>':'')+'</div>'
+        +(afil?'<div class="per-affil">'+afil+'</div>':'<div class="per-affil" style="color:var(--warm)">sin empresa / obra</div>')
+        +(tel?'<div class="per-tel">'+ICONS.phone+' '+esc(tel)+'</div>':'')
+      +'</div>'
+      +'<div class="per-actions">'
+        +(g.principal?'':'<span class="per-badge">otra persona</span>')
+        +(wa?'<a class="per-wa" href="'+wa+'" target="_blank" onclick="event.stopPropagation()">WhatsApp</a>':'')
+      +'</div>'
+      +'</div>';
+  }).join('')+'</div>';
+  cont.querySelectorAll('[data-peropen]').forEach(el=>el.addEventListener('click',()=>{ const it=localStore.find(x=>x.id===parseFloat(el.dataset.peropen)); if(it) openPinModal(it); }));
+}
+document.getElementById('per-search').addEventListener('input', e=>{ personasSearch=e.target.value; renderPersonas(); });
 
 let editingActId = null;
 function showActForm(existingEv){
