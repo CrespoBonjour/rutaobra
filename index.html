@@ -643,15 +643,14 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 /* ===== HOY (foco del día) ===== */
 .hoy-daylabel{font-family:var(--font-display);font-size:24px;font-weight:700;color:#fff;letter-spacing:.2px;text-transform:capitalize;line-height:1}
 .hoy-daysub{font-size:12.5px;color:var(--muted);margin-top:5px}
-.hoy-kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0 8px}
+.hoy-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0 8px}
 .hoy-kpi{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:12px 14px;position:relative;overflow:hidden}
 .hoy-kpi::before{content:"";position:absolute;top:0;left:0;right:0;height:2px}
-.hoy-kpi.a::before{background:var(--acc)}.hoy-kpi.b::before{background:var(--hot)}
+.hoy-kpi.a::before{background:var(--acc)}.hoy-kpi.b::before{background:var(--hot)}.hoy-kpi.c::before{background:var(--cold)}
 .hoy-kpi .n{font-family:var(--font-display);font-size:30px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
-.hoy-kpi.a .n{color:var(--acc-light)}.hoy-kpi.b .n{color:#ff7a7a}
+.hoy-kpi.a .n{color:var(--acc-light)}.hoy-kpi.b .n{color:#ff7a7a}.hoy-kpi.c .n{color:#8fc4ff}
 .hoy-kpi .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:6px;font-weight:700}
-.hoy-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:16px}
-@media(min-width:820px){.hoy-grid{grid-template-columns:1fr 1fr}}
+.hoy-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;margin-top:16px}
 .hoy-col{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:15px 14px}
 .hoy-colhead{display:flex;align-items:center;gap:9px;margin-bottom:3px}
 .hoy-coltitle{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.9px;color:var(--ink-soft)}
@@ -828,6 +827,16 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       <input id="f-estado" list="etapas-datalist" placeholder="Etapa de obra...">
     </div>
     <datalist id="etapas-datalist"></datalist>
+    <div class="field"><label>Tamaño de obra</label>
+      <div class="quick-chips" id="f-tamano-chips">
+        <div class="chip" data-val="chico">Chica</div>
+        <div class="chip" data-val="mediano">Mediana</div>
+        <div class="chip" data-val="grande">Grande</div>
+      </div>
+    </div>
+    <div class="field"><label>Fecha estimada de instalaciones eléctricas <span style="text-transform:none;font-weight:400;color:var(--muted)">(cuándo la obra compra material)</span></label>
+      <input id="f-instalacion" type="date">
+    </div>
     <div class="field"><label>Proveedor eléctrico actual</label><input id="f-proveedor" type="text" placeholder="Ej: Volta, Elecnor..."></div>
   </div>
   <div class="group">
@@ -1220,6 +1229,16 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
         </div>
         <div class="field"><label>Estado actual <span style="text-transform:none;font-weight:400;color:var(--muted)">(elegí o escribí una nueva)</span></label>
           <input id="m-estado" list="etapas-datalist" placeholder="Etapa de obra...">
+        </div>
+        <div class="field"><label>Tamaño de obra</label>
+          <div class="quick-chips" id="m-tamano-chips">
+            <div class="chip" data-val="chico">Chica</div>
+            <div class="chip" data-val="mediano">Mediana</div>
+            <div class="chip" data-val="grande">Grande</div>
+          </div>
+        </div>
+        <div class="field"><label>Fecha estimada de instalaciones <span style="text-transform:none;font-weight:400;color:var(--muted)">(cuándo compra material)</span></label>
+          <input id="m-instalacion" type="date">
         </div>
         <div class="field" id="m-bitrix-sync-wrap" style="display:none">
           <button type="button" class="ct-int-savebtn" id="m-bitrix-sync-btn" style="background:#4a9eff"><svg class="icn" viewBox="0 0 24 24" style="fill:currentColor;stroke:none"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg> Enviar a Bitrix</button>
@@ -1615,10 +1634,12 @@ async function saveEntry(entry) {
   setLoading(true);
   try { await sbUpsert('visitas', entry, currentUser.token); return true; }
   catch(e) {
-    // Red de seguridad: si todavía no se corrió el SQL de la columna `fotos`,
-    // reintenta el guardado sin ese campo (las fotos quedan en memoria hasta correr el SQL).
-    if(String(e).toLowerCase().includes('fotos')){
-      try { const {fotos, ...rest}=entry; await sbUpsert('visitas', rest, currentUser.token); toast('Guardado (falta correr el SQL de "fotos" en Supabase para que se guarden las fotos)', true); return true; }
+    // Red de seguridad: si todavía no se corrió el SQL de alguna columna nueva,
+    // reintenta el guardado sin esos campos (quedan en memoria hasta correr el SQL).
+    const COLS_OPCIONALES=['fotos','tamano_obra','fecha_instalacion'];
+    const errTxt=String(e).toLowerCase();
+    if(COLS_OPCIONALES.some(c=>errTxt.includes(c))){
+      try { const rest={...entry}; COLS_OPCIONALES.forEach(c=>delete rest[c]); await sbUpsert('visitas', rest, currentUser.token); toast('Guardado. Faltan correr los SQL nuevos en Supabase (fotos / tamaño / fecha de instalación) para que esos campos se guarden.', true); return true; }
       catch(e2){ console.error('Error guardando en Supabase:', e2); toast('Error al guardar: '+String(e2).slice(0,120), true); return false; }
     }
     console.error('Error guardando en Supabase:', e); toast('Error al guardar: '+String(e).slice(0,120), true); return false;
@@ -1696,13 +1717,13 @@ function esc(s){const d=document.createElement('div');d.textContent=s||'';return
 // ============================================================
 // TABS
 // ============================================================
-let zonaSelected='',tempSelected='',catalogosSelected=new Set(),photoDataUrl=null,formFotos=[];
+let zonaSelected='',tempSelected='',catalogosSelected=new Set(),photoDataUrl=null,formFotos=[],tamanoSelected='';
 let productosInteresSelected=new Set();
 let mapInitialized=false,map,markersLayer,zonesLayer;
 let drawingZone=false,zonePoints=[],zoneTempMarkers=[],zonePoly=null;
 let modalTempSelected='',mPhotoDataUrl=null,modalFotos=[],editingId=null;
 let modalContactado=false,modalBitrix=false,modalInteracciones=[];
-let modalZonaSelected='',modalCatalogosSelected=new Set();
+let modalZonaSelected='',modalCatalogosSelected=new Set(),modalTamano='';
 let modalProductosInteresSelected=new Set();
 let pickedLatLng=null,pickedAddress='',pickerMap=null,geocodeTimeout=null,pendingNewLatLng=null;
 let modalObras=[],pickingObraMode=false;
@@ -1743,6 +1764,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
 // FORM CHIPS
 document.querySelectorAll('#temp-chips .temp-chip').forEach(c=>{ c.addEventListener('click',()=>{document.querySelectorAll('#temp-chips .temp-chip').forEach(x=>x.classList.remove('selected'));c.classList.add('selected');tempSelected=c.dataset.val;}); });
 document.querySelectorAll('#zona-chips .chip').forEach(c=>{ c.addEventListener('click',()=>{document.querySelectorAll('#zona-chips .chip').forEach(x=>x.classList.remove('selected'));c.classList.add('selected');zonaSelected=c.dataset.val;document.getElementById('f-zona').value='';}); });
+document.querySelectorAll('#f-tamano-chips .chip').forEach(c=>{ c.addEventListener('click',()=>{ const sel=c.classList.contains('selected'); document.querySelectorAll('#f-tamano-chips .chip').forEach(x=>x.classList.remove('selected')); if(!sel){c.classList.add('selected');tamanoSelected=c.dataset.val;}else{tamanoSelected='';} }); });
 document.getElementById('f-zona').addEventListener('input',e=>{if(e.target.value){document.querySelectorAll('#zona-chips .chip').forEach(x=>x.classList.remove('selected'));zonaSelected='';}});
 document.querySelectorAll('.catalog-item').forEach(c=>{ c.addEventListener('click',()=>{c.classList.toggle('selected');const v=c.dataset.val;catalogosSelected.has(v)?catalogosSelected.delete(v):catalogosSelected.add(v);}); });
 document.getElementById('photo-input').addEventListener('change',function(){ leerFotos(this.files, formFotos, renderFormFotos); this.value=''; });
@@ -1773,6 +1795,8 @@ function clearForm(){
   hideDupWarn('f-dup-warn');
   document.querySelectorAll('#temp-chips .temp-chip').forEach(c=>c.classList.remove('selected'));tempSelected='';
   document.querySelectorAll('#zona-chips .chip').forEach(c=>c.classList.remove('selected'));zonaSelected='';
+  document.querySelectorAll('#f-tamano-chips .chip').forEach(c=>c.classList.remove('selected'));tamanoSelected='';
+  document.getElementById('f-instalacion').value='';
   document.querySelectorAll('.catalog-item').forEach(c=>c.classList.remove('selected'));catalogosSelected=new Set();
   formFotos=[];renderFormFotos();document.getElementById('photo-area').style.display='block';
   formPickedLatLng=null;document.getElementById('f-pin-status').style.display='none';
@@ -1800,6 +1824,7 @@ document.getElementById('save-btn').addEventListener('click',async()=>{
     direccion:document.getElementById('f-direccion').value.trim(),zona,web:document.getElementById('f-web').value.trim(),
     followup:'',catalogos:Array.from(catalogosSelected),
     proveedor:document.getElementById('f-proveedor').value.trim(),notas:document.getElementById('f-notas').value.trim(),
+    tamano_obra:tamanoSelected||null,fecha_instalacion:document.getElementById('f-instalacion').value||null,
     photo:formFotos[0]||null,fotos:formFotos.slice(),lat:formPickedLatLng?formPickedLatLng.lat:null,lng:formPickedLatLng?formPickedLatLng.lng:null,
     historial:[{fecha:new Date().toLocaleDateString('es-UY'),nota:'Visita registrada por '+currentUser.name}]
   };
@@ -2100,6 +2125,7 @@ document.getElementById('picker-confirm').addEventListener('click',()=>{
 // MODAL PIN
 document.querySelectorAll('#modal-temp-chips .temp-chip').forEach(c=>{c.addEventListener('click',()=>{document.querySelectorAll('#modal-temp-chips .temp-chip').forEach(x=>x.classList.remove('selected'));c.classList.add('selected');modalTempSelected=c.dataset.val;});});
 document.querySelectorAll('#modal-zona-chips .chip').forEach(c=>{c.addEventListener('click',()=>{document.querySelectorAll('#modal-zona-chips .chip').forEach(x=>x.classList.remove('selected'));c.classList.add('selected');modalZonaSelected=c.dataset.val;document.getElementById('m-zona').value='';});});
+document.querySelectorAll('#m-tamano-chips .chip').forEach(c=>{c.addEventListener('click',()=>{ const sel=c.classList.contains('selected'); document.querySelectorAll('#m-tamano-chips .chip').forEach(x=>x.classList.remove('selected')); if(!sel){c.classList.add('selected');modalTamano=c.dataset.val;}else{modalTamano='';} });});
 document.getElementById('m-zona').addEventListener('input',e=>{if(e.target.value){document.querySelectorAll('#modal-zona-chips .chip').forEach(x=>x.classList.remove('selected'));modalZonaSelected='';}});
 document.querySelectorAll('#modal-catalog-grid .catalog-item').forEach(c=>{c.addEventListener('click',()=>{c.classList.toggle('selected');const v=c.dataset.val;modalCatalogosSelected.has(v)?modalCatalogosSelected.delete(v):modalCatalogosSelected.add(v);});});
 document.getElementById('m-photo-input').addEventListener('change',function(){ leerFotos(this.files, modalFotos, renderModalFotos); this.value=''; });
@@ -2350,6 +2376,8 @@ function openPinModal(entry,newLocation){
   ['m-empresa','m-estudio','m-tipo','m-estado','m-nombre','m-cargo','m-email','m-proveedor','m-notas','m-direccion','m-zona','m-web','m-tel-new','m-persona-nombre','m-persona-cargo','m-persona-telefono'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.querySelectorAll('#modal-temp-chips .temp-chip').forEach(x=>x.classList.remove('selected'));
   document.querySelectorAll('#modal-zona-chips .chip').forEach(x=>x.classList.remove('selected'));modalZonaSelected='';
+  document.querySelectorAll('#m-tamano-chips .chip').forEach(x=>x.classList.remove('selected'));modalTamano='';
+  document.getElementById('m-instalacion').value='';
   document.querySelectorAll('#modal-catalog-grid .catalog-item').forEach(x=>x.classList.remove('selected'));modalCatalogosSelected=new Set();
   modalProductosInteresSelected=new Set();renderProductosChips();
   poblarEtapasDatalist();
@@ -2382,6 +2410,8 @@ function openPinModal(entry,newLocation){
     if(entry.zona){const zc=document.querySelector('#modal-zona-chips .chip[data-val="'+entry.zona+'"]');if(zc){zc.classList.add('selected');modalZonaSelected=entry.zona;}else{document.getElementById('m-zona').value=entry.zona;}}
     if(Array.isArray(entry.catalogos)){entry.catalogos.forEach(v=>{modalCatalogosSelected.add(v);const ci=document.querySelector('#modal-catalog-grid .catalog-item[data-val="'+v+'"]');if(ci)ci.classList.add('selected');});}
     if(entry.temp){const c=document.querySelector('#modal-temp-chips .temp-chip[data-val="'+entry.temp+'"]');if(c){c.classList.add('selected');modalTempSelected=entry.temp;}}
+    if(entry.tamano_obra){const tc=document.querySelector('#m-tamano-chips .chip[data-val="'+entry.tamano_obra+'"]');if(tc){tc.classList.add('selected');modalTamano=entry.tamano_obra;}}
+    document.getElementById('m-instalacion').value=entry.fecha_instalacion||'';
     modalFotos=fotosDe(entry);renderModalFotos();
   }else if(newLocation){document.getElementById('m-direccion').value=newLocation.direccion||'';}
   document.querySelectorAll('.pm-addbox').forEach(b=>b.classList.remove('open'));
@@ -2458,6 +2488,7 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
       item.nombre=document.getElementById('m-nombre').value.trim();item.cargo=document.getElementById('m-cargo').value;
       item.email=document.getElementById('m-email').value.trim();
       item.telefono=joinPhones(modalTelefonos);item.proveedor=document.getElementById('m-proveedor').value.trim();
+      item.tamano_obra=modalTamano||null;item.fecha_instalacion=document.getElementById('m-instalacion').value||null;
       item.notas=document.getElementById('m-notas').value.trim();
       item.direccion=direccion;item.zona=zona;item.web=document.getElementById('m-web').value.trim();
       item.catalogos=Array.from(modalCatalogosSelected);
@@ -2492,6 +2523,7 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
       nombre:document.getElementById('m-nombre').value.trim(),cargo:document.getElementById('m-cargo').value,
       telefono:joinPhones(modalTelefonos),email:document.getElementById('m-email').value.trim(),direccion,zona,web:document.getElementById('m-web').value.trim(),
       proveedor:document.getElementById('m-proveedor').value.trim(),followup:'',
+      tamano_obra:modalTamano||null,fecha_instalacion:document.getElementById('m-instalacion').value||null,
       catalogos:Array.from(modalCatalogosSelected),notas:document.getElementById('m-notas').value.trim(),photo:modalFotos[0]||null,fotos:modalFotos.slice(),
       lat:pendingNewLatLng?pendingNewLatLng.lat:null,lng:pendingNewLatLng?pendingNewLatLng.lng:null,
       historial:[{fecha:new Date().toLocaleDateString('es-UY'),nota:'Pin creado por '+currentUser.name}],
@@ -3850,6 +3882,15 @@ function sugerenciaContacto(e){
   if(!Array.isArray(e.personas) || !e.personas.length) return {txt:'Averiguar quién decide la compra y sumarlo como contacto.', why:'Tenés una sola persona de contacto cargada.'};
   return {txt:'Llamar para ver cómo viene la obra y si necesitan material.', why:'Hace rato sin novedades y sin nada agendado.'};
 }
+function tamanoLabel(v){ return v==='chico'?'Obra chica':v==='mediano'?'Obra mediana':v==='grande'?'Obra grande':''; }
+function faltaTexto(fechaYMD, hoyYMD){
+  const d=Math.round((new Date(fechaYMD+'T00:00:00')-new Date(hoyYMD+'T00:00:00'))/86400000);
+  if(d<0) return {t:'Ya entró (hace '+(-d)+' d)', cls:'warm'};
+  if(d===0) return {t:'Entra hoy', cls:'hot'};
+  if(d<=10) return {t:'En ~'+d+' días', cls:'hot'};
+  const sem=Math.round(d/7);
+  return {t:'En ~'+sem+' semana'+(sem===1?'':'s'), cls:'cold'};
+}
 function renderHoy(){
   const cont=document.getElementById('hoy-content');
   const hoy=fmtYMD(new Date());
@@ -3872,12 +3913,23 @@ function renderHoy(){
   });
   enf.sort((a,b)=>b.atraso-a.atraso);
 
+  // Entrando en instalaciones: obras con fecha estimada en una ventana de -7 a +35 días.
+  const dHoy=new Date(hoy+'T00:00:00').getTime();
+  const instal=store.filter(e=>{
+    if(!e.fecha_instalacion) return false;
+    const t=new Date(e.fecha_instalacion+'T00:00:00').getTime();
+    if(isNaN(t)) return false;
+    const d=Math.round((t-dHoy)/86400000);
+    return d>=-7 && d<=35;
+  }).sort((a,b)=>a.fecha_instalacion.localeCompare(b.fecha_instalacion));
+
   const niceDay=new Date(hoy+'T00:00:00').toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'});
   let html='<div class="hoy-daylabel">'+esc(niceDay)+'</div>'
     +'<div class="hoy-daysub">Tu foco de hoy, ordenado por lo que más mueve la aguja.</div>'
     +'<div class="hoy-kpis">'
     +'<div class="hoy-kpi a"><div class="n">'+paraHacer.length+'</div><div class="l">Para hacer</div></div>'
     +'<div class="hoy-kpi b"><div class="n">'+enf.length+'</div><div class="l">Se están enfriando</div></div>'
+    +'<div class="hoy-kpi c"><div class="n">'+instal.length+'</div><div class="l">Entran a instalación</div></div>'
     +'</div><div class="hoy-grid">';
 
   html+='<div class="hoy-col"><div class="hoy-colhead"><span class="hoy-coltitle">Para hacer hoy</span><span class="hoy-colcount">'+paraHacer.length+'</span></div>'
@@ -3906,15 +3958,39 @@ function renderHoy(){
     const color=e.temp==='hot'?'var(--hot)':e.temp==='warm'?'var(--warm)':'var(--cold)';
     const pct=Math.min(100, Math.round(o.dias/(o.cad*2)*100));
     const s=sugerenciaContacto(e);
+    const tsz=e.tamano_obra==='chico'?'Chica':e.tamano_obra==='mediano'?'Mediana':e.tamano_obra==='grande'?'Grande':'';
     return '<div class="enf-card '+tk+'">'
-      +'<div class="enf-top"><span class="enf-name" data-hoyopen="'+e.id+'">'+esc(e.estudio||e.empresa||'(sin nombre)')+'</span><span class="hoy-pill '+tk+'">'+tlabel+'</span></div>'
+      +'<div class="enf-top"><span class="enf-name" data-hoyopen="'+e.id+'">'+esc(e.estudio||e.empresa||'(sin nombre)')+'</span><span style="display:flex;gap:5px;flex-shrink:0">'+(tsz?'<span class="hoy-pill warm">🏗 '+tsz+'</span>':'')+'<span class="hoy-pill '+tk+'">'+tlabel+'</span></span></div>'
       +'<div class="enf-when">Hace '+o.dias+' días · cadencia '+o.cad+' · atrasado '+o.atraso+' día'+(o.atraso===1?'':'s')+'</div>'
       +'<div class="enf-agebar"><i style="width:'+pct+'%;background:'+color+'"></i></div>'
       +'<div class="enf-sugg"><div class="lbl">💡 Próximo paso sugerido</div><div class="txt">'+esc(s.txt)+'</div><div class="why">Por qué: '+esc(s.why)+'</div></div>'
       +'<div class="act-sendrow"><button class="act-send" data-hoyopen="'+e.id+'">Ver ficha / agendar</button></div>'
       +'</div>';
   }).join('');
-  html+='</div></div>';
+  html+='</div>';
+
+  // Columna 3: entrando en instalaciones
+  html+='<div class="hoy-col"><div class="hoy-colhead"><span class="hoy-coltitle">Entrando en instalaciones</span><span class="hoy-colcount">'+instal.length+'</span></div>'
+    +'<p class="hoy-colwhy">Obras que en las próximas semanas llegan a la etapa que compra material. El momento que más paga.</p>';
+  if(!instal.length){ html+='<div class="hoy-empty">Cargá la fecha estimada de instalaciones en las obras (en la ficha) para verlas acá.</div>'; }
+  else html+=instal.map(function(e){
+    const f=faltaTexto(e.fecha_instalacion, hoy);
+    const prov=(e.proveedor||'').trim();
+    const tsz=e.tamano_obra==='chico'?'Chica':e.tamano_obra==='mediano'?'Mediana':e.tamano_obra==='grande'?'Grande':'';
+    const sub=[e.zona||'', e.estado?(ETAPA_CORTA[e.estado]||e.estado):''].filter(Boolean).join(' · ');
+    return '<div class="enf-card acc">'
+      +'<div class="enf-top"><span class="enf-name" data-hoyopen="'+e.id+'">'+esc(e.estudio||e.empresa||'(sin nombre)')+'</span><span class="hoy-pill '+f.cls+'">📅 '+esc(f.t)+'</span></div>'
+      +(sub?'<div class="enf-when" style="color:var(--muted)">'+esc(sub)+'</div>':'')
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:9px">'
+        +(tsz?'<span class="hoy-pill warm">🏗 '+tsz+'</span>':'')
+        +'<span class="hoy-pill" style="color:var(--ink-soft)">'+(prov?'Prov: '+esc(prov):'Prov: sin datos')+'</span>'
+      +'</div>'
+      +'<div class="act-sendrow"><button class="act-send" data-hoyopen="'+e.id+'">Agendar visita previa</button></div>'
+      +'</div>';
+  }).join('');
+  html+='</div>';
+
+  html+='</div>';
 
   cont.innerHTML=html;
   cont.querySelectorAll('[data-hoytoggle]').forEach(b=>b.addEventListener('click', async ()=>{ await toggleActividadCompletada(parseFloat(b.dataset.hoytoggle)); renderHoy(); }));
