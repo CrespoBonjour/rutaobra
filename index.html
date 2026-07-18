@@ -695,8 +695,16 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 /* ===== CONSTRUCTORAS (agrupado por empresa) ===== */
 .cons-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
 @media(max-width:640px){.cons-kpis{grid-template-columns:1fr 1fr}}
-.cons-kpi{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:12px 14px;position:relative;overflow:hidden}
+.cons-kpi{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:12px 14px;position:relative;overflow:hidden;cursor:pointer;transition:border-color .15s,transform .1s}
+.cons-kpi:hover{border-color:var(--acc)}
+.cons-kpi:active{transform:scale(.98)}
+.cons-kpi.foco{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc-dim)}
 .cons-kpi::before{content:"";position:absolute;top:0;left:0;right:0;height:2px}
+.cons-focus-banner{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--acc-dim);border:1px solid var(--acc-deep);border-radius:11px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--ink-soft)}
+.cons-focus-banner b{color:#fff}
+.cons-focus-clear{background:var(--panel2);border:1px solid var(--line);color:var(--acc-light);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit}
+.cons-focus-clear:hover{border-color:var(--acc)}
+.cons-focus-list{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:6px 14px}
 .cons-kpi.a::before{background:var(--acc)}.cons-kpi.b::before{background:var(--ok)}.cons-kpi.c::before{background:var(--warm)}.cons-kpi.d::before{background:var(--muted)}
 .cons-kpi .n{font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
 .cons-kpi.a .n{color:var(--acc-light)}.cons-kpi.b .n{color:#6fe0a0}.cons-kpi.c .n{color:#e8c876}.cons-kpi.d .n{color:var(--ink-soft)}
@@ -4169,7 +4177,7 @@ function renderHoy(){
 // ============================================================
 // TAB CONSTRUCTORAS (agrupa contactos por empresa; solo admin, en prueba)
 // ============================================================
-let consSort='obras', consSearch='', consPivot='con';
+let consSort='obras', consSearch='', consPivot='con', consFocus='all';
 function consTempRank(e){ return e.temp==='hot'?3:e.temp==='warm'?2:e.temp==='cold'?1:0; }
 function proveedorReal(p){ p=(p||'').trim(); return (!p || /^(no\s*recuerda|no\s*sabe|no\s*se|ninguno|ninguna|n\/?a|s\/?d|-+|\.+)$/i.test(p)) ? '' : p; }
 function obraLabel(e){ return (e.obra||'').trim() || (e.nombre||'').trim() || '(obra s/nombre)'; }
@@ -4229,13 +4237,34 @@ function renderConstructoras(){
       +'</div>';
   };
 
-  let html='<div class="cons-kpis">'
-    +'<div class="cons-kpi a"><div class="n">'+lista.length+'</div><div class="l">'+(consPivot==='est'?'Estudios / desarrolladoras':'Constructoras')+'</div></div>'
-    +'<div class="cons-kpi b"><div class="n">'+lista.filter(g=>g.recompra).length+'</div><div class="l">Con recompra posible</div></div>'
-    +'<div class="cons-kpi c"><div class="n">'+sinClasificar.length+'</div><div class="l">Obras por clasificar</div></div>'
-    +'<div class="cons-kpi d"><div class="n">'+particulares.length+'</div><div class="l">Clientes particulares</div></div>'
+  const kpisHtml='<div class="cons-kpis">'
+    +'<div class="cons-kpi a'+(consFocus==='all'?' foco':'')+'" data-consfocus="all"><div class="n">'+lista.length+'</div><div class="l">'+(consPivot==='est'?'Estudios / desarrolladoras':'Constructoras')+'</div></div>'
+    +'<div class="cons-kpi b'+(consFocus==='recompra'?' foco':'')+'" data-consfocus="recompra"><div class="n">'+lista.filter(g=>g.recompra).length+'</div><div class="l">Con recompra posible</div></div>'
+    +'<div class="cons-kpi c'+(consFocus==='clasificar'?' foco':'')+'" data-consfocus="clasificar"><div class="n">'+sinClasificar.length+'</div><div class="l">Obras por clasificar</div></div>'
+    +'<div class="cons-kpi d'+(consFocus==='particular'?' foco':'')+'" data-consfocus="particular"><div class="n">'+particulares.length+'</div><div class="l">Clientes particulares</div></div>'
     +'</div>';
 
+  // Al tocar un KPI se enfoca ese grupo: muestra la lista plana de contactos (clickeables → ficha).
+  const focusRow=(e)=>{
+    const dk=e.temp||'none';
+    const sub=[(e.empresa||e.estudio||''), e.zona||'', e.estado?(ETAPA_CORTA[e.estado]||e.estado):''].filter(Boolean).join(' · ');
+    return '<div class="cons-obra" data-consopen="'+e.id+'"><span class="cons-dot '+dk+'"></span><span class="cons-obra-n">'+esc(tituloFicha(e))+'</span><span class="cons-obra-d">'+esc(sub)+'</span></div>';
+  };
+  if(consFocus!=='all'){
+    let foco=[], titulo='';
+    if(consFocus==='recompra'){ titulo='cuentas con recompra posible'; foco=lista.filter(g=>g.recompra).reduce((a,g)=>a.concat(g.obras),[]); }
+    else if(consFocus==='clasificar'){ titulo='obras por clasificar'; foco=sinClasificar; }
+    else { titulo='clientes particulares'; foco=particulares; }
+    let fhtml=kpisHtml
+      +'<div class="cons-focus-banner"><span>Mostrando <b>'+titulo+'</b> · '+foco.length+' contacto'+(foco.length===1?'':'s')+'</span><button class="cons-focus-clear" data-consfocus="all">← Ver todo</button></div>';
+    fhtml+= foco.length ? ('<div class="cons-focus-list">'+foco.slice().sort((a,b)=>consTempRank(b)-consTempRank(a)).map(focusRow).join('')+'</div>') : '<div class="act-empty">No hay contactos en este grupo.</div>';
+    cont.innerHTML=fhtml;
+    cont.querySelectorAll('[data-consfocus]').forEach(el=>el.addEventListener('click',()=>{ consFocus=el.dataset.consfocus; renderConstructoras(); }));
+    cont.querySelectorAll('[data-consopen]').forEach(el=>el.addEventListener('click',()=>{ const it=localStore.find(x=>x.id===parseFloat(el.dataset.consopen)); if(it) openPinModal(it); }));
+    return;
+  }
+
+  let html=kpisHtml;
   if(!lista.length && !sinClasificar.length){
     html+='<div class="act-empty">No hay cuentas para mostrar. Cargá la constructora o el estudio en los contactos para agruparlos acá.</div>';
   } else {
@@ -4285,10 +4314,11 @@ function renderConstructoras(){
     b.textContent = open ? 'Ocultar obras ▴' : ('Ver las '+box.children.length+' obra'+(box.children.length===1?'':'s')+' ▾');
   }));
   cont.querySelectorAll('[data-consopen]').forEach(el=>el.addEventListener('click',()=>{ const it=localStore.find(x=>x.id===parseFloat(el.dataset.consopen)); if(it) openPinModal(it); }));
+  cont.querySelectorAll('[data-consfocus]').forEach(el=>el.addEventListener('click',()=>{ consFocus=el.dataset.consfocus; renderConstructoras(); }));
 }
-document.getElementById('cons-search').addEventListener('input', e=>{ consSearch=e.target.value; renderConstructoras(); });
+document.getElementById('cons-search').addEventListener('input', e=>{ consSearch=e.target.value; consFocus='all'; renderConstructoras(); });
 document.querySelectorAll('[data-consort]').forEach(b=>b.addEventListener('click',()=>{ document.querySelectorAll('[data-consort]').forEach(x=>x.classList.remove('active')); b.classList.add('active'); consSort=b.dataset.consort; renderConstructoras(); }));
-document.querySelectorAll('[data-conspivot]').forEach(b=>b.addEventListener('click',()=>{ consPivot=b.dataset.conspivot; renderConstructoras(); }));
+document.querySelectorAll('[data-conspivot]').forEach(b=>b.addEventListener('click',()=>{ consPivot=b.dataset.conspivot; consFocus='all'; renderConstructoras(); }));
 
 let editingActId = null;
 function showActForm(existingEv){
