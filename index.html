@@ -300,6 +300,8 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .ct-fgroup{display:flex;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:3px}
 .ct-fbtn{padding:7px 10px;background:transparent;border:none;border-radius:6px;color:var(--muted);font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:.16s var(--ease)}
 .ct-fbtn.active{background:var(--acc-dim);color:var(--acc)}
+.ct-vista{background:var(--panel2)}
+.ct-vista .ct-fbtn.active{background:var(--acc);color:#1a1300}
 .ct-fbtn.bx.active{background:rgba(74,158,255,.16);color:var(--cold)}
 .ct-fbtn.cold.active{background:rgba(74,158,255,.16);color:var(--cold)}
 .ct-fbtn.warm.active{background:var(--acc-dim);color:var(--acc)}
@@ -825,7 +827,6 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
     <div class="tab active" data-tab="form">＋ Nuevo</div>
     <div class="tab" data-tab="hoy">Hoy</div>
     <div class="tab" data-tab="contactos">Contactos</div>
-    <div class="tab" data-tab="lista">Lista</div>
     <div class="tab" data-tab="agenda">Agenda</div>
     <div class="tab" data-tab="actividades">Actividades</div>
     <!-- Negociaciones: se maneja desde Bitrix. Pestaña oculta pero código intacto; para reactivar, quitar el style display:none. -->
@@ -988,6 +989,10 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 <section class="view" id="view-contactos">
   <div class="ct-toolbar">
     <input type="text" class="ct-search" id="ct-search" placeholder="Buscar estudio, nombre, teléfono, zona...">
+    <div class="ct-fgroup ct-vista">
+      <button class="ct-fbtn active" data-ctvista="tarjetas" title="Ver como tarjetas">▦ Tarjetas</button>
+      <button class="ct-fbtn" data-ctvista="lista" title="Ver como lista">≣ Lista</button>
+    </div>
     <div class="ct-fgroup">
       <button class="ct-fbtn active" data-ctf="all">Todos</button>
       <button class="ct-fbtn" data-ctf="pending">Sin contactar</button>
@@ -1017,6 +1022,10 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 <section class="view" id="view-lista">
   <div class="ct-toolbar">
     <input type="text" class="ct-search" id="ls-search" placeholder="Buscar estudio, contacto, zona, teléfono...">
+    <div class="ct-fgroup ct-vista">
+      <button class="ct-fbtn" data-ctvista="tarjetas" title="Ver como tarjetas">▦ Tarjetas</button>
+      <button class="ct-fbtn active" data-ctvista="lista" title="Ver como lista">≣ Lista</button>
+    </div>
     <div class="ct-fgroup">
       <button class="ct-fbtn active" data-lsf="all">Todos</button>
       <button class="ct-fbtn" data-lsf="pending">Sin contactar</button>
@@ -1808,8 +1817,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
     if(t==='map') setTimeout(()=>{if(!mapInitialized)initMap();else refreshMapMarkers();map.invalidateSize();buildMapContactFilter();},80);
     if(t==='hoy') renderHoy();
     if(t==='constructoras') renderConstructoras();
-    if(t==='contactos'){ sincronizarUIFiltros(); renderContactos(); }
-    if(t==='lista'){ sincronizarUIFiltros(); renderLista(); }
+    if(t==='contactos') aplicarVistaContactos();
     if(t==='agenda') renderAgendaTab();
     if(t==='actividades') renderActividades();
     if(t==='negociaciones') renderNegociaciones();
@@ -1926,8 +1934,7 @@ function refreshActiveView(){
   const t = active ? active.dataset.tab : '';
   if(t==='hoy') renderHoy();
   else if(t==='constructoras') renderConstructoras();
-  else if(t==='contactos') renderContactos();
-  else if(t==='lista') renderLista();
+  else if(t==='contactos'){ if(contactosVista==='lista') renderLista(); else renderContactos(); }
   else if(t==='agenda') renderAgendaTab();
   else if(t==='actividades') renderActividades();
   else if(t==='map' && mapInitialized) refreshMapMarkers();
@@ -2799,6 +2806,20 @@ function sincronizarUIFiltros(){
 // Al cambiar cualquier filtro: guarda, sincroniza los botones/inputs de ambas vistas y re-renderiza.
 function aplicarFiltros(){ guardarFiltros(); sincronizarUIFiltros(); renderContactos(); renderLista(); }
 
+// ── Vista de la pestaña Contactos: tarjetas o lista (mismo tab, botón para alternar) ──
+let contactosVista='tarjetas';
+try{ const v=localStorage.getItem('rutaobra_vista_contactos'); if(v==='tarjetas'||v==='lista') contactosVista=v; }catch(_){}
+function aplicarVistaContactos(){
+  const esLista=contactosVista==='lista';
+  document.getElementById('view-contactos').classList.toggle('active', !esLista);
+  document.getElementById('view-lista').classList.toggle('active', esLista);
+  document.querySelectorAll('[data-ctvista]').forEach(b=>b.classList.toggle('active', b.dataset.ctvista===contactosVista));
+  sincronizarUIFiltros();
+  if(esLista) renderLista(); else renderContactos();
+}
+function setContactosVista(v){ contactosVista=v; try{ localStorage.setItem('rutaobra_vista_contactos', v); }catch(_){} aplicarVistaContactos(); }
+document.querySelectorAll('[data-ctvista]').forEach(b=>b.addEventListener('click', ()=> setContactosVista(b.dataset.ctvista)));
+
 function waLink(tel){
   const clean=(tel||'').split('/')[0].replace(/[^0-9+]/g,'');
   return clean ? 'https://wa.me/598'+clean.replace(/^0/,'') : null;
@@ -3081,9 +3102,8 @@ function goToContactosFiltered(temp, estadoContacto){
   document.querySelector('.tab[data-tab="contactos"]').classList.add('active');
   positionTabIndicator();
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.getElementById('view-contactos').classList.add('active');
   document.getElementById('save-bar').style.display='none';
-  renderContactos();
+  aplicarVistaContactos();
 }
 
 // Salta a Contactos con un texto de búsqueda prefijado (lo usan los gráficos del Panel:
@@ -3095,9 +3115,8 @@ function goToContactosSearch(txt){
   document.querySelector('.tab[data-tab="contactos"]').classList.add('active');
   positionTabIndicator();
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.getElementById('view-contactos').classList.add('active');
   document.getElementById('save-bar').style.display='none';
-  renderContactos();
+  aplicarVistaContactos();
 }
 
 function goToActividadesFiltered(filtro){
