@@ -691,12 +691,13 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .hoy-pill.cold{color:#8fc4ff;border-color:rgba(74,158,255,.4);background:rgba(74,158,255,.1)}
 
 /* ===== CONSTRUCTORAS (agrupado por empresa) ===== */
-.cons-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.cons-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+@media(max-width:640px){.cons-kpis{grid-template-columns:1fr 1fr}}
 .cons-kpi{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:12px 14px;position:relative;overflow:hidden}
 .cons-kpi::before{content:"";position:absolute;top:0;left:0;right:0;height:2px}
-.cons-kpi.a::before{background:var(--acc)}.cons-kpi.b::before{background:var(--ok)}.cons-kpi.c::before{background:var(--warm)}
+.cons-kpi.a::before{background:var(--acc)}.cons-kpi.b::before{background:var(--ok)}.cons-kpi.c::before{background:var(--warm)}.cons-kpi.d::before{background:var(--muted)}
 .cons-kpi .n{font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
-.cons-kpi.a .n{color:var(--acc-light)}.cons-kpi.b .n{color:#6fe0a0}.cons-kpi.c .n{color:#e8c876}
+.cons-kpi.a .n{color:var(--acc-light)}.cons-kpi.b .n{color:#6fe0a0}.cons-kpi.c .n{color:#e8c876}.cons-kpi.d .n{color:var(--ink-soft)}
 .cons-kpi .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:6px;font-weight:700}
 .cons-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px;align-items:start}
 .cons-card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:15px 16px}
@@ -729,6 +730,16 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .cons-obra-d{font-size:11px;color:var(--muted);white-space:nowrap;flex-shrink:0}
 .cons-obra.nueva{background:rgba(62,207,115,.06);border-radius:7px}
 .cons-newtag{font-size:9px;font-weight:800;color:#06210f;background:var(--ok);padding:1px 6px;border-radius:20px}
+.cons-obra-x{font-size:10px;color:var(--acc-light);background:var(--acc-dim);border:1px solid var(--acc-deep);padding:2px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.cons-obra-x.missing{color:#e8c876;background:rgba(224,179,61,.1);border-color:rgba(224,179,61,.4)}
+.cons-card.clasif{border-color:rgba(224,179,61,.5);border-left:3px solid var(--warm)}
+.cons-card.clasif .cons-name{color:#e8c876}
+.cons-part{margin-top:24px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.cons-part-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.cons-part-sub{font-size:11px;color:var(--muted);margin:4px 0 10px}
+.cons-part-rows{display:flex;flex-wrap:wrap;gap:8px}
+.cons-part-row{display:inline-flex;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:20px;padding:6px 12px;font-size:12px;color:var(--ink-soft);cursor:pointer}
+.cons-part-row:hover{border-color:var(--acc);color:#fff}
 
 /* ===== NEGOCIACIONES (kanban) ===== */
 .neg-toolbar{display:flex;justify-content:flex-end;margin-bottom:12px}
@@ -977,6 +988,10 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 <section class="view" id="view-constructoras">
   <div class="ct-toolbar">
     <input type="text" class="ct-search" id="cons-search" placeholder="Buscar constructora o estudio...">
+    <div class="ct-fgroup ct-vista">
+      <button class="ct-fbtn active" data-conspivot="con" title="Agrupar por constructora">🏗 Constructora</button>
+      <button class="ct-fbtn" data-conspivot="est" title="Agrupar por estudio">📐 Estudio</button>
+    </div>
     <div class="ct-fgroup">
       <button class="ct-fbtn active" data-consort="obras">Más obras</button>
       <button class="ct-fbtn" data-consort="recompra">Recompra posible</button>
@@ -4130,19 +4145,27 @@ function renderHoy(){
 // ============================================================
 // TAB CONSTRUCTORAS (agrupa contactos por empresa; solo admin, en prueba)
 // ============================================================
-let consSort='obras', consSearch='';
+let consSort='obras', consSearch='', consPivot='con';
 function consTempRank(e){ return e.temp==='hot'?3:e.temp==='warm'?2:e.temp==='cold'?1:0; }
 function proveedorReal(p){ p=(p||'').trim(); return (!p || /^(no\s*recuerda|no\s*sabe|no\s*se|ninguno|ninguna|n\/?a|s\/?d|-+|\.+)$/i.test(p)) ? '' : p; }
+function obraLabel(e){ return (e.obra||'').trim() || (e.nombre||'').trim() || '(obra s/nombre)'; }
 function renderConstructoras(){
   const cont=document.getElementById('cons-content');
   const store=getFilteredStore();
-  // Agrupar por empresa constructora (o estudio si no hay empresa), case-insensitive.
-  const grupos={};
-  store.forEach(e=>{
-    const nombre=(e.empresa||e.estudio||'').trim();
-    if(!nombre) return;
-    const k=nombre.toLowerCase();
-    if(!grupos[k]) grupos[k]={nombre, obras:[]};
+  const particulares=store.filter(e=>e.tipo_cliente==='particular');
+  const empresas=store.filter(e=>e.tipo_cliente!=='particular');
+  const keyField = consPivot==='est' ? 'estudio' : 'empresa';
+  const otherField = consPivot==='est' ? 'empresa' : 'estudio';
+  const otherIcon = consPivot==='est' ? '🏗' : '📐';
+  const otherWord = consPivot==='est' ? 'constructora' : 'estudio';
+
+  // Agrupa por la etiqueta elegida (constructora o estudio). Lo que no tenga ese dato cae en "Por clasificar".
+  const grupos={}; const sinClasificar=[];
+  empresas.forEach(e=>{
+    const key=(e[keyField]||'').trim();
+    if(!key){ sinClasificar.push(e); return; }
+    const k=key.toLowerCase();
+    if(!grupos[k]) grupos[k]={nombre:key, obras:[]};
     grupos[k].obras.push(e);
   });
   let lista=Object.values(grupos).map(g=>{
@@ -4152,58 +4175,85 @@ function renderConstructoras(){
     const temp={hot:0,warm:0,cold:0,none:0};
     obras.forEach(e=>{ if(e.temp==='hot')temp.hot++; else if(e.temp==='warm')temp.warm++; else if(e.temp==='cold')temp.cold++; else temp.none++; });
     const zonas=Array.from(new Set(obras.map(e=>(e.zona||'').trim()).filter(Boolean)));
+    const otros=Array.from(new Set(obras.map(e=>(e[otherField]||'').trim()).filter(Boolean)));
     const ultima=Math.max(0, ...obras.map(e=>ultimoTouchTs(e)));
     const catEnviados=obras.filter(e=>getCatalogStatus(e.id).sent.length>0).length;
     const provCount={};
     obras.forEach(e=>{ const p=proveedorReal(e.proveedor); if(p){ const k=p.toLowerCase(); if(!provCount[k])provCount[k]={name:p,n:0}; provCount[k].n++; } });
     const provTop=Object.values(provCount).sort((a,b)=>b.n-a.n)[0]||null;
-    const recompra = contactados>0 && sinContactar>0; // ya los trabajaste y hay obra nueva sin tocar
+    const recompra = contactados>0 && sinContactar>0;
     const clave = obras.length>=3;
-    return {nombre:g.nombre, obras, count:obras.length, temp, zonas, ultima, catEnviados, provTop, recompra, clave};
+    return {nombre:g.nombre, obras, count:obras.length, temp, zonas, otros, ultima, catEnviados, provTop, recompra, clave};
   });
-  if(consSearch){ const s=consSearch.toLowerCase(); lista=lista.filter(g=>g.nombre.toLowerCase().includes(s) || g.obras.some(e=>(e.estudio||'').toLowerCase().includes(s))); }
+  if(consSearch){ const s=consSearch.toLowerCase(); lista=lista.filter(g=>g.nombre.toLowerCase().includes(s) || g.obras.some(e=>obraLabel(e).toLowerCase().includes(s) || (e[otherField]||'').toLowerCase().includes(s))); }
   if(consSort==='obras') lista.sort((a,b)=>b.count-a.count || b.ultima-a.ultima);
   else if(consSort==='recompra') lista.sort((a,b)=>(b.recompra?1:0)-(a.recompra?1:0) || b.count-a.count);
   else if(consSort==='movida') lista.sort((a,b)=>b.ultima-a.ultima);
 
-  let html='<div class="cons-kpis">'
-    +'<div class="cons-kpi a"><div class="n">'+lista.length+'</div><div class="l">Constructoras / estudios</div></div>'
-    +'<div class="cons-kpi b"><div class="n">'+lista.filter(g=>g.recompra).length+'</div><div class="l">Con recompra posible</div></div>'
-    +'<div class="cons-kpi c"><div class="n">'+lista.filter(g=>g.clave).length+'</div><div class="l">Cuentas clave (3+ obras)</div></div>'
-    +'</div>';
-  if(!lista.length){ html+='<div class="act-empty">No hay constructoras para mostrar. Cargá la "Empresa constructora" en los contactos para agruparlos acá.</div>'; cont.innerHTML=html; return; }
+  document.querySelectorAll('[data-conspivot]').forEach(b=>b.classList.toggle('active', b.dataset.conspivot===consPivot));
 
-  html+='<div class="cons-grid">'+lista.map(g=>{
-    const tchips=[];
-    if(g.temp.hot) tchips.push('<span class="cons-tchip hot">'+g.temp.hot+' 🔥</span>');
-    if(g.temp.warm) tchips.push('<span class="cons-tchip warm">'+g.temp.warm+' 🌡</span>');
-    if(g.temp.cold) tchips.push('<span class="cons-tchip cold">'+g.temp.cold+' ❄</span>');
-    if(g.temp.none) tchips.push('<span class="cons-tchip none">'+g.temp.none+' s/temp</span>');
-    const ultimaTxt = g.ultima ? fmtRelativa(g.ultima) : '—';
-    const rival = (g.provTop && g.provTop.n>=2) ? '<div class="cons-rival">Usan <b>'+esc(g.provTop.name)+'</b> en '+g.provTop.n+' de '+g.count+' obras — cuenta a romper.</div>' : '';
-    const obrasHtml = g.obras.slice().sort((a,b)=>consTempRank(b)-consTempRank(a)).map(e=>{
-      const dk=e.temp||'none';
-      const nueva=!e.contactado;
-      const etapa=e.estado?(ETAPA_CORTA[e.estado]||e.estado):'';
-      return '<div class="cons-obra'+(nueva?' nueva':'')+'" data-consopen="'+e.id+'">'
-        +'<span class="cons-dot '+dk+'"></span>'
-        +'<span class="cons-obra-n">'+esc(e.estudio||e.empresa||'(obra)')+(nueva?' <span class="cons-newtag">nueva</span>':'')+'</span>'
-        +'<span class="cons-obra-d">'+(nueva?'sin contactar':esc(etapa||e.zona||''))+'</span>'
+  const obraRow = (e)=>{
+    const dk=e.temp||'none', nueva=!e.contactado;
+    const etapa=e.estado?(ETAPA_CORTA[e.estado]||e.estado):'';
+    const otro=(e[otherField]||'').trim();
+    const otroPill = otro ? '<span class="cons-obra-x">'+otherIcon+' '+esc(otro)+'</span>' : '<span class="cons-obra-x missing">sin '+otherWord+'</span>';
+    return '<div class="cons-obra'+(nueva?' nueva':'')+'" data-consopen="'+e.id+'">'
+      +'<span class="cons-dot '+dk+'"></span>'
+      +'<span class="cons-obra-n">'+esc(obraLabel(e))+(nueva?' <span class="cons-newtag">nueva</span>':'')+'</span>'
+      +otroPill
+      +'<span class="cons-obra-d">'+(nueva?'sin contactar':esc(etapa||e.zona||''))+'</span>'
+      +'</div>';
+  };
+
+  let html='<div class="cons-kpis">'
+    +'<div class="cons-kpi a"><div class="n">'+lista.length+'</div><div class="l">'+(consPivot==='est'?'Estudios / desarrolladoras':'Constructoras')+'</div></div>'
+    +'<div class="cons-kpi b"><div class="n">'+lista.filter(g=>g.recompra).length+'</div><div class="l">Con recompra posible</div></div>'
+    +'<div class="cons-kpi c"><div class="n">'+sinClasificar.length+'</div><div class="l">Obras por clasificar</div></div>'
+    +'<div class="cons-kpi d"><div class="n">'+particulares.length+'</div><div class="l">Clientes particulares</div></div>'
+    +'</div>';
+
+  if(!lista.length && !sinClasificar.length){
+    html+='<div class="act-empty">No hay cuentas para mostrar. Cargá la constructora o el estudio en los contactos para agruparlos acá.</div>';
+  } else {
+    html+='<div class="cons-grid">'+lista.map(g=>{
+      const tchips=[];
+      if(g.temp.hot) tchips.push('<span class="cons-tchip hot">'+g.temp.hot+' 🔥</span>');
+      if(g.temp.warm) tchips.push('<span class="cons-tchip warm">'+g.temp.warm+' 🌡</span>');
+      if(g.temp.cold) tchips.push('<span class="cons-tchip cold">'+g.temp.cold+' ❄</span>');
+      if(g.temp.none) tchips.push('<span class="cons-tchip none">'+g.temp.none+' s/temp</span>');
+      const ultimaTxt = g.ultima ? fmtRelativa(g.ultima) : '—';
+      const rival = (g.provTop && g.provTop.n>=2) ? '<div class="cons-rival">Usan <b>'+esc(g.provTop.name)+'</b> en '+g.provTop.n+' de '+g.count+' obras — cuenta a romper.</div>' : '';
+      const obrasHtml = g.obras.slice().sort((a,b)=>consTempRank(b)-consTempRank(a)).map(obraRow).join('');
+      const conStr = g.otros.length ? (' · con '+g.otros.length+' '+otherWord+(g.otros.length===1?'':'s')) : '';
+      return '<div class="cons-card'+(g.clave?' key':'')+'">'
+        +'<div class="cons-top"><div>'
+          +'<div class="cons-name">'+(g.clave?'<span class="star">★</span> ':'')+esc(g.nombre)+'</div>'
+          +'<div class="cons-obras-lbl">'+g.count+' obra'+(g.count===1?'':'s')+conStr+(g.clave?' · clave':'')+'</div>'
+        +'</div>'+(g.recompra?'<span class="cons-recompra">🔁 Recompra</span>':'')+'</div>'
+        +(g.zonas.length?'<div class="cons-zonas">📍 '+g.zonas.map(esc).join(' · ')+'</div>':'')
+        +(tchips.length?'<div class="cons-tempbar">'+tchips.join('')+'</div>':'')
+        +'<div class="cons-meta"><span>Última movida: <b>'+ultimaTxt+'</b></span>'+(g.catEnviados?'<span>Catálogos: <b>'+g.catEnviados+'</b></span>':'')+'</div>'
+        +rival
+        +'<button class="cons-expand" data-consexpand>Ver las '+g.count+' obra'+(g.count===1?'':'s')+' ▾</button>'
+        +'<div class="cons-obras">'+obrasHtml+'</div>'
         +'</div>';
     }).join('');
-    return '<div class="cons-card'+(g.clave?' key':'')+'">'
-      +'<div class="cons-top"><div>'
-        +'<div class="cons-name">'+(g.clave?'<span class="star">★</span> ':'')+esc(g.nombre)+'</div>'
-        +'<div class="cons-obras-lbl">'+g.count+' obra'+(g.count===1?'':'s')+(g.clave?' · cuenta clave':'')+'</div>'
-      +'</div>'+(g.recompra?'<span class="cons-recompra">🔁 Recompra</span>':'')+'</div>'
-      +(g.zonas.length?'<div class="cons-zonas">📍 '+g.zonas.map(esc).join(' · ')+'</div>':'')
-      +(tchips.length?'<div class="cons-tempbar">'+tchips.join('')+'</div>':'')
-      +'<div class="cons-meta"><span>Última movida: <b>'+ultimaTxt+'</b></span>'+(g.catEnviados?'<span>Catálogos enviados: <b>'+g.catEnviados+' obra'+(g.catEnviados===1?'':'s')+'</b></span>':'')+'</div>'
-      +rival
-      +'<button class="cons-expand" data-consexpand>Ver las '+g.count+' obra'+(g.count===1?'':'s')+' ▾</button>'
-      +'<div class="cons-obras">'+obrasHtml+'</div>'
-      +'</div>';
-  }).join('')+'</div>';
+    if(sinClasificar.length){
+      html+='<div class="cons-card clasif">'
+        +'<div class="cons-top"><div><div class="cons-name">⚠ Por clasificar</div><div class="cons-obras-lbl">Obras sin '+(consPivot==='est'?'estudio':'constructora')+' cargada</div></div></div>'
+        +'<div class="cons-meta"><span>Completá el dato que falta en la ficha y saltan solas a su cuenta.</span></div>'
+        +'<button class="cons-expand" data-consexpand>Ver las '+sinClasificar.length+' obra'+(sinClasificar.length===1?'':'s')+' ▾</button>'
+        +'<div class="cons-obras">'+sinClasificar.slice().sort((a,b)=>consTempRank(b)-consTempRank(a)).map(obraRow).join('')+'</div>'
+        +'</div>';
+    }
+    html+='</div>';
+  }
+
+  if(particulares.length){
+    html+='<div class="cons-part"><div class="cons-part-title">🏠 Clientes particulares / viviendas ('+particulares.length+')</div>'
+      +'<p class="cons-part-sub">Se gestionan desde Contactos pero no cuentan en las estadísticas de empresas.</p>'
+      +'<div class="cons-part-rows">'+particulares.slice().sort((a,b)=>consTempRank(b)-consTempRank(a)).map(e=>'<span class="cons-part-row" data-consopen="'+e.id+'">🏠 '+esc(tituloFicha(e))+(e.zona?' · '+esc(e.zona):'')+'</span>').join('')+'</div></div>';
+  }
 
   cont.innerHTML=html;
   cont.querySelectorAll('[data-consexpand]').forEach(b=>b.addEventListener('click',()=>{
@@ -4214,6 +4264,7 @@ function renderConstructoras(){
 }
 document.getElementById('cons-search').addEventListener('input', e=>{ consSearch=e.target.value; renderConstructoras(); });
 document.querySelectorAll('[data-consort]').forEach(b=>b.addEventListener('click',()=>{ document.querySelectorAll('[data-consort]').forEach(x=>x.classList.remove('active')); b.classList.add('active'); consSort=b.dataset.consort; renderConstructoras(); }));
+document.querySelectorAll('[data-conspivot]').forEach(b=>b.addEventListener('click',()=>{ consPivot=b.dataset.conspivot; renderConstructoras(); }));
 
 let editingActId = null;
 function showActForm(existingEv){
