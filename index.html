@@ -331,6 +331,8 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .ct-tgl.on.bx{background:var(--cold);border-color:var(--cold);box-shadow:0 0 10px rgba(74,158,255,.4)}
 .ct-tgl:active{transform:scale(.9)}
 .ct-tgl svg{opacity:0}.ct-tgl.on svg{opacity:1}
+.ct-tgl.bx.stale{position:relative;background:var(--cold);border-color:#e0b33d;box-shadow:0 0 10px rgba(224,179,61,.5)}
+.ct-tgl.bx.stale::after{content:"!";position:absolute;top:-6px;right:-6px;width:13px;height:13px;border-radius:50%;background:#e0b33d;color:#1a1300;font-size:10px;font-weight:900;line-height:13px;text-align:center;border:1.5px solid var(--bg)}
 .ct-meta{display:flex;gap:4px;flex-wrap:wrap;margin:5px 0}
 .ct-pill{font-size:9px;padding:2px 7px;border-radius:20px;font-weight:700;background:var(--panel2);color:var(--ink-soft);border:1px solid var(--line);white-space:nowrap;max-width:130px;overflow:hidden;text-overflow:ellipsis}
 .ct-pill.ok{background:rgba(62,207,115,.14);color:#3ecf73;border-color:rgba(62,207,115,.5)}
@@ -1727,6 +1729,9 @@ function getFilteredAgenda() {
   return agendaStore.filter(e => e.user_email === filterVendedor);
 }
 
+// Marca un contacto como "desactualizado en Bitrix": sigue en Bitrix (bitrix=true) pero
+// bitrix_fecha=null indica cambios sin re-sincronizar. El botón azul muestra el indicador.
+function marcarBitrixStale(item){ if(item && item.bitrix) item.bitrix_fecha=null; }
 async function saveEntry(entry) {
   entry.user_id = currentUser.id;
   entry.user_email = currentUser.email;
@@ -2469,7 +2474,7 @@ function openPinModal(entry,newLocation){
   document.getElementById('modal-title-text').textContent=entry?tituloFicha(entry):'Nuevo pin';
   document.getElementById('modal-del-pin').style.display=entry?'block':'none';
   document.getElementById('m-bitrix-sync-wrap').style.display=entry?'block':'none';
-  document.getElementById('m-bitrix-status').textContent=entry&&entry.bitrix_contact_id?'Ya sincronizado con Bitrix (ID '+entry.bitrix_contact_id+')':'';
+  document.getElementById('m-bitrix-status').textContent=(entry&&entry.bitrix&&!entry.bitrix_fecha)?'⚠ Hay cambios para actualizar en Bitrix':(entry&&entry.bitrix_contact_id?'Ya sincronizado con Bitrix (ID '+entry.bitrix_contact_id+')':'');
   document.getElementById('pm-ministat').style.display=entry?'flex':'none';
   if(entry){
     const ints=Array.isArray(entry.interacciones)?entry.interacciones:[];
@@ -2615,10 +2620,15 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
       if(modalContactado && !item.contactado) item.contactado_fecha=new Date().toISOString();
       if(!modalContactado) item.contactado_fecha=null;
       item.contactado=modalContactado;
-      // Cualquier edición de la ficha desactualiza lo que ya se mandó a Bitrix: se destilda
-      // solo, y se vuelve a tildar cuando se reenvía con éxito (ver enviarABitrix).
-      item.bitrix=false;
-      item.bitrix_fecha=null;
+      // Bitrix: no se apaga al editar. Si sigue marcado y se editó info, queda "desactualizado"
+      // (bitrix_fecha=null) para que el botón azul muestre el indicador de "actualizar en Bitrix".
+      if(modalBitrix){
+        const yaEstaba=item.bitrix;
+        item.bitrix=true;
+        item.bitrix_fecha = yaEstaba ? null : new Date().toISOString();
+      } else {
+        item.bitrix=false; item.bitrix_fecha=null;
+      }
       item.interacciones=modalInteracciones;
       item.obras=modalObras;
       item.personas=modalPersonas;
@@ -3111,7 +3121,7 @@ function renderContactos(){
       +(fotosDe(e).length?'<img class="ct-thumb" src="'+esc(fotosDe(e)[0])+'" alt="" style="cursor:zoom-in" data-fotoview="'+e.id+'">':'')
       +'<div class="ct-toggles">'
       +'<button class="ct-tgl ok '+(e.contactado?'on':'')+'" data-toggle="contactado" data-id="'+e.id+'" title="Contactado"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>'
-      +'<button class="ct-tgl bx '+(e.bitrix?'on':'')+'" data-toggle="bitrix" data-id="'+e.id+'" title="En Bitrix"><svg width="9" height="9" viewBox="0 0 24 24" fill="#fff"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></button>'
+      +'<button class="ct-tgl bx '+(e.bitrix?'on':'')+((e.bitrix&&!e.bitrix_fecha)?' stale':'')+'" data-toggle="bitrix" data-id="'+e.id+'" title="'+((e.bitrix&&!e.bitrix_fecha)?'En Bitrix — hay cambios para actualizar (tocá cuando lo actualices)':'En Bitrix')+'"><svg width="9" height="9" viewBox="0 0 24 24" fill="#fff"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></button>'
       +'</div></div>'
       +phoneRowsHtml(e.telefono)
       +'<button class="ct-expand-toggle" data-opendetail="'+e.id+'"><span class="chev">▾</span> Ver detalle</button>'
@@ -3135,10 +3145,18 @@ function renderContactos(){
     btn.addEventListener('click', async ()=>{
       const id=parseFloat(btn.dataset.id); const field=btn.dataset.toggle;
       const item=localStore.find(x=>x.id===id); if(!item) return;
-      item[field]=!item[field];
-      item[field+'_fecha']=item[field]?new Date().toISOString():null;
+      let texto;
+      if(field==='bitrix' && item.bitrix && !item.bitrix_fecha){
+        // Estaba en Bitrix pero con cambios: este click confirma que ya lo actualizaste allá (no lo apaga).
+        item.bitrix_fecha=new Date().toISOString();
+        texto='Marcado como actualizado en Bitrix';
+      } else {
+        item[field]=!item[field];
+        item[field+'_fecha']=item[field]?new Date().toISOString():null;
+        texto=(item[field]?'Marcado':'Desmarcado')+' como '+(field==='contactado'?'contactado':'pasado a Bitrix');
+      }
       if(!Array.isArray(item.interacciones)) item.interacciones=[];
-      item.interacciones.unshift({fecha:new Date().toLocaleDateString('es-UY')+' '+new Date().toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'}),texto:(item[field]?'Marcado':'Desmarcado')+' como '+(field==='contactado'?'contactado':'pasado a Bitrix'),auto:true});
+      item.interacciones.unshift({fecha:new Date().toLocaleDateString('es-UY')+' '+new Date().toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'}),texto,auto:true});
       await saveEntry(item); renderContactos();
     });
   });
@@ -3730,7 +3748,7 @@ async function crearActividadAgenda({fecha, hora, tipo, texto, estudioTxt, estud
       if(item){
         if(!Array.isArray(item.interacciones)) item.interacciones=[];
         item.interacciones.unshift({fecha:new Date().toLocaleDateString('es-UY'),texto:(tipo==='visita'?'[Visita agendada] ':'[Actividad agendada] ')+ev.texto,auto:false});
-        item.bitrix=false; item.bitrix_fecha=null;
+        marcarBitrixStale(item);
         await saveEntry(item);
       }
     }
@@ -3763,7 +3781,7 @@ async function toggleActividadCompletada(id){
     await sbUpsert('agenda', {id:ev.id, fecha:ev.fecha, hora:ev.hora, tipo:ev.tipo, texto:ev.texto, estudio_id:ev.estudio_id, estudio_nombre:ev.estudio_nombre, completada:ev.completada, completada_fecha:ev.completada_fecha, user_id:currentUser.id, user_email:currentUser.email, user_name:currentUser.name}, currentUser.token);
     if(ev.completada && ev.estudio_id){
       const item=localStore.find(x=>x.id===ev.estudio_id);
-      if(item && item.bitrix){ item.bitrix=false; item.bitrix_fecha=null; await saveEntry(item); }
+      if(item && item.bitrix){ marcarBitrixStale(item); await saveEntry(item); }
     }
   }catch(err){ toast('Error al actualizar', true); }
   refreshActiveView();
@@ -4408,7 +4426,7 @@ function renderNegociaciones(){
       if(item){
         if(!Array.isArray(item.interacciones)) item.interacciones=[];
         item.interacciones.unshift({fecha:new Date().toLocaleDateString('es-UY')+' '+new Date().toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'}),texto:'[Negociación] '+texto,auto:false});
-        item.bitrix=false; item.bitrix_fecha=null;
+        marcarBitrixStale(item);
         okSave=await saveEntry(item);
       }
       if(okSave) toast('Seguimiento guardado ✓');
