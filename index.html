@@ -684,6 +684,46 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .hoy-pill.warm{color:#e8c876;border-color:rgba(224,179,61,.4);background:rgba(224,179,61,.1)}
 .hoy-pill.cold{color:#8fc4ff;border-color:rgba(74,158,255,.4);background:rgba(74,158,255,.1)}
 
+/* ===== CONSTRUCTORAS (agrupado por empresa) ===== */
+.cons-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.cons-kpi{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:12px 14px;position:relative;overflow:hidden}
+.cons-kpi::before{content:"";position:absolute;top:0;left:0;right:0;height:2px}
+.cons-kpi.a::before{background:var(--acc)}.cons-kpi.b::before{background:var(--ok)}.cons-kpi.c::before{background:var(--warm)}
+.cons-kpi .n{font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.cons-kpi.a .n{color:var(--acc-light)}.cons-kpi.b .n{color:#6fe0a0}.cons-kpi.c .n{color:#e8c876}
+.cons-kpi .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:6px;font-weight:700}
+.cons-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px;align-items:start}
+.cons-card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:15px 16px}
+.cons-card.key{border-color:var(--acc-deep);box-shadow:0 0 0 1px var(--acc-dim)}
+.cons-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.cons-name{font-family:var(--font-display);font-size:17px;font-weight:700;color:#fff;line-height:1.1}
+.cons-name .star{color:var(--acc-light);font-size:12px}
+.cons-obras-lbl{font-size:10.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-top:3px}
+.cons-recompra{font-size:10px;font-weight:800;color:#06210f;background:var(--ok);padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.cons-zonas{font-size:11.5px;color:var(--ink-soft);margin-top:10px}
+.cons-tempbar{display:flex;gap:5px;margin-top:11px;flex-wrap:wrap}
+.cons-tchip{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;border:1px solid var(--line)}
+.cons-tchip.hot{color:#ff9a9a;border-color:rgba(255,77,77,.4);background:rgba(255,77,77,.1)}
+.cons-tchip.warm{color:#e8c876;border-color:rgba(224,179,61,.4);background:rgba(224,179,61,.1)}
+.cons-tchip.cold{color:#8fc4ff;border-color:rgba(74,158,255,.4);background:rgba(74,158,255,.1)}
+.cons-tchip.none{color:var(--muted)}
+.cons-meta{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font-size:11.5px;color:var(--muted)}
+.cons-meta b{color:var(--ink-soft)}
+.cons-rival{margin-top:11px;font-size:11.5px;color:#ff9a9a;background:rgba(255,77,77,.08);border:1px solid rgba(255,77,77,.25);border-radius:9px;padding:8px 11px}
+.cons-rival b{color:#ffb3b3}
+.cons-expand{margin-top:12px;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px 12px;color:var(--acc-light);font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.cons-obras{margin-top:8px;border-top:1px dashed var(--line);padding-top:6px;display:none}
+.cons-obras.open{display:block}
+.cons-obra{display:flex;align-items:center;gap:9px;padding:8px 4px;border-bottom:1px solid var(--line-soft);cursor:pointer}
+.cons-obra:last-child{border-bottom:none}
+.cons-obra:hover{background:var(--acc-dim);border-radius:7px}
+.cons-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.cons-dot.hot{background:var(--hot)}.cons-dot.warm{background:var(--warm)}.cons-dot.cold{background:var(--cold)}.cons-dot.none{background:var(--muted)}
+.cons-obra-n{font-weight:700;font-size:13px;color:#fff;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cons-obra-d{font-size:11px;color:var(--muted);white-space:nowrap;flex-shrink:0}
+.cons-obra.nueva{background:rgba(62,207,115,.06);border-radius:7px}
+.cons-newtag{font-size:9px;font-weight:800;color:#06210f;background:var(--ok);padding:1px 6px;border-radius:20px}
+
 /* ===== NEGOCIACIONES (kanban) ===== */
 .neg-toolbar{display:flex;justify-content:flex-end;margin-bottom:12px}
 .neg-form-box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px}
@@ -792,6 +832,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
     <div class="tab" data-tab="negociaciones" style="display:none">Negociaciones</div>
     <div class="tab" data-tab="map">Mapa</div>
     <div class="tab" data-tab="importar">Importar</div>
+    <div class="tab" data-tab="constructoras" id="tab-constructoras" style="display:none">Constructoras</div>
     <div class="tab" data-tab="panel" id="tab-panel" style="display:none">Panel</div>
   </div>
 </header>
@@ -912,6 +953,19 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 <!-- HOY (foco del día) -->
 <section class="view" id="view-hoy">
   <div id="hoy-content"></div>
+</section>
+
+<!-- CONSTRUCTORAS (agrupado por empresa; solo admin, en prueba) -->
+<section class="view" id="view-constructoras">
+  <div class="ct-toolbar">
+    <input type="text" class="ct-search" id="cons-search" placeholder="Buscar constructora o estudio...">
+    <div class="ct-fgroup">
+      <button class="ct-fbtn active" data-consort="obras">Más obras</button>
+      <button class="ct-fbtn" data-consort="recompra">Recompra posible</button>
+      <button class="ct-fbtn" data-consort="movida">Última movida</button>
+    </div>
+  </div>
+  <div id="cons-content"></div>
 </section>
 
 <!-- MAP -->
@@ -1543,6 +1597,7 @@ function showApp() {
     document.getElementById('role-badge').style.display = 'inline';
     document.getElementById('admin-filter-bar').style.display = 'flex';
     document.getElementById('tab-panel').style.display = '';
+    document.getElementById('tab-constructoras').style.display = '';
     setTimeout(()=>{ if(typeof positionTabIndicator==='function') positionTabIndicator(); },0);
   }
 }
@@ -1752,6 +1807,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
     document.getElementById('save-bar').style.display=t==='form'?'block':'none';
     if(t==='map') setTimeout(()=>{if(!mapInitialized)initMap();else refreshMapMarkers();map.invalidateSize();buildMapContactFilter();},80);
     if(t==='hoy') renderHoy();
+    if(t==='constructoras') renderConstructoras();
     if(t==='contactos'){ sincronizarUIFiltros(); renderContactos(); }
     if(t==='lista'){ sincronizarUIFiltros(); renderLista(); }
     if(t==='agenda') renderAgendaTab();
@@ -1869,6 +1925,7 @@ function refreshActiveView(){
   const active = document.querySelector('.tab.active');
   const t = active ? active.dataset.tab : '';
   if(t==='hoy') renderHoy();
+  else if(t==='constructoras') renderConstructoras();
   else if(t==='contactos') renderContactos();
   else if(t==='lista') renderLista();
   else if(t==='agenda') renderAgendaTab();
@@ -3998,6 +4055,94 @@ function renderHoy(){
   cont.querySelectorAll('[data-hoymail]').forEach(b=>b.addEventListener('click', ()=> enviarCatalogoEmail(parseFloat(b.dataset.hoymail))));
   cont.querySelectorAll('[data-hoywa]').forEach(b=>b.addEventListener('click', ()=> enviarCatalogoWa(parseFloat(b.dataset.hoywa))));
 }
+
+// ============================================================
+// TAB CONSTRUCTORAS (agrupa contactos por empresa; solo admin, en prueba)
+// ============================================================
+let consSort='obras', consSearch='';
+function consTempRank(e){ return e.temp==='hot'?3:e.temp==='warm'?2:e.temp==='cold'?1:0; }
+function proveedorReal(p){ p=(p||'').trim(); return (!p || /^(no\s*recuerda|no\s*sabe|no\s*se|ninguno|ninguna|n\/?a|s\/?d|-+|\.+)$/i.test(p)) ? '' : p; }
+function renderConstructoras(){
+  const cont=document.getElementById('cons-content');
+  const store=getFilteredStore();
+  // Agrupar por empresa constructora (o estudio si no hay empresa), case-insensitive.
+  const grupos={};
+  store.forEach(e=>{
+    const nombre=(e.empresa||e.estudio||'').trim();
+    if(!nombre) return;
+    const k=nombre.toLowerCase();
+    if(!grupos[k]) grupos[k]={nombre, obras:[]};
+    grupos[k].obras.push(e);
+  });
+  let lista=Object.values(grupos).map(g=>{
+    const obras=g.obras;
+    const contactados=obras.filter(e=>e.contactado).length;
+    const sinContactar=obras.filter(e=>!e.contactado).length;
+    const temp={hot:0,warm:0,cold:0,none:0};
+    obras.forEach(e=>{ if(e.temp==='hot')temp.hot++; else if(e.temp==='warm')temp.warm++; else if(e.temp==='cold')temp.cold++; else temp.none++; });
+    const zonas=Array.from(new Set(obras.map(e=>(e.zona||'').trim()).filter(Boolean)));
+    const ultima=Math.max(0, ...obras.map(e=>ultimoTouchTs(e)));
+    const catEnviados=obras.filter(e=>getCatalogStatus(e.id).sent.length>0).length;
+    const provCount={};
+    obras.forEach(e=>{ const p=proveedorReal(e.proveedor); if(p){ const k=p.toLowerCase(); if(!provCount[k])provCount[k]={name:p,n:0}; provCount[k].n++; } });
+    const provTop=Object.values(provCount).sort((a,b)=>b.n-a.n)[0]||null;
+    const recompra = contactados>0 && sinContactar>0; // ya los trabajaste y hay obra nueva sin tocar
+    const clave = obras.length>=3;
+    return {nombre:g.nombre, obras, count:obras.length, temp, zonas, ultima, catEnviados, provTop, recompra, clave};
+  });
+  if(consSearch){ const s=consSearch.toLowerCase(); lista=lista.filter(g=>g.nombre.toLowerCase().includes(s) || g.obras.some(e=>(e.estudio||'').toLowerCase().includes(s))); }
+  if(consSort==='obras') lista.sort((a,b)=>b.count-a.count || b.ultima-a.ultima);
+  else if(consSort==='recompra') lista.sort((a,b)=>(b.recompra?1:0)-(a.recompra?1:0) || b.count-a.count);
+  else if(consSort==='movida') lista.sort((a,b)=>b.ultima-a.ultima);
+
+  let html='<div class="cons-kpis">'
+    +'<div class="cons-kpi a"><div class="n">'+lista.length+'</div><div class="l">Constructoras / estudios</div></div>'
+    +'<div class="cons-kpi b"><div class="n">'+lista.filter(g=>g.recompra).length+'</div><div class="l">Con recompra posible</div></div>'
+    +'<div class="cons-kpi c"><div class="n">'+lista.filter(g=>g.clave).length+'</div><div class="l">Cuentas clave (3+ obras)</div></div>'
+    +'</div>';
+  if(!lista.length){ html+='<div class="act-empty">No hay constructoras para mostrar. Cargá la "Empresa constructora" en los contactos para agruparlos acá.</div>'; cont.innerHTML=html; return; }
+
+  html+='<div class="cons-grid">'+lista.map(g=>{
+    const tchips=[];
+    if(g.temp.hot) tchips.push('<span class="cons-tchip hot">'+g.temp.hot+' 🔥</span>');
+    if(g.temp.warm) tchips.push('<span class="cons-tchip warm">'+g.temp.warm+' 🌡</span>');
+    if(g.temp.cold) tchips.push('<span class="cons-tchip cold">'+g.temp.cold+' ❄</span>');
+    if(g.temp.none) tchips.push('<span class="cons-tchip none">'+g.temp.none+' s/temp</span>');
+    const ultimaTxt = g.ultima ? fmtRelativa(g.ultima) : '—';
+    const rival = (g.provTop && g.provTop.n>=2) ? '<div class="cons-rival">Usan <b>'+esc(g.provTop.name)+'</b> en '+g.provTop.n+' de '+g.count+' obras — cuenta a romper.</div>' : '';
+    const obrasHtml = g.obras.slice().sort((a,b)=>consTempRank(b)-consTempRank(a)).map(e=>{
+      const dk=e.temp||'none';
+      const nueva=!e.contactado;
+      const etapa=e.estado?(ETAPA_CORTA[e.estado]||e.estado):'';
+      return '<div class="cons-obra'+(nueva?' nueva':'')+'" data-consopen="'+e.id+'">'
+        +'<span class="cons-dot '+dk+'"></span>'
+        +'<span class="cons-obra-n">'+esc(e.estudio||e.empresa||'(obra)')+(nueva?' <span class="cons-newtag">nueva</span>':'')+'</span>'
+        +'<span class="cons-obra-d">'+(nueva?'sin contactar':esc(etapa||e.zona||''))+'</span>'
+        +'</div>';
+    }).join('');
+    return '<div class="cons-card'+(g.clave?' key':'')+'">'
+      +'<div class="cons-top"><div>'
+        +'<div class="cons-name">'+(g.clave?'<span class="star">★</span> ':'')+esc(g.nombre)+'</div>'
+        +'<div class="cons-obras-lbl">'+g.count+' obra'+(g.count===1?'':'s')+(g.clave?' · cuenta clave':'')+'</div>'
+      +'</div>'+(g.recompra?'<span class="cons-recompra">🔁 Recompra</span>':'')+'</div>'
+      +(g.zonas.length?'<div class="cons-zonas">📍 '+g.zonas.map(esc).join(' · ')+'</div>':'')
+      +(tchips.length?'<div class="cons-tempbar">'+tchips.join('')+'</div>':'')
+      +'<div class="cons-meta"><span>Última movida: <b>'+ultimaTxt+'</b></span>'+(g.catEnviados?'<span>Catálogos enviados: <b>'+g.catEnviados+' obra'+(g.catEnviados===1?'':'s')+'</b></span>':'')+'</div>'
+      +rival
+      +'<button class="cons-expand" data-consexpand>Ver las '+g.count+' obra'+(g.count===1?'':'s')+' ▾</button>'
+      +'<div class="cons-obras">'+obrasHtml+'</div>'
+      +'</div>';
+  }).join('')+'</div>';
+
+  cont.innerHTML=html;
+  cont.querySelectorAll('[data-consexpand]').forEach(b=>b.addEventListener('click',()=>{
+    const box=b.nextElementSibling; const open=box.classList.toggle('open');
+    b.textContent = open ? 'Ocultar obras ▴' : ('Ver las '+box.children.length+' obra'+(box.children.length===1?'':'s')+' ▾');
+  }));
+  cont.querySelectorAll('[data-consopen]').forEach(el=>el.addEventListener('click',()=>{ const it=localStore.find(x=>x.id===parseFloat(el.dataset.consopen)); if(it) openPinModal(it); }));
+}
+document.getElementById('cons-search').addEventListener('input', e=>{ consSearch=e.target.value; renderConstructoras(); });
+document.querySelectorAll('[data-consort]').forEach(b=>b.addEventListener('click',()=>{ document.querySelectorAll('[data-consort]').forEach(x=>x.classList.remove('active')); b.classList.add('active'); consSort=b.dataset.consort; renderConstructoras(); }));
 
 let editingActId = null;
 function showActForm(existingEv){
