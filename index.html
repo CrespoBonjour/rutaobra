@@ -1045,6 +1045,12 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       <button class="ct-fbtn" data-consort="recompra">Recompra posible</button>
       <button class="ct-fbtn" data-consort="movida">Última movida</button>
     </div>
+    <div class="ct-fgroup">
+      <button class="ct-fbtn" data-consfiltro="clave">★ Clave (3+)</button>
+      <button class="ct-fbtn" data-consfiltro="caliente">🔥 Con caliente</button>
+      <button class="ct-fbtn" data-consfiltro="competidor">⚔ Con competidor</button>
+      <button class="ct-fbtn" data-consfiltro="enfriando">❄ Enfriándose</button>
+    </div>
   </div>
   <div id="cons-content"></div>
 </section>
@@ -4217,7 +4223,7 @@ function renderHoy(){
 // ============================================================
 // TAB CONSTRUCTORAS (agrupa contactos por empresa; solo admin, en prueba)
 // ============================================================
-let consSort='obras', consSearch='', consPivot='con', consFocus='all';
+let consSort='obras', consSearch='', consPivot='con', consFocus='all', consFiltros=new Set();
 // Crear una obra nueva ya pre-cargada con la constructora o el estudio (desde la vista Cuentas).
 function nuevaObraDesde(campo, valor){
   const tab=document.querySelector('.tab[data-tab="form"]'); if(tab) tab.click();
@@ -4268,6 +4274,16 @@ function renderConstructoras(){
     return {nombre:g.nombre, obras, count:obras.length, temp, zonas, otros, ultima, catEnviados, provTop, recompra, clave};
   });
   if(consSearch){ const s=consSearch.toLowerCase(); lista=lista.filter(g=>g.nombre.toLowerCase().includes(s) || g.obras.some(e=>obraLabel(e).toLowerCase().includes(s) || (e[otherField]||'').toLowerCase().includes(s))); }
+  if(consFiltros.size){
+    const treintaDias=30*86400000;
+    lista=lista.filter(g=>{
+      if(consFiltros.has('clave') && !g.clave) return false;
+      if(consFiltros.has('caliente') && !g.temp.hot) return false;
+      if(consFiltros.has('competidor') && !(g.provTop && g.provTop.n>=2)) return false;
+      if(consFiltros.has('enfriando') && !(g.ultima>0 && (Date.now()-g.ultima)>treintaDias)) return false;
+      return true;
+    });
+  }
   if(consSort==='obras') lista.sort((a,b)=>b.count-a.count || b.ultima-a.ultima);
   else if(consSort==='recompra') lista.sort((a,b)=>(b.recompra?1:0)-(a.recompra?1:0) || b.count-a.count);
   else if(consSort==='movida') lista.sort((a,b)=>b.ultima-a.ultima);
@@ -4371,6 +4387,7 @@ function renderConstructoras(){
 document.getElementById('cons-search').addEventListener('input', e=>{ consSearch=e.target.value; consFocus='all'; renderConstructoras(); });
 document.querySelectorAll('[data-consort]').forEach(b=>b.addEventListener('click',()=>{ document.querySelectorAll('[data-consort]').forEach(x=>x.classList.remove('active')); b.classList.add('active'); consSort=b.dataset.consort; renderConstructoras(); }));
 document.querySelectorAll('[data-conspivot]').forEach(b=>b.addEventListener('click',()=>{ consPivot=b.dataset.conspivot; consFocus='all'; renderConstructoras(); }));
+document.querySelectorAll('[data-consfiltro]').forEach(b=>b.addEventListener('click',()=>{ const f=b.dataset.consfiltro; if(consFiltros.has(f)) consFiltros.delete(f); else consFiltros.add(f); b.classList.toggle('active'); consFocus='all'; renderConstructoras(); }));
 
 // ============================================================
 // TAB CONTACTOS (directorio de personas: se arma solo con las personas cargadas en cada obra)
