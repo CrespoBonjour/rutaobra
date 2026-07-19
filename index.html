@@ -1747,6 +1747,7 @@ async function loadAll() {
     renderList();
     if (mapInitialized) refreshMapMarkers();
     if(typeof checkRecordatorios==='function') checkRecordatorios();
+    reprogramarAutoVencidas();
   } catch(e) {
     console.error('Error en loadAll:', e);
     toast('Error de conexión: '+String(e).slice(0,150), true);
@@ -2008,7 +2009,7 @@ document.getElementById('save-btn').addEventListener('click',async()=>{
   if(entry.direccion && !huboPin) geocodeAndSave(entry.id,entry.direccion+', Punta del Este, Uruguay');
   if(mapInitialized){ resetMapContactFilter(); buildMapContactFilter(); refreshMapMarkers(); }
   if(productosElegidos.length){
-    const fechaManana=fmtYMD(new Date(Date.now()+86400000));
+    const fechaManana=fechaAutoTrabajo();
     const res=await crearActividadAgenda({fecha:fechaManana, hora:'10:00', tipo:'actividad', texto:'Enviar información: '+productosElegidos.join(', '), estudioId:entry.id, productos:productosElegidos.join(', ')});
     if(res.ok) toast('Actividad agendada para mañana 10:00 ✓'); else toast(res.msg, true);
   }
@@ -2690,7 +2691,7 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
       if(!okSave) return;
       toast('Actualizado ✓');
       if(productosElegidosModal.length){
-        const fechaManana=fmtYMD(new Date(Date.now()+86400000));
+        const fechaManana=fechaAutoTrabajo();
         const res=await crearActividadAgenda({fecha:fechaManana, hora:'10:00', tipo:'actividad', texto:'Enviar información: '+productosElegidosModal.join(', '), estudioId:item.id, productos:productosElegidosModal.join(', ')});
         if(res.ok) toast('Actividad agendada para mañana 10:00 ✓'); else toast(res.msg, true);
       }
@@ -2720,7 +2721,7 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
     toast('Pin guardado ✓');
     resetMapContactFilter();
     if(productosElegidosModal.length){
-      const fechaManana=fmtYMD(new Date(Date.now()+86400000));
+      const fechaManana=fechaAutoTrabajo();
       const res=await crearActividadAgenda({fecha:fechaManana, hora:'10:00', tipo:'actividad', texto:'Enviar información: '+productosElegidosModal.join(', '), estudioId:entry.id, productos:productosElegidosModal.join(', ')});
       if(res.ok) toast('Actividad agendada para mañana 10:00 ✓'); else toast(res.msg, true);
     }
@@ -3770,6 +3771,39 @@ let calMonth=new Date(); calMonth.setDate(1);
 let agSelectedDay=fmtYMD(new Date());
 let agViewMode='month';
 function fmtYMD(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+// Días de trabajo de Martín: martes(2), miércoles(3), jueves(4). Las actividades AUTOMÁTICAS
+// (envío de catálogos, etc.) se agendan en el día de trabajo más cercano para no caer en días
+// que no trabaja y aparecer como vencidas sin sentido. Las manuales quedan en la fecha elegida.
+const DIAS_TRABAJO=[2,3,4];
+function proximoDiaTrabajo(d){
+  const x=new Date(d); x.setHours(0,0,0,0);
+  for(let i=0;i<7;i++){ if(DIAS_TRABAJO.includes(x.getDay())) return x; x.setDate(x.getDate()+1); }
+  return x;
+}
+// Fecha para una actividad automática: arranca en "mañana" y salta al Mar/Mié/Jue más cercano.
+function fechaAutoTrabajo(){ return fmtYMD(proximoDiaTrabajo(new Date(Date.now()+86400000))); }
+// Migración de una sola vez (solo admin): las actividades AUTOMÁTICAS (envío de catálogos, que
+// se identifican por tener `productos`) que quedaron vencidas se reprograman al próximo día de
+// trabajo. Las manuales NO se tocan. Corre una vez por navegador.
+async function reprogramarAutoVencidas(){
+  if(!isAdmin) return;
+  try{ if(localStorage.getItem('rutaobra_reprog_autos_v1')) return; }catch(_){}
+  const hoy=fmtYMD(new Date());
+  const destino=fmtYMD(proximoDiaTrabajo(new Date()));
+  const aMover=agendaStore.filter(a=>a.productos && !a.completada && a.fecha<hoy);
+  let n=0;
+  for(const a of aMover){
+    a.fecha=destino;
+    try{ await sbUpsert('agenda', {...a}, currentUser.token); n++; }
+    catch(e){ console.error('Error reprogramando actividad', e); }
+  }
+  try{ localStorage.setItem('rutaobra_reprog_autos_v1','1'); }catch(_){}
+  if(n){
+    if(typeof programarRecordatorios==='function') programarRecordatorios();
+    renderList();
+    toast('Reprogramé '+n+' actividad'+(n===1?'':'es')+' automática'+(n===1?'':'s')+' vencida'+(n===1?'':'s')+' a tu próximo día de trabajo ✓');
+  }
+}
 function mondayOf(d){ const dt=new Date(d); const dow=(dt.getDay()+6)%7; dt.setDate(dt.getDate()-dow); dt.setHours(0,0,0,0); return dt; }
 let calWeekStart=mondayOf(new Date());
 
