@@ -723,6 +723,10 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .per-wa{background:var(--acc-dim);border:1px solid var(--acc);color:var(--acc-light);border-radius:7px;padding:5px 9px;font-size:10.5px;font-weight:800;text-decoration:none;white-space:nowrap;text-transform:uppercase;letter-spacing:.2px}
 .per-wa:hover{background:var(--acc);color:#1a1300}
 .per-badge{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);background:var(--panel2);border:1px solid var(--line);border-radius:20px;padding:2px 7px}
+.per-em{background:var(--panel2);border:1px solid var(--line);color:var(--acc-light);border-radius:7px;padding:5px 9px;font-size:10.5px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;text-transform:uppercase;letter-spacing:.2px}
+.per-em:hover{border-color:var(--acc);background:var(--acc-dim)}
+.per-tblacts{display:flex;gap:5px}
+.ls-table .per-wa,.ls-table .per-em{padding:3px 8px;font-size:10px}
 .cons-kpi.a::before{background:var(--acc)}.cons-kpi.b::before{background:var(--ok)}.cons-kpi.c::before{background:var(--warm)}.cons-kpi.d::before{background:var(--muted)}
 .cons-kpi .n{font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
 .cons-kpi.a .n{color:var(--acc-light)}.cons-kpi.b .n{color:#6fe0a0}.cons-kpi.c .n{color:#e8c876}.cons-kpi.d .n{color:var(--ink-soft)}
@@ -1016,7 +1020,11 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 <!-- CONTACTOS (directorio de personas: quién es quién, con su teléfono y a qué obra/empresa pertenece) -->
 <section class="view" id="view-personas">
   <div class="ct-toolbar">
-    <input type="text" class="ct-search" id="per-search" placeholder="Buscar por nombre, teléfono, cargo, empresa...">
+    <input type="text" class="ct-search" id="per-search" placeholder="Buscar por nombre, teléfono, email, cargo, empresa...">
+    <div class="ct-fgroup ct-vista">
+      <button class="ct-fbtn active" data-pervista="tarjetas" title="Ver como tarjetas">▦ Tarjetas</button>
+      <button class="ct-fbtn" data-pervista="lista" title="Ver como lista">≣ Lista</button>
+    </div>
     <div class="per-count" id="per-count"></div>
   </div>
   <div id="per-content"></div>
@@ -4353,44 +4361,73 @@ document.querySelectorAll('[data-conspivot]').forEach(b=>b.addEventListener('cli
 // ============================================================
 // TAB CONTACTOS (directorio de personas: se arma solo con las personas cargadas en cada obra)
 // ============================================================
-let personasSearch='';
+let personasSearch='', personasVista='tarjetas';
+try{ const v=localStorage.getItem('rutaobra_vista_personas'); if(v==='tarjetas'||v==='lista') personasVista=v; }catch(_){}
 function inicialesNombre(nombre){ const p=(nombre||'').trim().split(/\s+/); return (((p[0]||'')[0]||'?')+((p[1]||'')[0]||'')).toUpperCase(); }
+function enviarEmailPersona(email){
+  if(!email || !email.trim()){ toast('Este contacto no tiene email cargado. Abrí su ficha para agregarlo.', true); return; }
+  copyAndOpenWebmail(email.trim());
+}
 function renderPersonas(){
   const cont=document.getElementById('per-content');
   const store=getFilteredStore();
   const gente=[];
   store.forEach(e=>{
-    if((e.nombre||'').trim()) gente.push({nombre:e.nombre.trim(), cargo:e.cargo||'', telefono:e.telefono||'', e, principal:true});
-    (Array.isArray(e.personas)?e.personas:[]).forEach(p=>{ if((p.nombre||'').trim()) gente.push({nombre:p.nombre.trim(), cargo:p.cargo||'', telefono:p.telefono||'', e, principal:false}); });
+    if((e.nombre||'').trim()) gente.push({nombre:e.nombre.trim(), cargo:e.cargo||'', telefono:e.telefono||'', email:(e.email||'').trim(), e, principal:true});
+    (Array.isArray(e.personas)?e.personas:[]).forEach(p=>{ if((p.nombre||'').trim()) gente.push({nombre:p.nombre.trim(), cargo:p.cargo||'', telefono:p.telefono||'', email:(p.email||'').trim(), e, principal:false}); });
   });
   let lista=gente;
   if(personasSearch){
     const s=personasSearch.toLowerCase();
-    lista=lista.filter(g=>(g.nombre+' '+g.cargo+' '+g.telefono+' '+(g.e.empresa||'')+' '+(g.e.estudio||'')+' '+(g.e.obra||'')).toLowerCase().includes(s));
+    lista=lista.filter(g=>(g.nombre+' '+g.cargo+' '+g.telefono+' '+g.email+' '+(g.e.empresa||'')+' '+(g.e.estudio||'')+' '+(g.e.obra||'')).toLowerCase().includes(s));
   }
   lista.sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
   document.getElementById('per-count').textContent=lista.length+' contacto'+(lista.length===1?'':'s');
+  document.querySelectorAll('[data-pervista]').forEach(b=>b.classList.toggle('active', b.dataset.pervista===personasVista));
   if(!lista.length){ cont.innerHTML='<div class="act-empty">No hay contactos cargados todavía. Se arman solos con las personas que cargás en cada obra.</div>'; return; }
-  cont.innerHTML='<div class="per-list">'+lista.map(g=>{
-    const tel=parsePhones(g.telefono)[0]||'';
-    const wa=tel?waLink(tel):'';
-    const afil=[ g.e.empresa?'🏗 '+esc(g.e.empresa):'', g.e.estudio?'📐 '+esc(g.e.estudio):'', g.e.obra?esc(g.e.obra):'' ].filter(Boolean).join(' <span class="sep">·</span> ');
-    return '<div class="per-row" data-peropen="'+g.e.id+'">'
-      +'<div class="per-avatar">'+esc(inicialesNombre(g.nombre))+'</div>'
-      +'<div class="per-body">'
-        +'<div class="per-name">'+esc(g.nombre)+(g.cargo?' <span class="per-cargo">· '+esc(g.cargo)+'</span>':'')+'</div>'
-        +(afil?'<div class="per-affil">'+afil+'</div>':'<div class="per-affil" style="color:var(--warm)">sin empresa / obra</div>')
-        +(tel?'<div class="per-tel">'+ICONS.phone+' '+esc(tel)+'</div>':'')
-      +'</div>'
-      +'<div class="per-actions">'
-        +(g.principal?'':'<span class="per-badge">otra persona</span>')
-        +(wa?'<a class="per-wa" href="'+wa+'" target="_blank" onclick="event.stopPropagation()">WhatsApp</a>':'')
-      +'</div>'
-      +'</div>';
-  }).join('')+'</div>';
+
+  if(personasVista==='lista'){
+    cont.innerHTML='<div class="ls-wrap"><table class="ls-table"><thead><tr><th>Nombre</th><th>Cargo</th><th>Teléfono</th><th>Email</th><th>Empresa / Obra</th><th>Contactar</th></tr></thead><tbody>'
+      +lista.map(g=>{
+        const tel=parsePhones(g.telefono)[0]||'';
+        const afil=[g.e.empresa||g.e.estudio||'', g.e.obra||''].filter(Boolean).join(' · ');
+        return '<tr data-peropen="'+g.e.id+'">'
+          +'<td class="ls-est">'+esc(g.nombre)+(g.principal?'':' <span class="per-badge">otra</span>')+'</td>'
+          +'<td>'+esc(g.cargo||'—')+'</td>'
+          +'<td>'+(tel?esc(tel):'—')+'</td>'
+          +'<td>'+(g.email?esc(g.email):'<span style="color:var(--warm)">falta</span>')+'</td>'
+          +'<td>'+esc(afil||'—')+'</td>'
+          +'<td><div class="per-tblacts">'+(tel?'<a class="per-wa" href="'+waLink(tel)+'" target="_blank" onclick="event.stopPropagation()">WA</a>':'')+'<button class="per-em" data-peremail="'+esc(g.email)+'" onclick="event.stopPropagation()" title="Enviar email">✉</button></div></td>'
+          +'</tr>';
+      }).join('')+'</tbody></table></div>';
+  } else {
+    cont.innerHTML='<div class="per-list">'+lista.map(g=>{
+      const tel=parsePhones(g.telefono)[0]||'';
+      const wa=tel?waLink(tel):'';
+      const afil=[ g.e.empresa?'🏗 '+esc(g.e.empresa):'', g.e.estudio?'📐 '+esc(g.e.estudio):'', g.e.obra?esc(g.e.obra):'' ].filter(Boolean).join(' <span class="sep">·</span> ');
+      return '<div class="per-row" data-peropen="'+g.e.id+'">'
+        +'<div class="per-avatar">'+esc(inicialesNombre(g.nombre))+'</div>'
+        +'<div class="per-body">'
+          +'<div class="per-name">'+esc(g.nombre)+(g.cargo?' <span class="per-cargo">· '+esc(g.cargo)+'</span>':'')+'</div>'
+          +(afil?'<div class="per-affil">'+afil+'</div>':'<div class="per-affil" style="color:var(--warm)">sin empresa / obra</div>')
+          +(tel?'<div class="per-tel">'+ICONS.phone+' '+esc(tel)+'</div>':'')
+          +(g.email?'<div class="per-tel">'+ICONS.mail+' '+esc(g.email)+'</div>':'')
+        +'</div>'
+        +'<div class="per-actions">'
+          +(g.principal?'':'<span class="per-badge">otra persona</span>')
+          +(wa?'<a class="per-wa" href="'+wa+'" target="_blank" onclick="event.stopPropagation()">WhatsApp</a>':'')
+          +'<button class="per-em" data-peremail="'+esc(g.email)+'" onclick="event.stopPropagation()">✉ Email</button>'
+        +'</div>'
+        +'</div>';
+    }).join('')+'</div>';
+  }
+
   cont.querySelectorAll('[data-peropen]').forEach(el=>el.addEventListener('click',()=>{ const it=localStore.find(x=>x.id===parseFloat(el.dataset.peropen)); if(it) openPinModal(it); }));
+  cont.querySelectorAll('[data-peremail]').forEach(b=>b.addEventListener('click', (ev)=>{ ev.stopPropagation(); enviarEmailPersona(b.dataset.peremail); }));
 }
+function setPersonasVista(v){ personasVista=v; try{ localStorage.setItem('rutaobra_vista_personas', v); }catch(_){} renderPersonas(); }
 document.getElementById('per-search').addEventListener('input', e=>{ personasSearch=e.target.value; renderPersonas(); });
+document.querySelectorAll('[data-pervista]').forEach(b=>b.addEventListener('click', ()=> setPersonasVista(b.dataset.pervista)));
 
 let editingActId = null;
 function showActForm(existingEv){
