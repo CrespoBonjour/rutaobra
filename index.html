@@ -705,6 +705,8 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .cons-focus-clear{background:var(--panel2);border:1px solid var(--line);color:var(--acc-light);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit}
 .cons-focus-clear:hover{border-color:var(--acc)}
 .cons-focus-list{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:6px 14px}
+.cons-nueva{margin-top:10px;width:100%;background:var(--acc-dim);border:1px solid var(--acc-deep);color:var(--acc-light);border-radius:9px;padding:9px 12px;font-size:11.5px;font-weight:800;cursor:pointer;font-family:inherit;transition:.15s}
+.cons-nueva:hover{background:var(--acc);color:#1a1300}
 
 /* ===== CONTACTOS (directorio de personas) ===== */
 .per-count{align-self:center;font-size:11px;color:var(--muted);font-weight:700;white-space:nowrap}
@@ -4216,6 +4218,16 @@ function renderHoy(){
 // TAB CONSTRUCTORAS (agrupa contactos por empresa; solo admin, en prueba)
 // ============================================================
 let consSort='obras', consSearch='', consPivot='con', consFocus='all';
+// Crear una obra nueva ya pre-cargada con la constructora o el estudio (desde la vista Cuentas).
+function nuevaObraDesde(campo, valor){
+  const tab=document.querySelector('.tab[data-tab="form"]'); if(tab) tab.click();
+  clearForm();
+  const el=document.getElementById('f-'+campo); if(el) el.value=valor;
+  poblarEmpresasEstudios();
+  const vf=document.getElementById('view-form'); if(vf) vf.scrollTop=0;
+  const obra=document.getElementById('f-obra'); if(obra) obra.focus();
+  toast('Nueva obra para '+valor+' — poné el nombre de la obra y guardá.');
+}
 function consTempRank(e){ return e.temp==='hot'?3:e.temp==='warm'?2:e.temp==='cold'?1:0; }
 function proveedorReal(p){ p=(p||'').trim(); return (!p || /^(no\s*recuerda|no\s*sabe|no\s*se|ninguno|ninguna|n\/?a|s\/?d|-+|\.+)$/i.test(p)) ? '' : p; }
 function obraLabel(e){ return (e.obra||'').trim() || (e.nombre||'').trim() || '(obra s/nombre)'; }
@@ -4325,6 +4337,7 @@ function renderConstructoras(){
         +(tchips.length?'<div class="cons-tempbar">'+tchips.join('')+'</div>':'')
         +'<div class="cons-meta"><span>Última movida: <b>'+ultimaTxt+'</b></span>'+(g.catEnviados?'<span>Catálogos: <b>'+g.catEnviados+'</b></span>':'')+'</div>'
         +rival
+        +'<button class="cons-nueva" data-cnvcampo="'+keyField+'" data-cnvnombre="'+esc(g.nombre)+'">+ Nueva obra acá</button>'
         +'<button class="cons-expand" data-consexpand>Ver las '+g.count+' obra'+(g.count===1?'':'s')+' ▾</button>'
         +'<div class="cons-obras">'+obrasHtml+'</div>'
         +'</div>';
@@ -4353,6 +4366,7 @@ function renderConstructoras(){
   }));
   cont.querySelectorAll('[data-consopen]').forEach(el=>el.addEventListener('click',()=>{ const it=localStore.find(x=>x.id===parseFloat(el.dataset.consopen)); if(it) openPinModal(it); }));
   cont.querySelectorAll('[data-consfocus]').forEach(el=>el.addEventListener('click',()=>{ consFocus=el.dataset.consfocus; renderConstructoras(); }));
+  cont.querySelectorAll('[data-cnvcampo]').forEach(b=>b.addEventListener('click', ev=>{ ev.stopPropagation(); nuevaObraDesde(b.dataset.cnvcampo, b.dataset.cnvnombre); }));
 }
 document.getElementById('cons-search').addEventListener('input', e=>{ consSearch=e.target.value; consFocus='all'; renderConstructoras(); });
 document.querySelectorAll('[data-consort]').forEach(b=>b.addEventListener('click',()=>{ document.querySelectorAll('[data-consort]').forEach(x=>x.classList.remove('active')); b.classList.add('active'); consSort=b.dataset.consort; renderConstructoras(); }));
