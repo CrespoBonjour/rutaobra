@@ -3916,7 +3916,8 @@ async function toggleActividadPrimordial(id){
     await sbUpsert('agenda', {...ev, user_id:currentUser.id, user_email:currentUser.email, user_name:currentUser.name}, currentUser.token);
   }catch(err){
     ev.primordial = !ev.primordial; // revertir en memoria si falló
-    toast('No se pudo guardar la marca. ¿Corriste el SQL 10_agenda_primordial.sql en Supabase?', true);
+    console.error('Error primordial:', err);
+    toast('No se pudo guardar: '+String(err && err.message || err).slice(0,180), true);
     return;
   }
   refreshActiveView();
