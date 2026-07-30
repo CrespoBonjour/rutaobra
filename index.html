@@ -1546,7 +1546,16 @@ function authHeaders(token) {
   return { 'Content-Type':'application/json', 'apikey':SUPA_KEY, 'Authorization':'Bearer '+(token||SUPA_KEY) };
 }
 
-async function refreshAccessToken(){
+// Un solo refresco de token a la vez: si varias consultas dan 401 juntas (típico al
+// abrir la app con el token vencido), comparten este mismo refresco en vez de dispararlo
+// N veces y pisarse entre sí (la rotación del refresh_token invalidaba a los demás → "varía mucho").
+let _refreshInFlight = null;
+function refreshAccessToken(){
+  if(_refreshInFlight) return _refreshInFlight;
+  _refreshInFlight = _doRefreshAccessToken().finally(()=>{ _refreshInFlight = null; });
+  return _refreshInFlight;
+}
+async function _doRefreshAccessToken(){
   const refresh_token = localStorage.getItem('sb_refresh_token');
   if(!refresh_token) return null;
   try{
@@ -1563,19 +1572,6 @@ async function refreshAccessToken(){
     if(currentUser) currentUser.token = data.access_token;
     return data.access_token;
   }catch(e){ return null; }
-}
-
-// Trae visitas SIN las columnas pesadas de fotos (photo/fotos son base64 y pueden
-// pesar decenas de MB en total, lo que hacía reventar el GET con un 500 por timeout).
-// Descubre las columnas en runtime para seguir siendo robusto si se agregan columnas.
-async function sbGetVisitasLight(token) {
-  const sample = await sbGet('visitas', 'limit=1', token);
-  let params = '';
-  if (sample.length) {
-    const cols = Object.keys(sample[0]).filter(c => c !== 'fotos' && c !== 'photo');
-    params = 'select=' + cols.join(',');
-  }
-  return sbGet('visitas', params, token);
 }
 
 async function sbGet(table, params, token) {
@@ -1752,13 +1748,16 @@ document.getElementById('btn-logout').addEventListener('click', () => {
 // ============================================================
 // DATOS
 // ============================================================
-function setLoading(on) { document.getElementById('sync-indicator').style.display = on ? 'flex' : 'none'; }
+// Contador: con guardados en segundo plano puede haber varios sincronizando a la vez;
+// el indicador se apaga recién cuando terminan todos.
+let _syncCount = 0;
+function setLoading(on) { _syncCount += on ? 1 : -1; if(_syncCount<0) _syncCount=0; document.getElementById('sync-indicator').style.display = _syncCount>0 ? 'flex' : 'none'; }
 
 async function loadAll() {
   setLoading(true);
   try {
     [localStore, localZones, agendaStore, negociacionesStore, productosCatalogoStore] = await Promise.all([
-      sbGetVisitasLight(currentUser.token),
+      sbGet('visitas', '', currentUser.token),
       sbGet('zonas', '', currentUser.token),
       sbGet('agenda', '', currentUser.token).catch(()=>[]),
       sbGet('negociaciones', '', currentUser.token).catch(()=>[]),
@@ -1811,25 +1810,31 @@ function getFilteredAgenda() {
 // Marca un contacto como "desactualizado en Bitrix": sigue en Bitrix (bitrix=true) pero
 // bitrix_fecha=null indica cambios sin re-sincronizar. El botón azul muestra el indicador.
 function marcarBitrixStale(item){ if(item && item.bitrix) item.bitrix_fecha=null; }
-async function saveEntry(entry) {
+// Guardado optimista (local-first): actualiza la memoria y devuelve al instante; la subida
+// a Supabase va en segundo plano para que la UI no espere a la red. Si falla, avisa por toast.
+function saveEntry(entry) {
   entry.user_id = currentUser.id;
   entry.user_email = currentUser.email;
   entry.user_name = currentUser.name;
   delete entry.expanded;
   const idx = localStore.findIndex(e => e.id === entry.id);
   if (idx >= 0) localStore[idx] = entry; else localStore.unshift(entry);
+  syncVisitaBg(entry);
+  return true;
+}
+
+async function syncVisitaBg(entry) {
   setLoading(true);
-  try { await sbUpsert('visitas', entry, currentUser.token); return true; }
+  try { await sbUpsert('visitas', entry, currentUser.token); }
   catch(e) {
     // Red de seguridad: si todavía no se corrió el SQL de alguna columna nueva,
     // reintenta el guardado sin esos campos (quedan en memoria hasta correr el SQL).
     const COLS_OPCIONALES=['fotos','tamano_obra','fecha_instalacion','obra','tipo_cliente'];
     const errTxt=String(e).toLowerCase();
     if(COLS_OPCIONALES.some(c=>errTxt.includes(c))){
-      try { const rest={...entry}; COLS_OPCIONALES.forEach(c=>delete rest[c]); await sbUpsert('visitas', rest, currentUser.token); toast('Guardado. Faltan correr los SQL nuevos en Supabase (fotos / tamaño / fecha de instalación) para que esos campos se guarden.', true); return true; }
-      catch(e2){ console.error('Error guardando en Supabase:', e2); toast('Error al guardar: '+String(e2).slice(0,120), true); return false; }
-    }
-    console.error('Error guardando en Supabase:', e); toast('Error al guardar: '+String(e).slice(0,120), true); return false;
+      try { const rest={...entry}; COLS_OPCIONALES.forEach(c=>delete rest[c]); await sbUpsert('visitas', rest, currentUser.token); toast('Guardado. Faltan correr los SQL nuevos en Supabase (fotos / tamaño / fecha de instalación) para que esos campos se guarden.', true); }
+      catch(e2){ console.error('Error guardando en Supabase:', e2); toast('Error al guardar: '+String(e2).slice(0,120), true); }
+    } else { console.error('Error guardando en Supabase:', e); toast('Error al guardar: '+String(e).slice(0,120), true); }
   }
   finally { setLoading(false); }
 }
