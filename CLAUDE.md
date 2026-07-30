@@ -26,3 +26,18 @@ No hace falta pedir permiso para crear estas notas — es un hábito ya acordado
 - **Nunca mezclar estado de UI con los objetos que se guardan en Supabase.** Ya pasó una vez (`item.expanded` colándose en el guardado y rompiendo todo el upsert con `PGRST204` porque esa columna no existe en la tabla). Estado puramente visual va en variables/Sets separados, nunca como propiedad del objeto de datos.
 - **Toda función que hable con Supabase debe pasar por `sbGet` / `sbUpsert` / `sbDelete`** (no hacer `fetch` directo a la API REST), porque esos helpers ya manejan el reintento automático cuando el token JWT expiró.
 - Cualquier campo nuevo que se agregue a un contacto/entidad debe existir como columna real en Supabase antes de mandarlo en un upsert, o el guardado completo falla.
+
+## Tests y lógica pura
+
+El proyecto tiene tests automáticos con el runner nativo de Node (sin dependencias). Correrlos con:
+
+```
+npm test
+```
+
+Reglas para mantener la base sólida:
+
+- **La lógica PURA vive en `lib/logic.js`** (cálculo sin DOM, sin red, sin estado global: fechas, cadencia, parseo, etc.). `index.html` la carga con `<script src="lib/logic.js">` ANTES del script principal. El mismo archivo se importa en los tests con `require` gracias al `module.exports` del final.
+- **Cada función que se agrega a `lib/logic.js` debe tener su test** en `tests/logic.test.js`.
+- **Antes de commitear, correr `npm test`** además del `node --check`. Si tocaste una función pura, sumá o actualizá su test.
+- Al escribir código nuevo, si una función es cálculo puro (no toca `document`, Supabase ni `localStore`/`agendaStore`/`currentUser`), preferí ponerla en `lib/logic.js` para que sea testeable. Lo que sí toca el DOM o el estado global queda en `index.html`.

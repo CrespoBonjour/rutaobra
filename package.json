@@ -1,0 +1,9 @@
+{
+  "name": "rutaobra",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CRM interno de MGI Insumos Electricos (Punta del Este).",
+  "scripts": {
+    "test": "node --test"
+  }
+}

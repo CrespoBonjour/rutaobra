@@ -1511,6 +1511,8 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<!-- Lógica pura (con tests en tests/logic.test.js). Debe cargar ANTES del script principal. -->
+<script src="lib/logic.js"></script>
 <script>
 // ============================================================
 // SUPABASE CONFIG
@@ -3042,11 +3044,7 @@ function fmtRelativa(ts){
 }
 
 // Un campo de teléfono puede traer más de un número (separados por / , ;).
-function parsePhones(str){
-  if(!str) return [];
-  return str.split(/[,;/]+/).map(s=>s.trim()).filter(Boolean);
-}
-function joinPhones(arr){ return arr.filter(Boolean).join(', '); }
+// parsePhones / joinPhones → en lib/logic.js
 
 // ── Detección de posibles duplicados al cargar un contacto nuevo ──
 // Compara contra localStore por email, teléfono (últimos 8 dígitos) y nombre.
@@ -3520,13 +3518,7 @@ const TEMP_META=[
 function tempKey(e){ return (e.temp==='cold'||e.temp==='warm'||e.temp==='hot')?e.temp:'none'; }
 
 // Fechas guardadas con toLocaleDateString('es-UY'): "dd/mm/yyyy" u "dd/mm/yyyy hh:mm".
-function parseFechaUY(str){
-  if(!str) return 0;
-  const m=String(str).match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})(?:[ ,]+(\d{1,2}):(\d{2}))?/);
-  if(!m) return 0;
-  let y=parseInt(m[3],10); if(y<100) y+=2000;
-  return new Date(y, parseInt(m[2],10)-1, parseInt(m[1],10), parseInt(m[4]||'0',10), parseInt(m[5]||'0',10)).getTime();
-}
+// parseFechaUY → en lib/logic.js
 
 function anLegendHtml(){
   return '<div class="an-legend">'+TEMP_META.map(t=>'<span><i style="background:'+t.color+'"></i>'+t.label+'</span>').join('')+'</div>';
@@ -3827,18 +3819,11 @@ document.querySelectorAll('[data-lsprio]').forEach(b=>b.addEventListener('click'
 let calMonth=new Date(); calMonth.setDate(1);
 let agSelectedDay=fmtYMD(new Date());
 let agViewMode='month';
-function fmtYMD(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+// fmtYMD → en lib/logic.js
 // Días de trabajo de Martín: martes(2), miércoles(3), jueves(4). Las actividades AUTOMÁTICAS
 // (envío de catálogos, etc.) se agendan en el día de trabajo más cercano para no caer en días
 // que no trabaja y aparecer como vencidas sin sentido. Las manuales quedan en la fecha elegida.
-const DIAS_TRABAJO=[2,3,4];
-function proximoDiaTrabajo(d){
-  const x=new Date(d); x.setHours(0,0,0,0);
-  for(let i=0;i<7;i++){ if(DIAS_TRABAJO.includes(x.getDay())) return x; x.setDate(x.getDate()+1); }
-  return x;
-}
-// Fecha para una actividad automática: arranca en "mañana" y salta al Mar/Mié/Jue más cercano.
-function fechaAutoTrabajo(){ return fmtYMD(proximoDiaTrabajo(new Date(Date.now()+86400000))); }
+// DIAS_TRABAJO / proximoDiaTrabajo / fechaAutoTrabajo → en lib/logic.js
 // Migración de una sola vez (solo admin): las actividades AUTOMÁTICAS (envío de catálogos, que
 // se identifican por tener `productos`) que quedaron vencidas se reprograman al próximo día de
 // trabajo. Las manuales NO se tocan. Corre una vez por navegador.
@@ -4209,8 +4194,7 @@ document.querySelectorAll('[data-actf]').forEach(b=>b.addEventListener('click',(
 // ============================================================
 // TAB HOY (foco del día): para hacer hoy + contactos que se están enfriando
 // ============================================================
-const CADENCIA_DIAS = { hot:12, warm:20, cold:30 };
-function cadenciaDe(e){ return CADENCIA_DIAS[e.temp] || 30; }
+// CADENCIA_DIAS / cadenciaDe → en lib/logic.js
 // Última vez que se "tocó" el contacto: comentario/interacción, actividad COMPLETADA, o la marca de contactado.
 function ultimoTouchTs(e){
   let ts=0;
@@ -4229,15 +4213,7 @@ function sugerenciaContacto(e){
   if(!Array.isArray(e.personas) || !e.personas.length) return {txt:'Averiguar quién decide la compra y sumarlo como contacto.', why:'Tenés una sola persona de contacto cargada.'};
   return {txt:'Llamar para ver cómo viene la obra y si necesitan material.', why:'Hace rato sin novedades y sin nada agendado.'};
 }
-function tamanoLabel(v){ return v==='chico'?'Obra chica':v==='mediano'?'Obra mediana':v==='grande'?'Obra grande':''; }
-function faltaTexto(fechaYMD, hoyYMD){
-  const d=Math.round((new Date(fechaYMD+'T00:00:00')-new Date(hoyYMD+'T00:00:00'))/86400000);
-  if(d<0) return {t:'Ya entró (hace '+(-d)+' d)', cls:'warm'};
-  if(d===0) return {t:'Entra hoy', cls:'hot'};
-  if(d<=10) return {t:'En ~'+d+' días', cls:'hot'};
-  const sem=Math.round(d/7);
-  return {t:'En ~'+sem+' semana'+(sem===1?'':'s'), cls:'cold'};
-}
+// tamanoLabel / faltaTexto → en lib/logic.js
 function renderHoy(){
   const cont=document.getElementById('hoy-content');
   const hoy=fmtYMD(new Date());
