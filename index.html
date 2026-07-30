@@ -150,7 +150,9 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .catalog-item.selected{background:var(--acc-dim);border-color:var(--acc);color:var(--ink)}
 .catalog-item.selected .box{background:var(--acc);border-color:var(--acc-deep)}
 .catalog-item.selected .box::after{content:"✓";font-size:10px;color:#1a1300;font-weight:900}
-.photo-area{background:var(--panel2);border:2px dashed var(--line);border-radius:10px;padding:20px;text-align:center;cursor:pointer;color:var(--muted);font-size:12.5px;margin-bottom:12px;transition:.15s;font-weight:600}
+/* Fotos deshabilitadas: se sacaron de la app para optimizar memoria en Supabase. */
+.photo-area{display:none!important}
+.photo-area-old{background:var(--panel2);border:2px dashed var(--line);border-radius:10px;padding:20px;text-align:center;cursor:pointer;color:var(--muted);font-size:12.5px;margin-bottom:12px;transition:.15s;font-weight:600}
 .photo-area:hover{border-color:var(--acc)}
 .photo-area .icon{font-size:24px;margin-bottom:6px}
 .photo-preview{width:100%;border-radius:9px;margin-bottom:8px;max-height:160px;object-fit:cover;display:none;border:1.5px solid var(--line)}
@@ -1552,6 +1554,19 @@ async function refreshAccessToken(){
   }catch(e){ return null; }
 }
 
+// Trae visitas SIN las columnas pesadas de fotos (photo/fotos son base64 y pueden
+// pesar decenas de MB en total, lo que hacía reventar el GET con un 500 por timeout).
+// Descubre las columnas en runtime para seguir siendo robusto si se agregan columnas.
+async function sbGetVisitasLight(token) {
+  const sample = await sbGet('visitas', 'limit=1', token);
+  let params = '';
+  if (sample.length) {
+    const cols = Object.keys(sample[0]).filter(c => c !== 'fotos' && c !== 'photo');
+    params = 'select=' + cols.join(',');
+  }
+  return sbGet('visitas', params, token);
+}
+
 async function sbGet(table, params, token) {
   let url = SUPA_URL+'/rest/v1/'+table+'?order=id.desc';
   if (params) url += '&'+params;
@@ -1732,7 +1747,7 @@ async function loadAll() {
   setLoading(true);
   try {
     [localStore, localZones, agendaStore, negociacionesStore, productosCatalogoStore] = await Promise.all([
-      sbGet('visitas', '', currentUser.token),
+      sbGetVisitasLight(currentUser.token),
       sbGet('zonas', '', currentUser.token),
       sbGet('agenda', '', currentUser.token).catch(()=>[]),
       sbGet('negociaciones', '', currentUser.token).catch(()=>[]),
