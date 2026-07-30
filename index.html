@@ -25,6 +25,7 @@
   --acc-tex:repeating-linear-gradient(115deg, rgba(255,255,255,.05) 0px, rgba(255,255,255,.05) 1px, transparent 1px, transparent 3px),linear-gradient(150deg,var(--acc-light),var(--acc) 55%,var(--acc-deep));
   --acc-tex-btn:repeating-linear-gradient(115deg, rgba(255,255,255,.06) 0px, rgba(255,255,255,.06) 1px, transparent 1px, transparent 3px),linear-gradient(150deg,#7c5c3f,#63492f 55%,#46331f);
   --cold:#4a9eff;--hot:#ff4d4d;--ok:#3ecf73;
+  --prio:#8b5cf6;--prio-glow:rgba(139,92,246,.35);--prio-dim:rgba(139,92,246,.13);
   --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   --font-display:'Fraunces',Georgia,serif;
   --shadow-sm:0 2px 8px rgba(0,0,0,.35);
@@ -641,6 +642,15 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .act-edit:hover{color:var(--acc-light)}
 .act-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;flex-shrink:0}
 .act-del:hover{color:#ff4d4d}
+/* Actividades primordiales (violeta): botón estrella + recuadro pintado */
+.act-star{background:none;border:none;cursor:pointer;color:var(--muted);padding:0;flex-shrink:0;display:flex;align-items:center;margin-top:2px;transition:color .15s var(--ease)}
+.act-star svg{fill:none;stroke:currentColor;stroke-width:1.7}
+.act-star:hover{color:var(--prio)}
+.act-star.on{color:var(--prio)}
+.act-star.on svg{fill:var(--prio);stroke:var(--prio)}
+.act-row.primordial:not(.completada){border-color:var(--prio);border-left-color:var(--prio);background:linear-gradient(120deg,var(--prio-dim),var(--panel) 62%);box-shadow:0 0 0 1px var(--prio-dim)}
+.hoy-mini.primordial{background:linear-gradient(120deg,var(--prio-dim),transparent 72%);border-radius:8px;padding-left:8px}
+.ag-event.primordial{outline:1.5px solid var(--prio);outline-offset:-1px;background:var(--prio-dim)}
 .act-send{background:var(--acc-dim);border:1.5px solid var(--acc);color:var(--acc-light);cursor:pointer;font-size:10.5px;font-weight:800;flex-shrink:0;border-radius:7px;padding:6px 9px;display:flex;align-items:center;gap:4px;text-transform:uppercase}
 .act-send:hover{background:var(--acc);color:#1a1300}
 .act-sendrow{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
@@ -1163,6 +1173,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
     <input type="text" class="ct-search" id="act-search" placeholder="Buscar por estudio o texto...">
     <div class="ct-fgroup">
       <button class="ct-fbtn active" data-actf="pendientes">Pendientes</button>
+      <button class="ct-fbtn" data-actf="primordiales">★ Primordiales</button>
       <button class="ct-fbtn" data-actf="vencidas">Vencidas</button>
       <button class="ct-fbtn" data-actf="completadas">Completadas</button>
       <button class="ct-fbtn" data-actf="todas">Todas</button>
@@ -3842,6 +3853,8 @@ async function crearActividadAgenda({fecha, hora, tipo, texto, estudioTxt, estud
     const match=localStore.find(e=>(e.estudio||'').toLowerCase().trim()===estudioTxt.toLowerCase().trim());
     if(match){ estudioId=match.id; estudioNombre=match.estudio; } else { estudioNombre=estudioTxt.trim(); }
   }
+  // Nota: NO mandamos `primordial` acá. La columna tiene default false en Supabase, así que
+  // las nuevas nacen no-primordiales; y si el SQL 10 no se corrió aún, crear no se rompe.
   const ev={ id:Date.now()+Math.floor(Math.random()*1000), fecha, hora:hora||'', tipo, texto:texto.trim(), estudio_id:estudioId, estudio_nombre:estudioNombre, productos:productos||null, completada:false, completada_fecha:null };
   try{
     await sbUpsert('agenda', {...ev, user_id:currentUser.id, user_email:currentUser.email, user_name:currentUser.name}, currentUser.token);
@@ -3887,6 +3900,23 @@ async function toggleActividadCompletada(id){
       if(item && item.bitrix){ marcarBitrixStale(item); await saveEntry(item); }
     }
   }catch(err){ toast('Error al actualizar', true); }
+  refreshActiveView();
+}
+
+// Estrella para marcar/desmarcar una actividad como primordial (se pinta de violeta y sube arriba).
+function starBtnHtml(e){
+  return '<button class="act-star'+(e.primordial?' on':'')+'" data-prio="'+e.id+'" title="'+(e.primordial?'Quitar de primordiales':'Marcar como primordial')+'"><svg width="15" height="15" viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.1 6.6.6-5 4.4 1.5 6.5L12 17.1 6.5 20.6l1.5-6.5-5-4.4 6.6-.6z"/></svg></button>';
+}
+async function toggleActividadPrimordial(id){
+  const ev = agendaStore.find(e=>e.id===id); if(!ev) return;
+  ev.primordial = !ev.primordial;
+  try{
+    await sbUpsert('agenda', {id:ev.id, primordial:ev.primordial, user_id:currentUser.id, user_email:currentUser.email, user_name:currentUser.name}, currentUser.token);
+  }catch(err){
+    ev.primordial = !ev.primordial; // revertir en memoria si falló
+    toast('Para usar primordiales falta correr el SQL 10_agenda_primordial.sql en Supabase.', true);
+    return;
+  }
   refreshActiveView();
 }
 
@@ -3997,11 +4027,15 @@ function renderAgendaTab(){
 }
 
 function renderAgDayPanel(){
-  const evs=agendaStore.filter(e=>e.fecha===agSelectedDay).sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
+  const evs=agendaStore.filter(e=>e.fecha===agSelectedDay).sort((a,b)=>{
+    const pa=(a.primordial&&!a.completada)?0:1, pb=(b.primordial&&!b.completada)?0:1;
+    if(pa!==pb) return pa-pb;
+    return (a.hora||'').localeCompare(b.hora||'');
+  });
   const el=document.getElementById('ag-daypanel');
   const nice=new Date(agSelectedDay+'T00:00:00').toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'long'});
   el.innerHTML = '<div class="ag-dayheader">'+nice+'</div>'
-    + (evs.length ? evs.map(e=>'<div class="ag-event '+e.tipo+'" style="'+(e.completada?'opacity:.55':'')+'"><div class="ag-evtop '+e.tipo+'"><span>'+(e.tipo==='visita'?'🏗️ Visita de obra':'📌 Actividad')+(e.completada?' · ✓ completada':'')+'</span>'+(e.hora?'<span style="color:var(--muted);font-family:monospace">'+esc(e.hora)+'</span>':'')+'</div><div class="ag-evtext">'+esc(e.texto)+'</div>'+(e.estudio_nombre?'<div style="font-size:11px;color:var(--muted);margin-top:3px;cursor:pointer" data-jumpact="'+e.estudio_id+'">→ '+esc(e.estudio_nombre)+'</div>':'')+'<div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">'+(e.productos?'<button class="ag-send" data-agsendmail="'+e.id+'">'+ICONS.mail+' Email</button><button class="ag-send" data-agsendwa="'+e.id+'">'+ICONS.arrowUpRight+' WhatsApp</button>':'')+(e.tipo==='actividad'?'<button class="del" data-toggleact="'+e.id+'">'+(e.completada?'↺ Marcar pendiente':'✓ Marcar completada')+'</button>':'')+'<button class="del" data-delag="'+e.id+'">🗑️ Eliminar</button></div></div>').join('') : '<div style="font-size:11.5px;color:var(--muted);padding:6px 0">Sin eventos este día.</div>')
+    + (evs.length ? evs.map(e=>'<div class="ag-event '+e.tipo+(e.primordial&&!e.completada?' primordial':'')+'" style="'+(e.completada?'opacity:.55':'')+'"><div class="ag-evtop '+e.tipo+'"><span>'+(e.tipo==='visita'?'🏗️ Visita de obra':'📌 Actividad')+(e.completada?' · ✓ completada':'')+'</span>'+(e.hora?'<span style="color:var(--muted);font-family:monospace">'+esc(e.hora)+'</span>':'')+'</div><div class="ag-evtext">'+esc(e.texto)+'</div>'+(e.estudio_nombre?'<div style="font-size:11px;color:var(--muted);margin-top:3px;cursor:pointer" data-jumpact="'+e.estudio_id+'">→ '+esc(e.estudio_nombre)+'</div>':'')+'<div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;align-items:center">'+starBtnHtml(e)+(e.productos?'<button class="ag-send" data-agsendmail="'+e.id+'">'+ICONS.mail+' Email</button><button class="ag-send" data-agsendwa="'+e.id+'">'+ICONS.arrowUpRight+' WhatsApp</button>':'')+(e.tipo==='actividad'?'<button class="del" data-toggleact="'+e.id+'">'+(e.completada?'↺ Marcar pendiente':'✓ Marcar completada')+'</button>':'')+'<button class="del" data-delag="'+e.id+'">🗑️ Eliminar</button></div></div>').join('') : '<div style="font-size:11.5px;color:var(--muted);padding:6px 0">Sin eventos este día.</div>')
     + '<div class="ag-addbtns"><button class="visita" data-newag="visita">+ Visita de obra</button><button class="actividad" data-newag="actividad">+ Actividad</button></div>'
     + '<div id="ag-form-wrap"></div>';
   el.querySelectorAll('[data-delag]').forEach(b=>b.addEventListener('click', ()=> eliminarActividad(parseFloat(b.dataset.delag))));
@@ -4009,6 +4043,7 @@ function renderAgDayPanel(){
   el.querySelectorAll('[data-agsendmail]').forEach(b=>b.addEventListener('click', ()=> enviarCatalogoEmail(parseFloat(b.dataset.agsendmail))));
   el.querySelectorAll('[data-agsendwa]').forEach(b=>b.addEventListener('click', ()=> enviarCatalogoWa(parseFloat(b.dataset.agsendwa))));
   el.querySelectorAll('[data-jumpact]').forEach(b=>b.addEventListener('click', ()=> jumpToContactFromActivity(parseFloat(b.dataset.jumpact))));
+  el.querySelectorAll('[data-prio]').forEach(b=>b.addEventListener('click', ()=> toggleActividadPrimordial(parseFloat(b.dataset.prio))));
   el.querySelectorAll('[data-newag]').forEach(b=>b.addEventListener('click',()=>showAgForm(b.dataset.newag)));
 }
 
@@ -4067,7 +4102,7 @@ function enviarCatalogoWa(actId){
 // para que no aplasten el nombre del estudio en el celular.
 function actRowHtml(e){
   const niceDate = new Date(e.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit',year:'2-digit'});
-  return '<div class="act-row '+(e.vencida?'vencida':'')+' '+(e.completada?'completada':'')+'" data-id="'+e.id+'">'
+  return '<div class="act-row '+(e.vencida?'vencida':'')+' '+(e.completada?'completada':'')+' '+(e.primordial?'primordial':'')+'" data-id="'+e.id+'">'
     + '<button class="act-check '+(e.completada?'on':'')+'" data-toggleact="'+e.id+'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>'
     + '<div class="act-body">'
     + '<div class="act-top">'
@@ -4077,6 +4112,7 @@ function actRowHtml(e){
     + '<div class="act-texto">'+esc(e.texto)+'</div>'
     + (e.productos ? '<div class="act-sendrow"><button class="act-send" data-sendmail="'+e.id+'">'+ICONS.mail+' Email</button><button class="act-send" data-sendwa="'+e.id+'">'+ICONS.arrowUpRight+' WhatsApp</button></div>' : '')
     + '</div>'
+    + starBtnHtml(e)
     + '<button class="act-edit" data-editact="'+e.id+'">'+ICONS.edit+'</button>'
     + '<button class="act-del" data-delag="'+e.id+'">'+ICONS.trash+'</button>'
     + '</div>';
@@ -4094,7 +4130,13 @@ function renderActividades(){
   if(actFilter==='pendientes') items = items.filter(e=>!e.completada);
   else if(actFilter==='vencidas') items = items.filter(e=>e.vencida);
   else if(actFilter==='completadas') items = items.filter(e=>e.completada);
-  items.sort((a,b)=> (a.fecha+((a.hora)||'99:99')).localeCompare(b.fecha+((b.hora)||'99:99')));
+  else if(actFilter==='primordiales') items = items.filter(e=>e.primordial && !e.completada);
+  // Primordiales pendientes primero; después por fecha/hora.
+  items.sort((a,b)=>{
+    const pa=(a.primordial&&!a.completada)?0:1, pb=(b.primordial&&!b.completada)?0:1;
+    if(pa!==pb) return pa-pb;
+    return (a.fecha+((a.hora)||'99:99')).localeCompare(b.fecha+((b.hora)||'99:99'));
+  });
 
   if(!items.length){ wrap.innerHTML='<div class="act-empty">No hay actividades para mostrar con este filtro.</div>'; return; }
 
@@ -4121,6 +4163,7 @@ function renderActividades(){
   }));
   wrap.querySelectorAll('[data-sendmail]').forEach(b=>b.addEventListener('click', ()=> enviarCatalogoEmail(parseFloat(b.dataset.sendmail))));
   wrap.querySelectorAll('[data-sendwa]').forEach(b=>b.addEventListener('click', ()=> enviarCatalogoWa(parseFloat(b.dataset.sendwa))));
+  wrap.querySelectorAll('[data-prio]').forEach(b=>b.addEventListener('click', ()=> toggleActividadPrimordial(parseFloat(b.dataset.prio))));
 }
 
 document.getElementById('act-search').addEventListener('input', e=>{ actSearch=e.target.value; renderActividades(); });
@@ -4168,7 +4211,11 @@ function renderHoy(){
 
   // Para hacer hoy: actividades/visitas pendientes con fecha de hoy o atrasadas.
   const paraHacer=agendaStore.filter(a=>(a.tipo==='actividad'||a.tipo==='visita') && !a.completada && a.fecha<=hoy)
-    .sort((a,b)=>(a.fecha+((a.hora)||'99:99')).localeCompare(b.fecha+((b.hora)||'99:99')));
+    .sort((a,b)=>{
+      const pa=a.primordial?0:1, pb=b.primordial?0:1;
+      if(pa!==pb) return pa-pb;
+      return (a.fecha+((a.hora)||'99:99')).localeCompare(b.fecha+((b.hora)||'99:99'));
+    });
 
   // Se están enfriando: solo contactados, sin nada pendiente agendado, con cadencia vencida.
   const enf=[];
@@ -4208,14 +4255,14 @@ function renderHoy(){
   else html+=paraHacer.map(a=>{
     const venc=a.fecha<hoy;
     const cuando=venc?('Atrasada · '+new Date(a.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit'})+(a.hora?' '+esc(a.hora):'')):('Hoy'+(a.hora?' · '+esc(a.hora):''));
-    return '<div class="hoy-mini">'
+    return '<div class="hoy-mini'+(a.primordial?' primordial':'')+'">'
       +'<button class="act-check" data-hoytoggle="'+a.id+'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5a5f68" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>'
       +'<div class="hoy-mini-body"><div class="hoy-mini-top">'
       +'<span class="hoy-mini-name"'+(a.estudio_id?' data-hoyopen="'+a.estudio_id+'"':'')+'>'+esc(a.estudio_nombre||'(sin vincular)')+'</span>'
       +'<span class="hoy-mini-t'+(venc?' red':'')+'">'+cuando+'</span></div>'
       +'<div class="hoy-mini-txt">'+esc(a.texto)+'</div>'
       +(a.productos?'<div class="act-sendrow"><button class="act-send" data-hoymail="'+a.id+'">'+ICONS.mail+' Email</button><button class="act-send" data-hoywa="'+a.id+'">'+ICONS.arrowUpRight+' WhatsApp</button></div>':'')
-      +'</div></div>';
+      +'</div>'+starBtnHtml(a)+'</div>';
   }).join('');
   html+='</div>';
 
@@ -4263,6 +4310,7 @@ function renderHoy(){
   html+='</div>';
 
   cont.innerHTML=html;
+  cont.querySelectorAll('[data-prio]').forEach(b=>b.addEventListener('click', async ()=>{ await toggleActividadPrimordial(parseFloat(b.dataset.prio)); renderHoy(); }));
   cont.querySelectorAll('[data-hoytoggle]').forEach(b=>b.addEventListener('click', async ()=>{ await toggleActividadCompletada(parseFloat(b.dataset.hoytoggle)); renderHoy(); }));
   cont.querySelectorAll('[data-hoyopen]').forEach(el=>el.addEventListener('click', ()=>{ const it=localStore.find(x=>x.id===parseFloat(el.dataset.hoyopen)); if(it) openPinModal(it); }));
   cont.querySelectorAll('[data-hoymail]').forEach(b=>b.addEventListener('click', ()=> enviarCatalogoEmail(parseFloat(b.dataset.hoymail))));
