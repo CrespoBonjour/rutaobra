@@ -3911,10 +3911,12 @@ async function toggleActividadPrimordial(id){
   const ev = agendaStore.find(e=>e.id===id); if(!ev) return;
   ev.primordial = !ev.primordial;
   try{
-    await sbUpsert('agenda', {id:ev.id, primordial:ev.primordial, user_id:currentUser.id, user_email:currentUser.email, user_name:currentUser.name}, currentUser.token);
+    // Mandamos la fila completa (como el toggle de completada): un upsert parcial rompe
+    // porque el INSERT de merge-duplicates exige las columnas NOT NULL (fecha/tipo/texto).
+    await sbUpsert('agenda', {...ev, user_id:currentUser.id, user_email:currentUser.email, user_name:currentUser.name}, currentUser.token);
   }catch(err){
     ev.primordial = !ev.primordial; // revertir en memoria si falló
-    toast('Para usar primordiales falta correr el SQL 10_agenda_primordial.sql en Supabase.', true);
+    toast('No se pudo guardar la marca. ¿Corriste el SQL 10_agenda_primordial.sql en Supabase?', true);
     return;
   }
   refreshActiveView();
