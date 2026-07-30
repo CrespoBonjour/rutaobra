@@ -145,6 +145,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .temp-chip.hot.selected{border-color:var(--hot);background:rgba(255,77,77,.14);color:var(--hot);box-shadow:0 0 14px rgba(255,77,77,.3)}
 #modal-contactado-chip.selected{border-color:#3ecf73;background:rgba(62,207,115,.14);color:#3ecf73;box-shadow:0 0 14px rgba(62,207,115,.4)}
 #modal-bitrix-chip.selected{border-color:var(--cold);background:rgba(74,158,255,.14);color:var(--cold);box-shadow:0 0 14px rgba(74,158,255,.3)}
+#modal-primordial-chip.selected{border-color:var(--prio);background:var(--prio-dim);color:#c9b3f5;box-shadow:0 0 14px var(--prio-glow)}
 .catalog-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px}
 .catalog-item{background:var(--panel2);border:1.5px solid var(--line);border-radius:8px;padding:10px 11px;font-size:12.5px;color:var(--ink-soft);cursor:pointer;display:flex;align-items:center;gap:7px;transition:.15s;font-weight:600}
 .catalog-item .box{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.15s}
@@ -336,6 +337,13 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .ct-tgl svg{opacity:0}.ct-tgl.on svg{opacity:1}
 .ct-tgl.bx.stale{position:relative;background:var(--cold);border-color:#e0b33d;box-shadow:0 0 10px rgba(224,179,61,.5)}
 .ct-tgl.bx.stale::after{content:"!";position:absolute;top:-6px;right:-6px;width:13px;height:13px;border-radius:50%;background:#e0b33d;color:#1a1300;font-size:10px;font-weight:900;line-height:13px;text-align:center;border:1.5px solid var(--bg)}
+/* Obra primordial (violeta): borde de tarjeta, filtro y toggle estrella */
+.ct-card.primordial{border-color:var(--prio);box-shadow:inset 0 0 0 1px var(--prio),0 0 16px var(--prio-dim)}
+.ct-fbtn.prio.active{background:var(--prio-dim);color:#c9b3f5}
+.ct-tgl.prio svg{opacity:1;fill:none;stroke:var(--muted);stroke-width:1.7}
+.ct-tgl.prio:hover svg{stroke:var(--prio)}
+.ct-tgl.on.prio{background:transparent;border-color:var(--prio);box-shadow:0 0 10px var(--prio-glow)}
+.ct-tgl.on.prio svg{fill:var(--prio);stroke:var(--prio)}
 .ct-meta{display:flex;gap:4px;flex-wrap:wrap;margin:5px 0}
 .ct-pill{font-size:9px;padding:2px 7px;border-radius:20px;font-weight:700;background:var(--panel2);color:var(--ink-soft);border:1px solid var(--line);white-space:nowrap;max-width:130px;overflow:hidden;text-overflow:ellipsis}
 .ct-pill.ok{background:rgba(62,207,115,.14);color:#3ecf73;border-color:rgba(62,207,115,.5)}
@@ -1111,6 +1119,9 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       <button class="ct-fbtn active" data-ctact="all">Todas</button>
       <button class="ct-fbtn" data-ctact="pending">Actividad pendiente</button>
     </div>
+    <div class="ct-fgroup">
+      <button class="ct-fbtn prio" data-ctprio title="Ver solo obras primordiales">★ Primordiales</button>
+    </div>
     <button class="io-btn" id="ct-export-btn">⬇ CSV</button>
   </div>
   <div class="ct-grid" id="ct-grid"></div>
@@ -1143,6 +1154,9 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
     <div class="ct-fgroup">
       <button class="ct-fbtn active" data-lsact="all">Todas</button>
       <button class="ct-fbtn" data-lsact="pending">Actividad pendiente</button>
+    </div>
+    <div class="ct-fgroup">
+      <button class="ct-fbtn prio" data-lsprio title="Ver solo obras primordiales">★ Primordiales</button>
     </div>
     <div class="ls-count" id="ls-count"></div>
     <button class="io-btn" id="ls-export-btn">⬇ CSV</button>
@@ -1292,9 +1306,10 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
         <div class="temp-chip warm" data-val="warm"><svg class="icn" viewBox="0 0 24 24"><path d="M14 4v10.5a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0z"/></svg> Tibio</div>
         <div class="temp-chip hot" data-val="hot"><svg class="icn" viewBox="0 0 24 24"><path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c0-1.5-.5-2.5-1-3.5.5 2-1 3-2 2 1-2-1-3-1-5.5-1 1-2 1.5-2 2.5z"/></svg> Caliente</div>
       </div>
-      <div class="temp-chips" id="modal-status-chips" style="grid-template-columns:1fr 1fr">
+      <div class="temp-chips" id="modal-status-chips" style="grid-template-columns:1fr 1fr 1fr">
         <div class="temp-chip" id="modal-contactado-chip"><svg class="icn" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Contactado</div>
         <div class="temp-chip" id="modal-bitrix-chip"><svg class="icn" viewBox="0 0 24 24" style="fill:currentColor;stroke:none"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg> En Bitrix</div>
+        <div class="temp-chip" id="modal-primordial-chip"><svg class="icn" viewBox="0 0 24 24" style="fill:currentColor;stroke:none"><path d="M12 2.5l2.9 6.1 6.6.6-5 4.4 1.5 6.5L12 17.1 6.5 20.6l1.5-6.5-5-4.4 6.6-.6z"/></svg> Primordial</div>
       </div>
       <div class="pm-ministat-row" id="pm-ministat" style="display:none">
         <span>Últ. contacto <b id="pm-ultimocontacto">—</b></span>
@@ -1829,10 +1844,10 @@ async function syncVisitaBg(entry) {
   catch(e) {
     // Red de seguridad: si todavía no se corrió el SQL de alguna columna nueva,
     // reintenta el guardado sin esos campos (quedan en memoria hasta correr el SQL).
-    const COLS_OPCIONALES=['fotos','tamano_obra','fecha_instalacion','obra','tipo_cliente'];
+    const COLS_OPCIONALES=['fotos','tamano_obra','fecha_instalacion','obra','tipo_cliente','primordial'];
     const errTxt=String(e).toLowerCase();
     if(COLS_OPCIONALES.some(c=>errTxt.includes(c))){
-      try { const rest={...entry}; COLS_OPCIONALES.forEach(c=>delete rest[c]); await sbUpsert('visitas', rest, currentUser.token); toast('Guardado. Faltan correr los SQL nuevos en Supabase (fotos / tamaño / fecha de instalación) para que esos campos se guarden.', true); }
+      try { const rest={...entry}; COLS_OPCIONALES.forEach(c=>delete rest[c]); await sbUpsert('visitas', rest, currentUser.token); toast('Guardado. Faltan correr los SQL nuevos en Supabase (fotos / tamaño / fecha de instalación / primordial) para que esos campos se guarden.', true); }
       catch(e2){ console.error('Error guardando en Supabase:', e2); toast('Error al guardar: '+String(e2).slice(0,120), true); }
     } else { console.error('Error guardando en Supabase:', e); toast('Error al guardar: '+String(e).slice(0,120), true); }
   }
@@ -1914,7 +1929,7 @@ let productosInteresSelected=new Set();
 let mapInitialized=false,map,markersLayer,zonesLayer;
 let drawingZone=false,zonePoints=[],zoneTempMarkers=[],zonePoly=null;
 let modalTempSelected='',mPhotoDataUrl=null,modalFotos=[],editingId=null;
-let modalContactado=false,modalBitrix=false,modalInteracciones=[];
+let modalContactado=false,modalBitrix=false,modalPrimordial=false,modalInteracciones=[];
 let modalZonaSelected='',modalCatalogosSelected=new Set(),modalTamano='',modalTipoCli='empresa';
 let modalProductosInteresSelected=new Set();
 let pickedLatLng=null,pickedAddress='',pickerMap=null,geocodeTimeout=null,pendingNewLatLng=null;
@@ -2331,6 +2346,7 @@ document.getElementById('m-zona').addEventListener('input',e=>{if(e.target.value
 document.querySelectorAll('#modal-catalog-grid .catalog-item').forEach(c=>{c.addEventListener('click',()=>{c.classList.toggle('selected');const v=c.dataset.val;modalCatalogosSelected.has(v)?modalCatalogosSelected.delete(v):modalCatalogosSelected.add(v);});});
 document.getElementById('m-photo-input').addEventListener('change',function(){ leerFotos(this.files, modalFotos, renderModalFotos); this.value=''; });
 document.getElementById('modal-contactado-chip').addEventListener('click',function(){modalContactado=!modalContactado;this.classList.toggle('selected',modalContactado);});
+document.getElementById('modal-primordial-chip').addEventListener('click',function(){modalPrimordial=!modalPrimordial;this.classList.toggle('selected',modalPrimordial);});
 function renderModalObras(){
   const wrap=document.getElementById('m-obras-list');
   if(!modalObras.length){ wrap.innerHTML='<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Sin obras vinculadas todavía.</div>'; return; }
@@ -2584,7 +2600,7 @@ function openPinModal(entry,newLocation){
   modalProductosInteresSelected=new Set();renderProductosChips();
   poblarEtapasDatalist(); poblarEmpresasEstudios();
   modalTempSelected='';modalFotos=[];renderModalFotos();
-  modalContactado=!!(entry&&entry.contactado);modalBitrix=!!(entry&&entry.bitrix);
+  modalContactado=!!(entry&&entry.contactado);modalBitrix=!!(entry&&entry.bitrix);modalPrimordial=!!(entry&&entry.primordial);
   modalInteracciones=entry&&Array.isArray(entry.interacciones)?entry.interacciones.slice():[];
   modalObras=entry&&Array.isArray(entry.obras)?entry.obras.slice():[];
   modalPersonas=entry&&Array.isArray(entry.personas)?entry.personas.slice():[];
@@ -2595,6 +2611,7 @@ function openPinModal(entry,newLocation){
   checkDupModal();
   document.getElementById('modal-contactado-chip').classList.toggle('selected',modalContactado);
   document.getElementById('modal-bitrix-chip').classList.toggle('selected',modalBitrix);
+  document.getElementById('modal-primordial-chip').classList.toggle('selected',modalPrimordial);
   document.getElementById('m-int-text').value='';
   renderModalInteracciones();
   document.getElementById('m-act-text').value=''; document.getElementById('m-act-fecha').value=''; document.getElementById('m-act-hora').value='';
@@ -2706,6 +2723,7 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
       if(modalContactado && !item.contactado) item.contactado_fecha=new Date().toISOString();
       if(!modalContactado) item.contactado_fecha=null;
       item.contactado=modalContactado;
+      item.primordial=modalPrimordial;
       // Bitrix: no se apaga al editar. Si sigue marcado y se editó info, queda "desactualizado"
       // (bitrix_fecha=null) para que el botón azul muestre el indicador de "actualizar en Bitrix".
       if(modalBitrix){
@@ -2743,6 +2761,7 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
       historial:[{fecha:new Date().toLocaleDateString('es-UY'),nota:'Pin creado por '+currentUser.name}],
       contactado:modalContactado,contactado_fecha:modalContactado?new Date().toISOString():null,
       bitrix:modalBitrix,bitrix_fecha:modalBitrix?new Date().toISOString():null,
+      primordial:modalPrimordial,
       interacciones:modalInteracciones,
       obras:modalObras,
       personas:modalPersonas
@@ -2943,13 +2962,14 @@ document.getElementById('import-run-btn').addEventListener('click', async ()=>{
 // ============================================================
 // ── Estado de filtros COMPARTIDO entre Contactos y Lista, recordado en localStorage ──
 const FILTROS_LS_KEY='rutaobra_filtros_v1';
-let flSearch='', flEstado='all', flBitrix='all', flTemp='all', flAct='all';
-function guardarFiltros(){ try{ localStorage.setItem(FILTROS_LS_KEY, JSON.stringify({s:flSearch,e:flEstado,b:flBitrix,t:flTemp,a:flAct})); }catch(_){} }
-function cargarFiltros(){ try{ const o=JSON.parse(localStorage.getItem(FILTROS_LS_KEY)||'{}'); flSearch=o.s||''; flEstado=o.e||'all'; flBitrix=o.b||'all'; flTemp=o.t||'all'; flAct=o.a||'all'; }catch(_){} }
+let flSearch='', flEstado='all', flBitrix='all', flTemp='all', flAct='all', flPrio='all';
+function guardarFiltros(){ try{ localStorage.setItem(FILTROS_LS_KEY, JSON.stringify({s:flSearch,e:flEstado,b:flBitrix,t:flTemp,a:flAct,p:flPrio})); }catch(_){} }
+function cargarFiltros(){ try{ const o=JSON.parse(localStorage.getItem(FILTROS_LS_KEY)||'{}'); flSearch=o.s||''; flEstado=o.e||'all'; flBitrix=o.b||'all'; flTemp=o.t||'all'; flAct=o.a||'all'; flPrio=o.p||'all'; }catch(_){} }
 // Refleja el estado compartido en TODOS los botones e inputs de filtro (Contactos + Lista).
 function sincronizarUIFiltros(){
   [['data-ctf',flEstado],['data-lsf',flEstado],['data-ctbx',flBitrix],['data-lsbx',flBitrix],['data-cttemp',flTemp],['data-lstemp',flTemp],['data-ctact',flAct],['data-lsact',flAct]]
     .forEach(([attr,val])=>document.querySelectorAll('['+attr+']').forEach(b=>b.classList.toggle('active', b.getAttribute(attr)===val)));
+  document.querySelectorAll('[data-ctprio],[data-lsprio]').forEach(b=>b.classList.toggle('active', flPrio==='yes'));
   const cs=document.getElementById('ct-search'); if(cs) cs.value=flSearch;
   const ls=document.getElementById('ls-search'); if(ls) ls.value=flSearch;
 }
@@ -3167,6 +3187,7 @@ function renderContactos(){
     if(flBitrix==='yes' && !e.bitrix) return false;
     if(flBitrix==='no' && e.bitrix) return false;
     if(flTemp!=='all' && e.temp!==flTemp) return false;
+    if(flPrio==='yes' && !e.primordial) return false;
     if(flAct==='pending' && !agendaStore.some(a=>a.tipo==='actividad' && !a.completada && a.estudio_id===e.id)) return false;
     if(flSearch){
       const hay=(e.estudio+' '+e.nombre+' '+e.telefono+' '+e.zona+' '+e.empresa+' '+(e.estado||'')+' '+(e.proveedor||'')).toLowerCase();
@@ -3195,7 +3216,7 @@ function renderContactos(){
     const negColor = misNeg ? (misNeg.etapa==='ganada'?'#3ecf73':misNeg.etapa==='perdida'?'var(--hot)':'var(--acc)') : '';
     const catStatus = getCatalogStatus(e.id);
 
-    return '<div class="ct-card '+(e.contactado?'contacted':'')+' '+(e.bitrix?'inbitrix':'')+'" data-id="'+e.id+'">'
+    return '<div class="ct-card '+(e.contactado?'contacted':'')+' '+(e.bitrix?'inbitrix':'')+' '+(e.primordial?'primordial':'')+'" data-id="'+e.id+'">'
       +(proximaActividad?'<div class="ct-badge-activity'+(actVencidas?' venc':'')+'" title="'+(actVencidas?'Tiene una actividad vencida':'Tiene una actividad pendiente')+'"></div>':'')
       +'<div class="ct-top">'
       +'<div class="ct-info" data-opendetail="'+e.id+'" style="cursor:pointer">'
@@ -3206,6 +3227,7 @@ function renderContactos(){
       +'</div>'
       +(fotosDe(e).length?'<img class="ct-thumb" src="'+esc(fotosDe(e)[0])+'" alt="" style="cursor:zoom-in" data-fotoview="'+e.id+'">':'')
       +'<div class="ct-toggles">'
+      +'<button class="ct-tgl prio '+(e.primordial?'on':'')+'" data-toggle="primordial" data-id="'+e.id+'" title="Obra primordial (prioridad de venta)"><svg width="11" height="11" viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.1 6.6.6-5 4.4 1.5 6.5L12 17.1 6.5 20.6l1.5-6.5-5-4.4 6.6-.6z"/></svg></button>'
       +'<button class="ct-tgl ok '+(e.contactado?'on':'')+'" data-toggle="contactado" data-id="'+e.id+'" title="Contactado"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></button>'
       +'<button class="ct-tgl bx '+(e.bitrix?'on':'')+((e.bitrix&&!e.bitrix_fecha)?' stale':'')+'" data-toggle="bitrix" data-id="'+e.id+'" title="'+((e.bitrix&&!e.bitrix_fecha)?'En Bitrix — hay cambios para actualizar (tocá cuando lo actualices)':'En Bitrix')+'"><svg width="9" height="9" viewBox="0 0 24 24" fill="#fff"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></button>'
       +'</div></div>'
@@ -3231,6 +3253,7 @@ function renderContactos(){
     btn.addEventListener('click', async ()=>{
       const id=parseFloat(btn.dataset.id); const field=btn.dataset.toggle;
       const item=localStore.find(x=>x.id===id); if(!item) return;
+      if(field==='primordial'){ item.primordial=!item.primordial; saveEntry(item); renderContactos(); return; }
       let texto;
       if(field==='bitrix' && item.bitrix && !item.bitrix_fecha){
         // Estaba en Bitrix pero con cambios: este click confirma que ya lo actualizaste allá (no lo apaga).
@@ -3253,6 +3276,7 @@ document.querySelectorAll('[data-ctf]').forEach(b=>b.addEventListener('click',()
 document.querySelectorAll('[data-ctbx]').forEach(b=>b.addEventListener('click',()=>{ flBitrix=b.dataset.ctbx; aplicarFiltros(); }));
 document.querySelectorAll('[data-cttemp]').forEach(b=>b.addEventListener('click',()=>{ flTemp=b.dataset.cttemp; aplicarFiltros(); }));
 document.querySelectorAll('[data-ctact]').forEach(b=>b.addEventListener('click',()=>{ flAct=b.dataset.ctact; aplicarFiltros(); }));
+document.querySelectorAll('[data-ctprio]').forEach(b=>b.addEventListener('click',()=>{ flPrio = flPrio==='yes'?'all':'yes'; aplicarFiltros(); }));
 
 function goToContactosFiltered(temp, estadoContacto){
   flTemp = temp; flEstado = estadoContacto || 'all'; flBitrix = 'all'; flSearch = '';
@@ -3743,6 +3767,7 @@ function renderLista(){
     if(flBitrix==='yes' && !e.bitrix) return false;
     if(flBitrix==='no' && e.bitrix) return false;
     if(flTemp!=='all' && e.temp!==flTemp) return false;
+    if(flPrio==='yes' && !e.primordial) return false;
     if(flAct==='pending' && !agendaStore.some(a=>a.tipo==='actividad' && !a.completada && a.estudio_id===e.id)) return false;
     if(!flSearch) return true;
     const hay=((e.estudio||'')+' '+(e.empresa||'')+' '+(e.nombre||'')+' '+(e.telefono||'')+' '+(e.zona||'')+' '+(e.estado||'')+' '+(e.user_name||'')+' '+(e.proveedor||'')).toLowerCase();
@@ -3766,7 +3791,7 @@ function renderLista(){
       const catPillClass = catTotal===0 ? 'none' : (cs.sent.length===catTotal ? 'full' : 'part');
       const catPillTxt = catTotal===0 ? 'Sin pedidos' : (cs.sent.length+'/'+catTotal+' enviados');
       return '<tr data-lsid="'+e.id+'">'
-        +'<td class="ls-est">'+esc(tituloFicha(e))+'</td>'
+        +'<td class="ls-est">'+(e.primordial?'<span style="color:var(--prio)" title="Obra primordial">★ </span>':'')+esc(tituloFicha(e))+'</td>'
         +'<td>'+esc(e.nombre||'—')+'</td>'
         +'<td>'+esc(e.zona||'—')+'</td>'
         +'<td>'+esc(e.estado?(ETAPA_CORTA[e.estado]||e.estado):'—')+'</td>'
@@ -3793,6 +3818,7 @@ document.querySelectorAll('[data-lsf]').forEach(b=>b.addEventListener('click',()
 document.querySelectorAll('[data-lsbx]').forEach(b=>b.addEventListener('click',()=>{ flBitrix=b.dataset.lsbx; aplicarFiltros(); }));
 document.querySelectorAll('[data-lstemp]').forEach(b=>b.addEventListener('click',()=>{ flTemp=b.dataset.lstemp; aplicarFiltros(); }));
 document.querySelectorAll('[data-lsact]').forEach(b=>b.addEventListener('click',()=>{ flAct=b.dataset.lsact; aplicarFiltros(); }));
+document.querySelectorAll('[data-lsprio]').forEach(b=>b.addEventListener('click',()=>{ flPrio = flPrio==='yes'?'all':'yes'; aplicarFiltros(); }));
 
 // ============================================================
 // TAB AGENDA (calendario: visitas pautadas + actividades)
