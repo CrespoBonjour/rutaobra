@@ -2754,7 +2754,7 @@ function openPinModal(entry,newLocation){
   document.getElementById('pin-modal').classList.add('show');
   document.querySelectorAll('#pin-modal .pm-cols, #pin-modal .pm-actlist, #pin-modal .ct-int-list').forEach(el=>el.scrollTop=0);
   autoGrowNotes();
-  attachButtonSparks();attachInputSparks();
+  attachButtonSparks();
 }
 
 document.getElementById('modal-cancel').addEventListener('click',()=>{document.getElementById('pin-modal').classList.remove('show');editingId=null;pendingNewLatLng=null;});
@@ -2951,9 +2951,9 @@ document.getElementById('m-notas').addEventListener('input', autoGrowNotes);
 // ============================================================
 // ARRANCAR
 // ============================================================
-attachButtonSparks();attachInputSparks();
-const observer=new MutationObserver(()=>{attachButtonSparks();attachInputSparks();});
-observer.observe(document.body,{childList:true,subtree:true});
+// Chispas: solo en botones (una vez). Se sacaron las chispas al escribir (generaban lag por tecla)
+// y el MutationObserver que re-escaneaba TODO el DOM en cada cambio (hacía lenta toda la app).
+attachButtonSparks();
 // ============================================================
 // IMPORTAR DESDE LA APP DE CONTACTOS ARQUITECTOS
 // ============================================================
