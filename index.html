@@ -875,6 +875,11 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .chat-suggestions{display:flex;gap:6px;flex-wrap:wrap;padding:0 12px 10px;flex-shrink:0}
 .chat-suggestions button{font-size:10.5px;background:var(--panel2);border:1px solid var(--line);color:var(--ink-soft);padding:6px 9px;border-radius:20px;cursor:pointer;font-family:inherit}
 .chat-suggestions button:hover{border-color:var(--acc);color:var(--acc)}
+.chat-msg.bot{line-height:1.55}
+.chat-link{color:var(--acc);font-weight:700;cursor:pointer;text-decoration:underline;text-decoration-color:var(--acc-dim);text-underline-offset:2px}
+.chat-link:hover{color:var(--acc-light);text-decoration-color:var(--acc)}
+.chat-dim{color:var(--muted);font-size:.92em}
+.chat-star{color:var(--prio)}
 .chat-input-row{display:flex;gap:6px;padding:10px;border-top:1px solid var(--line);flex-shrink:0}
 .chat-input-row input{flex:1;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink);border-radius:20px;padding:9px 14px;font-size:12.5px;font-family:inherit}
 .chat-input-row input:focus{outline:none;border-color:var(--acc)}
@@ -1534,13 +1539,17 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
     <button id="chat-close"><svg class="icn" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
   </div>
   <div class="chat-body" id="chat-body">
-    <div class="chat-msg bot">Hola 👋 Puedo responderte sobre lo que ya tenés cargado: actividades pendientes, contactos urgentes, obras sin pin en el mapa, y más. Preguntame o tocá una sugerencia.</div>
+    <div class="chat-msg bot">Hola 👋 Preguntame sobre lo que tenés cargado y te doy la lista <b>clickeable</b> — tocás un nombre y te abro su ficha. Probá una sugerencia:</div>
   </div>
   <div class="chat-suggestions" id="chat-suggestions">
-    <button data-q="¿Tengo actividades pendientes hoy?">Actividades de hoy</button>
-    <button data-q="¿Qué contactos debo llamar urgente?">Contactos urgentes</button>
-    <button data-q="¿Qué obras no tienen pin en el mapa?">Obras sin ubicar</button>
-    <button data-q="¿Qué actividades tengo vencidas?">Actividades vencidas</button>
+    <button data-q="¿Qué obras contactadas faltan ubicar en el mapa?">📍 Faltan ubicar</button>
+    <button data-q="¿Qué obras se están enfriando?">❄ Enfriándose</button>
+    <button data-q="¿Qué obras entran a instalación?">🏗 Entran a instalación</button>
+    <button data-q="¿Tengo actividades prioritarias?">★ Prioritarias</button>
+    <button data-q="¿Qué obras contactadas no tienen proveedor?">⚔ Sin proveedor</button>
+    <button data-q="¿Qué actividades tengo hoy?">Hoy</button>
+    <button data-q="¿Qué actividades tengo vencidas?">Vencidas</button>
+    <button data-q="¿Qué obras faltan pasar a Bitrix?">Faltan en Bitrix</button>
   </div>
   <div class="chat-input-row">
     <input type="text" id="chat-input" placeholder="Escribí tu consulta...">
@@ -4957,64 +4966,134 @@ function chatAddMsg(texto, who){
   body.appendChild(div);
   body.scrollTop=body.scrollHeight;
 }
+// Mensaje del bot con HTML: puede tener enlaces [data-chatopen] que abren la ficha.
+function chatAddBot(html){
+  const body=document.getElementById('chat-body');
+  const div=document.createElement('div');
+  div.className='chat-msg bot';
+  div.innerHTML=html;
+  body.appendChild(div);
+  div.querySelectorAll('[data-chatopen]').forEach(el=>el.addEventListener('click',()=>{
+    const it=localStore.find(x=>x.id===parseFloat(el.dataset.chatopen));
+    if(it){ document.getElementById('chat-panel').classList.remove('show'); openPinModal(it); }
+  }));
+  body.scrollTop=body.scrollHeight;
+}
 
 function normChat(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
 
-function listaActividadesTexto(items){
-  if(!items.length) return 'No encontré ninguna.';
-  return items.map(e=>{
+// Un enlace clickeable a una ficha dentro de una respuesta del chat.
+function chatLink(e){ return '<span class="chat-link" data-chatopen="'+e.id+'">'+esc(tituloFicha(e))+'</span>'; }
+// Lista de obras clickeables (abren su ficha). `vacio` = texto cuando no hay ninguna.
+function chatListaObras(arr, vacio, max){
+  if(!arr.length) return '<span class="chat-dim">'+vacio+'</span>';
+  max=max||25;
+  let out=arr.slice(0,max).map(e=>{
+    const tel=parsePhones(e.telefono)[0];
+    return '• '+(e.primordial?'<span class="chat-star">★</span> ':'')+chatLink(e)+(tel?' <span class="chat-dim">'+esc(tel)+'</span>':'');
+  }).join('<br>');
+  if(arr.length>max) out+='<br><span class="chat-dim">(y '+(arr.length-max)+' más)</span>';
+  return out;
+}
+// Lista de actividades; el nombre del estudio linkea a la ficha del contacto.
+function chatListaActs(items, vacio){
+  if(!items.length) return '<span class="chat-dim">'+(vacio||'No encontré ninguna.')+'</span>';
+  return items.slice(0,25).map(e=>{
     const d=new Date(e.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit'});
-    return '• '+d+(e.hora?' '+e.hora:'')+' — '+e.texto+(e.estudio_nombre?' ('+e.estudio_nombre+')':'');
-  }).join('\n');
+    const link = e.estudio_id ? ' — <span class="chat-link" data-chatopen="'+e.estudio_id+'">'+esc(e.estudio_nombre||'ver ficha')+'</span>' : (e.estudio_nombre?' <span class="chat-dim">('+esc(e.estudio_nombre)+')</span>':'');
+    return '• '+(e.primordial?'<span class="chat-star">★</span> ':'')+'<span class="chat-dim">'+d+(e.hora?' '+esc(e.hora):'')+'</span> '+esc(e.texto)+link;
+  }).join('<br>')+(items.length>25?'<br><span class="chat-dim">(y '+(items.length-25)+' más)</span>':'');
+}
+// Obras "enfriándose": contactadas, sin nada agendado, pasadas de su cadencia.
+function chatEnfriandose(){
+  const out=[];
+  localStore.forEach(e=>{
+    if(!e.contactado) return;
+    if(agendaStore.some(a=>a.estudio_id===e.id && !a.completada)) return;
+    const ts=ultimoTouchTs(e); if(!ts) return;
+    if(Math.floor((Date.now()-ts)/86400000) > cadenciaDe(e)) out.push({e, ts});
+  });
+  return out.sort((a,b)=>a.ts-b.ts).map(o=>o.e);
 }
 
 function responderChat(pregunta){
   const q = normChat(pregunta);
   const hoy = fmtYMD(new Date());
-  const ahora = new Date();
 
+  // Obras sin ubicar en el mapa — SOLO contactadas (las sin contactar no se sabe qué obra/oficina son).
+  if(q.includes('mapa') || q.includes('pin') || q.includes('ubicar') || q.includes('ubicacion')){
+    const sin = localStore.filter(e=>e.contactado && !tieneUbicacion(e));
+    return '<b>Obras contactadas sin ubicar en el mapa</b> ('+sin.length+')<br><span class="chat-dim">Tocá una para abrir su ficha y cargar la dirección.</span><br><br>'
+      + chatListaObras(sin, 'Todas las obras contactadas ya tienen ubicación 👍');
+  }
+  if(q.includes('priorit') || q.includes('primordial')){
+    const acts = agendaStore.filter(e=>e.tipo==='actividad' && !e.completada && e.primordial).sort((a,b)=>(a.fecha+(a.hora||'')).localeCompare(b.fecha+(b.hora||'')));
+    const obras = localStore.filter(e=>e.primordial);
+    return '<b>Actividades prioritarias pendientes</b><br>'+chatListaActs(acts,'No tenés actividades prioritarias pendientes.')
+      +'<br><br><b>Obras primordiales</b> ('+obras.length+')<br>'+chatListaObras(obras,'No marcaste ninguna obra como primordial.');
+  }
   if(q.includes('actividad') && q.includes('hoy')){
-    const items = agendaStore.filter(e=>e.tipo==='actividad' && !e.completada && e.fecha===hoy);
-    return 'Actividades pendientes para hoy:\n\n'+listaActividadesTexto(items);
+    const items = agendaStore.filter(e=>e.tipo==='actividad' && !e.completada && e.fecha===hoy).sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
+    return '<b>Actividades para hoy</b><br><br>'+chatListaActs(items,'Nada agendado para hoy 🎉');
   }
   if(q.includes('vencid')){
-    const items = agendaStore.filter(e=>e.tipo==='actividad' && !e.completada && e.fecha<hoy);
-    return 'Actividades vencidas (sin completar):\n\n'+listaActividadesTexto(items);
+    const items = agendaStore.filter(e=>e.tipo==='actividad' && !e.completada && e.fecha<hoy).sort((a,b)=>a.fecha.localeCompare(b.fecha));
+    return '<b>Actividades vencidas</b><br><br>'+chatListaActs(items,'Ninguna vencida, vas al día 👌');
   }
   if(q.includes('urgente') || (q.includes('llamar') && !q.includes('actividad'))){
     const calientes = localStore.filter(e=>e.temp==='hot' && !e.contactado);
     const vencidas = agendaStore.filter(e=>e.tipo==='actividad' && !e.completada && e.fecha<hoy);
     let out='';
-    if(calientes.length) out += '🔥 Contactos "calientes" sin contactar todavía:\n'+calientes.map(e=>'• '+(e.estudio||e.empresa)+(e.nombre?' — '+e.nombre:'')+(e.telefono?' ('+e.telefono+')':'')).join('\n')+'\n\n';
-    if(vencidas.length) out += '⏰ Actividades vencidas:\n'+listaActividadesTexto(vencidas);
-    return out || 'No encontré contactos urgentes ni actividades vencidas. ¡Vas al día!';
+    if(calientes.length) out += '🔥 <b>Calientes sin contactar</b><br>'+chatListaObras(calientes,'')+'<br><br>';
+    if(vencidas.length) out += '⏰ <b>Actividades vencidas</b><br>'+chatListaActs(vencidas,'');
+    return out || '<span class="chat-dim">No hay nada urgente ni vencido. ¡Vas al día! 👌</span>';
+  }
+  if(q.includes('enfri')){
+    const arr=chatEnfriandose();
+    return '<b>Obras que se están enfriando</b> ('+arr.length+')<br><span class="chat-dim">Contactadas, sin nada agendado y pasadas de su cadencia.</span><br><br>'+chatListaObras(arr,'Ninguna enfriándose 👌');
+  }
+  if(q.includes('instalac')){
+    const dHoy=new Date(hoy+'T00:00:00').getTime();
+    const arr=localStore.filter(e=>{ if(!e.fecha_instalacion) return false; const t=new Date(e.fecha_instalacion+'T00:00:00').getTime(); if(isNaN(t)) return false; const d=Math.round((t-dHoy)/86400000); return d>=-7 && d<=35; }).sort((a,b)=>a.fecha_instalacion.localeCompare(b.fecha_instalacion));
+    return '<b>Obras entrando a instalación</b> ('+arr.length+')<br><span class="chat-dim">El momento que más compran material.</span><br><br>'
+      +(arr.length?arr.map(e=>{ const f=faltaTexto(e.fecha_instalacion,hoy); return '• '+chatLink(e)+' <span class="chat-dim">'+esc(f.t)+'</span>'; }).join('<br>'):'<span class="chat-dim">Cargá la fecha estimada de instalación en las obras para verlas acá.</span>');
+  }
+  if(q.includes('proveedor')){
+    const arr=localStore.filter(e=>e.contactado && !proveedorReal(e.proveedor));
+    return '<b>Obras contactadas sin proveedor cargado</b> ('+arr.length+')<br><span class="chat-dim">Buena excusa para llamar y averiguar a quién le compran.</span><br><br>'+chatListaObras(arr,'Todas las contactadas tienen proveedor 👍');
+  }
+  if(q.includes('email') || q.includes('mail') || q.includes('correo')){
+    const arr=localStore.filter(e=>e.contactado && !(e.email&&e.email.trim()));
+    return '<b>Obras contactadas sin email</b> ('+arr.length+')<br><span class="chat-dim">Sin email no les podés mandar catálogos.</span><br><br>'+chatListaObras(arr,'Todas las contactadas tienen email 👍');
   }
   if(q.includes('pendiente') && q.includes('actividad')){
     const items = agendaStore.filter(e=>e.tipo==='actividad' && !e.completada).sort((a,b)=>(a.fecha+(a.hora||'')).localeCompare(b.fecha+(b.hora||'')));
-    return 'Todas tus actividades pendientes:\n\n'+listaActividadesTexto(items.slice(0,15))+(items.length>15?'\n\n(y '+(items.length-15)+' más — mirá la pestaña Actividades)':'');
-  }
-  if((q.includes('mapa') || q.includes('pin') || q.includes('ubicar') || q.includes('ubicacion')) ){
-    const sinPin = localStore.filter(e=>!(e.lat&&e.lng) && !(Array.isArray(e.obras)&&e.obras.length));
-    if(!sinPin.length) return 'Todos tus contactos tienen al menos una obra ubicada en el mapa 👍';
-    return 'Contactos sin ninguna obra pineada en el mapa:\n\n'+sinPin.map(e=>'• '+(e.estudio||e.empresa)).join('\n');
+    return '<b>Todas tus actividades pendientes</b><br><br>'+chatListaActs(items,'No tenés actividades pendientes 🎉');
   }
   if(q.includes('bitrix')){
     const falta = localStore.filter(e=>!e.bitrix);
-    return 'Contactos que faltan pasar a Bitrix ('+falta.length+'):\n\n'+falta.slice(0,15).map(e=>'• '+(e.estudio||e.empresa)).join('\n')+(falta.length>15?'\n\n(y '+(falta.length-15)+' más)':'');
+    return '<b>Faltan pasar a Bitrix</b> ('+falta.length+')<br><br>'+chatListaObras(falta,'Todo pasado a Bitrix 👍');
   }
   if(q.includes('sin contactar') || (q.includes('contactar') && q.includes('falta'))){
     const falta = localStore.filter(e=>!e.contactado);
-    return 'Contactos sin contactar todavía ('+falta.length+'):\n\n'+falta.slice(0,15).map(e=>'• '+(e.estudio||e.empresa)).join('\n')+(falta.length>15?'\n\n(y '+(falta.length-15)+' más)':'');
+    return '<b>Sin contactar todavía</b> ('+falta.length+')<br><br>'+chatListaObras(falta,'Contactaste a todos 👌');
   }
   if(q.includes('esta semana') || q.includes('proxim')){
     const en7=new Date(); en7.setDate(en7.getDate()+7);
     const items = agendaStore.filter(e=>!e.completada && e.fecha>=hoy && e.fecha<=fmtYMD(en7)).sort((a,b)=>(a.fecha+(a.hora||'')).localeCompare(b.fecha+(b.hora||'')));
-    return 'Actividades y visitas de los próximos 7 días:\n\n'+listaActividadesTexto(items);
+    return '<b>Próximos 7 días</b><br><br>'+chatListaActs(items,'Nada agendado para la semana.');
   }
-  if(q.includes('cuant') && q.includes('contacto')){
-    return 'Tenés '+localStore.length+' contactos cargados: '+localStore.filter(e=>e.contactado).length+' contactados, '+localStore.filter(e=>e.bitrix).length+' pasados a Bitrix.';
+  if(q.includes('cuant')){
+    return 'Tenés <b>'+localStore.length+'</b> obras cargadas: '+localStore.filter(e=>e.contactado).length+' contactadas · '+localStore.filter(e=>e.primordial).length+' primordiales · '+localStore.filter(e=>e.bitrix).length+' en Bitrix.';
   }
-  return 'No estoy seguro de haber entendido bien 🙂 Puedo responder cosas como:\n\n• ¿Tengo actividades pendientes hoy?\n• ¿Qué actividades tengo vencidas?\n• ¿Qué contactos debo llamar urgente?\n• ¿Qué obras no tienen pin en el mapa?\n• ¿Qué contactos faltan pasar a Bitrix?\n• ¿Cuántos contactos tengo?';
+  return 'No entendí bien 🙂 Probá con:<br><br>'
+    +'• ¿Qué obras faltan ubicar en el mapa?<br>'
+    +'• ¿Qué obras se están enfriando?<br>'
+    +'• ¿Cuáles entran a instalación?<br>'
+    +'• ¿Qué obras contactadas no tienen proveedor?<br>'
+    +'• ¿Tengo actividades prioritarias?<br>'
+    +'• ¿Qué actividades tengo hoy / vencidas?<br>'
+    +'• ¿Qué obras faltan pasar a Bitrix?';
 }
 
 function chatEnviar(){
@@ -5023,14 +5102,14 @@ function chatEnviar(){
   if(!texto) return;
   chatAddMsg(texto,'user');
   input.value='';
-  setTimeout(()=>{ chatAddMsg(responderChat(texto),'bot'); }, 300);
+  setTimeout(()=>{ chatAddBot(responderChat(texto)); }, 250);
 }
 document.getElementById('chat-send').addEventListener('click', chatEnviar);
 document.getElementById('chat-input').addEventListener('keydown', e=>{ if(e.key==='Enter') chatEnviar(); });
 document.querySelectorAll('#chat-suggestions button').forEach(b=>{
   b.addEventListener('click', ()=>{
     chatAddMsg(b.dataset.q,'user');
-    setTimeout(()=>{ chatAddMsg(responderChat(b.dataset.q),'bot'); }, 300);
+    setTimeout(()=>{ chatAddBot(responderChat(b.dataset.q)); }, 250);
   });
 });
 
