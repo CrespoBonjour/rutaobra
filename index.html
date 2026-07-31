@@ -137,7 +137,8 @@ main{flex:1;overflow:hidden;position:relative;z-index:1}
   #view-form .field textarea{min-height:32px}
   #view-form .quick-chips{margin:0 0 5px;gap:5px}
   #view-form .chip{font-size:10.5px;padding:4px 8px;border-width:1px}
-  #view-form .temp-chips{gap:6px;margin-bottom:0}
+  #view-form .temp-chips{grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:0}
+  #view-form #temp-chips .mini-prio{width:100%;align-self:stretch}
   #view-form .temp-chip{padding:5px 4px;font-size:10px;border-width:1.5px}
   #view-form .temp-chip .icn{width:11px;height:11px;margin-right:2px}
   #view-form .catalog-grid{gap:5px;margin-bottom:5px}
@@ -156,7 +157,8 @@ main{flex:1;overflow:hidden;position:relative;z-index:1}
   #view-form .field textarea{min-height:30px}
   #view-form .quick-chips{margin:0 0 5px;gap:4px}
   #view-form .chip{font-size:10px;padding:4px 7px;border-width:1px}
-  #view-form .temp-chips{gap:6px;margin-bottom:0}
+  #view-form .temp-chips{grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:0}
+  #view-form #temp-chips .mini-prio{width:100%;align-self:stretch}
   #view-form .temp-chip{padding:5px 4px;font-size:10px;border-width:1.5px}
   #view-form .temp-chip .icn{width:11px;height:11px;margin-right:2px}
   #view-form .catalog-grid{gap:5px;margin-bottom:5px}
@@ -960,6 +962,11 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       </div>
     </div>
     <div class="user-menu">
+      <div id="admin-filter-bar" style="display:none">
+        <select id="vendedor-filter" class="nice-select" title="Filtrar por vendedor" style="min-width:150px;font-size:11.5px;padding:5px 26px 5px 9px;height:32px">
+          <option value="all">Todos los vendedores</option>
+        </select>
+      </div>
       <button class="bell-btn" id="bell-btn" title="Activar recordatorios de actividades"><svg class="icn" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button>
       <span class="admin-badge" id="role-badge" style="display:none">Admin</span>
       <div class="user-avatar-placeholder" id="user-avatar-btn"><svg class="icn" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></div>
@@ -987,12 +994,6 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 </header>
 
 <!-- ADMIN FILTER BAR -->
-<div id="admin-filter-bar" class="admin-filter">
-  <label><svg class="icn" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg> Vendedor</label>
-  <select id="vendedor-filter" class="nice-select">
-    <option value="all">Todos los vendedores</option>
-  </select>
-</div>
 
 <main id="app-main" style="display:none">
 
@@ -1005,17 +1006,19 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       <div class="temp-chip cold" data-val="cold"><svg class="icn" viewBox="0 0 24 24"><path d="M12 2v20M4.2 7l15.6 10M4.2 17l15.6-10"/></svg> Frío</div>
       <div class="temp-chip warm" data-val="warm"><svg class="icn" viewBox="0 0 24 24"><path d="M14 4v10.5a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0z"/></svg> Tibio</div>
       <div class="temp-chip hot" data-val="hot"><svg class="icn" viewBox="0 0 24 24"><path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c0-1.5-.5-2.5-1-3.5.5 2-1 3-2 2 1-2-1-3-1-5.5-1 1-2 1.5-2 2.5z"/></svg> Caliente</div>
+      <button type="button" class="mini-prio" id="f-primordial" style="justify-content:center" title="Marcar la obra como primordial (prioridad de venta)"><svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.1 6.6.6-5 4.4 1.5 6.5L12 17.1 6.5 20.6l1.5-6.5-5-4.4 6.6-.6z"/></svg> Prioritaria</button>
     </div>
-    <button type="button" class="mini-prio" id="f-primordial" title="Marcar la obra como primordial (prioridad de venta)"><svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.1 6.6.6-5 4.4 1.5 6.5L12 17.1 6.5 20.6l1.5-6.5-5-4.4 6.6-.6z"/></svg> Obra prioritaria</button>
-  </div>
-  <div class="group">
-    <div class="group-label">Empresa y obra</div>
-    <div class="field"><label>Tipo de contacto</label>
+    <div class="field" style="margin-top:8px"><label>Tipo de contacto</label>
       <div class="quick-chips" id="f-tipocli-chips">
         <div class="chip selected" data-val="empresa">🏗 Obra de empresa</div>
+        <div class="chip" data-val="oficina">🏢 Oficina</div>
+        <div class="chip" data-val="administracion">🗂 Administración</div>
         <div class="chip" data-val="particular">🏠 Cliente particular</div>
       </div>
     </div>
+  </div>
+  <div class="group">
+    <div class="group-label">Empresa y obra</div>
     <div class="field"><label>Nombre de la obra <span style="text-transform:none;font-weight:400;color:var(--muted)">(ej: Torre Trump; opcional)</span></label><input id="f-obra" type="text" placeholder="Nombre de la obra..."></div>
     <div class="field"><label>Empresa constructora</label><input id="f-empresa" type="text" list="empresas-datalist" placeholder="Ej: CRIBA, Liderus..."></div>
     <datalist id="empresas-datalist"></datalist>
@@ -1058,7 +1061,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
     <div class="field">
       <label>Dirección exacta</label>
       <input id="f-direccion" type="text" placeholder="Calle, número, esquina...">
-      <button type="button" class="ct-int-savebtn" id="f-pin-map-btn" style="background:var(--cold);margin-top:8px"><svg class="icn" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Marcar ubicación en el mapa</button>
+      <button type="button" class="ct-int-savebtn" id="f-pin-map-btn" style="background:var(--cold);margin-top:6px;padding:6px 10px;font-size:11px;width:auto"><svg class="icn" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Marcar en el mapa</button>
       <div id="f-pin-status" style="display:none;margin-top:6px;font-size:11.5px;color:var(--acc);font-weight:700"></div>
     </div>
     <div class="field"><label>Zona</label>
@@ -1414,6 +1417,8 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
         <div class="field"><label>Tipo de contacto</label>
           <div class="quick-chips" id="m-tipocli-chips">
             <div class="chip selected" data-val="empresa">🏗 Obra de empresa</div>
+            <div class="chip" data-val="oficina">🏢 Oficina</div>
+            <div class="chip" data-val="administracion">🗂 Administración</div>
             <div class="chip" data-val="particular">🏠 Cliente particular</div>
           </div>
         </div>
@@ -2720,7 +2725,7 @@ function openPinModal(entry,newLocation){
   renderModalCharts();
   if(entry){
     document.getElementById('m-obra').value=entry.obra||'';
-    { const tv=entry.tipo_cliente==='particular'?'particular':'empresa'; document.querySelectorAll('#m-tipocli-chips .chip').forEach(c=>c.classList.toggle('selected', c.dataset.val===tv)); modalTipoCli=tv; }
+    { const tv=['empresa','oficina','administracion','particular'].includes(entry.tipo_cliente)?entry.tipo_cliente:'empresa'; document.querySelectorAll('#m-tipocli-chips .chip').forEach(c=>c.classList.toggle('selected', c.dataset.val===tv)); modalTipoCli=tv; }
     document.getElementById('m-empresa').value=entry.empresa||'';document.getElementById('m-estudio').value=entry.estudio||'';
     document.getElementById('m-tipo').value=entry.tipo||'';document.getElementById('m-estado').value=entry.estado||'';
     document.getElementById('m-nombre').value=entry.nombre||'';document.getElementById('m-cargo').value=entry.cargo||'';
