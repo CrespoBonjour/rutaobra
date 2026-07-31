@@ -3332,7 +3332,7 @@ function renderContactos(){
     if(flPrio==='yes' && !e.primordial) return false;
     if(flAct==='pending' && !agendaStore.some(a=>a.tipo==='actividad' && !a.completada && a.estudio_id===e.id)) return false;
     if(flSearch){
-      const hay=(e.estudio+' '+e.nombre+' '+e.telefono+' '+e.zona+' '+e.empresa+' '+(e.estado||'')+' '+(e.proveedor||'')).toLowerCase();
+      const hay=((e.obra||'')+' '+(e.estudio||'')+' '+(e.nombre||'')+' '+(e.telefono||'')+' '+(e.zona||'')+' '+(e.empresa||'')+' '+(e.estado||'')+' '+(e.proveedor||'')).toLowerCase();
       if(!hay.includes(flSearch.toLowerCase())) return false;
     }
     return true;
@@ -3908,7 +3908,7 @@ function renderLista(){
     if(flPrio==='yes' && !e.primordial) return false;
     if(flAct==='pending' && !agendaStore.some(a=>a.tipo==='actividad' && !a.completada && a.estudio_id===e.id)) return false;
     if(!flSearch) return true;
-    const hay=((e.estudio||'')+' '+(e.empresa||'')+' '+(e.nombre||'')+' '+(e.telefono||'')+' '+(e.zona||'')+' '+(e.estado||'')+' '+(e.user_name||'')+' '+(e.proveedor||'')).toLowerCase();
+    const hay=((e.obra||'')+' '+(e.estudio||'')+' '+(e.empresa||'')+' '+(e.nombre||'')+' '+(e.telefono||'')+' '+(e.zona||'')+' '+(e.estado||'')+' '+(e.user_name||'')+' '+(e.proveedor||'')).toLowerCase();
     return hay.includes(flSearch.toLowerCase());
   });
   list=list.slice().sort((a,b)=>{
