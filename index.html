@@ -126,9 +126,9 @@ main{flex:1;overflow:hidden;position:relative;z-index:1}
    Los grupos se balancean en 2 columnas dentro de .form-cols (altura automática, sin huecos ni
    overflow lateral) y la vista se recorta a la pantalla. Todo compacto. En móvil queda en 1 columna
    con scroll normal. */
-@media(min-width:900px){
-  #view-form.active{overflow:hidden;padding:8px 14px 50px}
-  #view-form .form-cols{column-count:2;column-gap:14px;max-width:1040px;margin:0 auto}
+@media(min-width:1100px){
+  #view-form.active{overflow:hidden;padding:8px 20px 48px}
+  #view-form .form-cols{column-count:3;column-gap:16px;max-width:1600px;margin:0 auto}
   #view-form .form-cols .group{break-inside:avoid;-webkit-column-break-inside:avoid;margin:0 0 10px;padding:9px 12px 3px}
   #view-form .group-label{font-size:9.5px;margin-bottom:6px;letter-spacing:.8px}
   #view-form .field{margin-bottom:6px}
@@ -137,11 +137,31 @@ main{flex:1;overflow:hidden;position:relative;z-index:1}
   #view-form .field textarea{min-height:32px}
   #view-form .quick-chips{margin:0 0 5px;gap:5px}
   #view-form .chip{font-size:10.5px;padding:4px 8px;border-width:1px}
-  #view-form .temp-chip{padding:6px 5px;font-size:10.5px;border-width:1.5px}
-  #view-form .temp-chip .icn{width:12px;height:12px}
+  #view-form .temp-chips{gap:6px;margin-bottom:0}
+  #view-form .temp-chip{padding:5px 4px;font-size:10px;border-width:1.5px}
+  #view-form .temp-chip .icn{width:11px;height:11px;margin-right:2px}
   #view-form .catalog-grid{gap:5px;margin-bottom:5px}
   #view-form .catalog-item{font-size:10.5px;padding:5px 7px;border-width:1px}
-  #view-form .mini-prio{padding:4px 8px;font-size:10.5px}
+  #view-form .mini-prio{padding:4px 8px;font-size:10px}
+}
+/* Entre 900 y 1100px: 2 columnas (pantallas medianas) */
+@media(min-width:900px) and (max-width:1099px){
+  #view-form.active{overflow:hidden;padding:8px 14px 48px}
+  #view-form .form-cols{column-count:2;column-gap:14px;max-width:980px;margin:0 auto}
+  #view-form .form-cols .group{break-inside:avoid;-webkit-column-break-inside:avoid;margin:0 0 9px;padding:9px 12px 3px}
+  #view-form .group-label{font-size:9.5px;margin-bottom:6px}
+  #view-form .field{margin-bottom:6px}
+  #view-form .field label{font-size:9px;margin-bottom:2px}
+  #view-form .field input,#view-form .field textarea,#view-form .field select{padding:5px 9px;font-size:12px;border-width:1px;box-shadow:none}
+  #view-form .field textarea{min-height:30px}
+  #view-form .quick-chips{margin:0 0 5px;gap:4px}
+  #view-form .chip{font-size:10px;padding:4px 7px;border-width:1px}
+  #view-form .temp-chips{gap:6px;margin-bottom:0}
+  #view-form .temp-chip{padding:5px 4px;font-size:10px;border-width:1.5px}
+  #view-form .temp-chip .icn{width:11px;height:11px;margin-right:2px}
+  #view-form .catalog-grid{gap:5px;margin-bottom:5px}
+  #view-form .catalog-item{font-size:10px;padding:5px 7px;border-width:1px}
+  #view-form .mini-prio{padding:4px 8px;font-size:10px}
 }
 .group::before{content:"";position:absolute;top:10px;left:-1px;bottom:10px;width:3px;background:linear-gradient(var(--acc-light),var(--acc-deep));border-radius:0 3px 3px 0;box-shadow:0 0 10px var(--acc-glow)}
 .group-label{font-size:11px;text-transform:uppercase;letter-spacing:1.3px;color:var(--ink-soft);font-weight:800;margin-bottom:11px;display:flex;align-items:center;gap:7px}
@@ -986,6 +1006,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       <div class="temp-chip warm" data-val="warm"><svg class="icn" viewBox="0 0 24 24"><path d="M14 4v10.5a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0z"/></svg> Tibio</div>
       <div class="temp-chip hot" data-val="hot"><svg class="icn" viewBox="0 0 24 24"><path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c0-1.5-.5-2.5-1-3.5.5 2-1 3-2 2 1-2-1-3-1-5.5-1 1-2 1.5-2 2.5z"/></svg> Caliente</div>
     </div>
+    <button type="button" class="mini-prio" id="f-primordial" title="Marcar la obra como primordial (prioridad de venta)"><svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.1 6.6.6-5 4.4 1.5 6.5L12 17.1 6.5 20.6l1.5-6.5-5-4.4 6.6-.6z"/></svg> Obra prioritaria</button>
   </div>
   <div class="group">
     <div class="group-label">Empresa y obra</div>
@@ -2083,6 +2104,7 @@ function clearForm(){
   productosInteresSelected=new Set();renderProductosChips();
   document.getElementById('f-act-text').value='';document.getElementById('f-act-fecha').value='';document.getElementById('f-act-hora').value='';
   document.getElementById('f-act-priori').classList.remove('on');
+  document.getElementById('f-primordial').classList.remove('on');
 }
 
 document.getElementById('f-pin-map-btn').addEventListener('click', ()=>{
@@ -2110,6 +2132,7 @@ document.getElementById('save-btn').addEventListener('click',async()=>{
     followup:'',catalogos:Array.from(catalogosSelected),
     proveedor:document.getElementById('f-proveedor').value.trim(),notas:document.getElementById('f-notas').value.trim(),
     tamano_obra:tamanoSelected||null,fecha_instalacion:document.getElementById('f-instalacion').value||null,
+    primordial:document.getElementById('f-primordial').classList.contains('on'),
     photo:formFotos[0]||null,fotos:formFotos.slice(),lat:formPickedLatLng?formPickedLatLng.lat:null,lng:formPickedLatLng?formPickedLatLng.lng:null,
     historial:[{fecha:new Date().toLocaleDateString('es-UY'),nota:'Visita registrada por '+currentUser.name}]
   };
