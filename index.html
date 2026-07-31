@@ -773,6 +773,18 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .cons-kpi.a .n{color:var(--acc-light)}.cons-kpi.b .n{color:#6fe0a0}.cons-kpi.c .n{color:#e8c876}.cons-kpi.d .n{color:var(--ink-soft)}
 .cons-kpi .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:6px;font-weight:700}
 .cons-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px;align-items:start}
+/* Vista LISTA de Constructoras/Estudios */
+.cons-listwrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.cons-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.cons-table th,.cons-table td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+.cons-table th{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:800;position:sticky;top:0;background:var(--panel3)}
+.cons-table td.num,.cons-table th.num{text-align:center;font-variant-numeric:tabular-nums}
+.cons-table tbody tr:hover{background:var(--panel2)}
+.cons-table tr.key .cons-tname{color:var(--acc)}
+.cons-table .cons-tname{font-weight:700;color:var(--ink)}
+.cons-table .cons-tname .star{color:var(--acc)}
+.cons-table tr.clasif td{color:var(--muted);font-style:italic}
+.cons-table tr:last-child td{border-bottom:none}
 .cons-card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:15px 16px}
 .cons-card.key{border-color:var(--acc-deep);box-shadow:0 0 0 1px var(--acc-dim)}
 .cons-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
@@ -915,7 +927,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
     <div class="tabs-group">
       <div class="tab active" data-tab="form">＋ Nuevo</div>
       <div class="tab" data-tab="contactos">Obras</div>
-      <div class="tab" data-tab="constructoras" id="tab-constructoras" style="display:none">Constructoras</div>
+      <div class="tab" data-tab="constructoras" id="tab-constructoras" style="display:none">Constructoras / Estudios</div>
       <div class="tab" data-tab="map">Mapa</div>
     </div>
     <div class="tabs-group tabs-right">
@@ -1079,6 +1091,10 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
     <div class="ct-fgroup ct-vista">
       <button class="ct-fbtn active" data-conspivot="con" title="Agrupar por constructora">🏗 Constructora</button>
       <button class="ct-fbtn" data-conspivot="est" title="Agrupar por estudio">📐 Estudio</button>
+    </div>
+    <div class="ct-fgroup ct-vista">
+      <button class="ct-fbtn active" data-consvista="fichas" title="Ver como fichas">▦ Fichas</button>
+      <button class="ct-fbtn" data-consvista="lista" title="Ver como lista">≣ Lista</button>
     </div>
     <div class="ct-fgroup">
       <button class="ct-fbtn active" data-consort="obras">Más obras</button>
@@ -4378,6 +4394,37 @@ function renderHoy(){
 // TAB CONSTRUCTORAS (agrupa contactos por empresa; solo admin, en prueba)
 // ============================================================
 let consSort='obras', consSearch='', consPivot='con', consFocus='all', consFiltros=new Set();
+let consVista='fichas';
+try{ const v=localStorage.getItem('rutaobra_vista_cons'); if(v==='fichas'||v==='lista') consVista=v; }catch(_){}
+// Vista LISTA de Constructoras/Estudios: tabla compacta de cuentas con sus números clave.
+function consListaTabla(lista, sinClasificar){
+  const fila=(g)=>{
+    const cont_=g.obras.filter(e=>e.contactado).length, sin=g.count-cont_;
+    const tmix=[];
+    if(g.temp.hot) tmix.push('<span class="cons-tchip hot">'+g.temp.hot+' 🔥</span>');
+    if(g.temp.warm) tmix.push('<span class="cons-tchip warm">'+g.temp.warm+' 🌡</span>');
+    if(g.temp.cold) tmix.push('<span class="cons-tchip cold">'+g.temp.cold+' ❄</span>');
+    return '<tr'+(g.clave?' class="key"':'')+'>'
+      +'<td class="cons-tname">'+(g.clave?'<span class="star">★</span> ':'')+esc(g.nombre)+'</td>'
+      +'<td class="num"><b>'+g.count+'</b></td>'
+      +'<td class="num">'+cont_+'</td>'
+      +'<td class="num">'+sin+'</td>'
+      +'<td>'+(tmix.join(' ')||'—')+'</td>'
+      +'<td>'+(g.ultima?fmtRelativa(g.ultima):'—')+'</td>'
+      +'<td class="num">'+(g.recompra?'🔁':'')+'</td>'
+      +'</tr>';
+  };
+  let t='<div class="cons-listwrap"><table class="cons-table"><thead><tr>'
+    +'<th>Cuenta</th><th class="num">Obras</th><th class="num">Contact.</th><th class="num">Sin contac.</th><th>Temperatura</th><th>Última movida</th><th class="num">Recompra</th>'
+    +'</tr></thead><tbody>';
+  t+=lista.map(fila).join('');
+  if(sinClasificar.length){
+    t+='<tr class="clasif"><td class="cons-tname">⚠ Por clasificar</td><td class="num"><b>'+sinClasificar.length+'</b></td>'
+      +'<td class="num" colspan="5">Obras sin '+(consPivot==='est'?'estudio':'constructora')+' cargada</td></tr>';
+  }
+  t+='</tbody></table></div>';
+  return t;
+}
 // Crear una obra nueva ya pre-cargada con la constructora o el estudio (desde la vista Cuentas).
 function nuevaObraDesde(campo, valor){
   const tab=document.querySelector('.tab[data-tab="form"]'); if(tab) tab.click();
@@ -4443,6 +4490,7 @@ function renderConstructoras(){
   else if(consSort==='movida') lista.sort((a,b)=>b.ultima-a.ultima);
 
   document.querySelectorAll('[data-conspivot]').forEach(b=>b.classList.toggle('active', b.dataset.conspivot===consPivot));
+  document.querySelectorAll('[data-consvista]').forEach(b=>b.classList.toggle('active', b.dataset.consvista===consVista));
 
   const obraRow = (e)=>{
     const dk=e.temp||'none', nueva=!e.contactado;
@@ -4487,6 +4535,8 @@ function renderConstructoras(){
   let html=kpisHtml;
   if(!lista.length && !sinClasificar.length){
     html+='<div class="act-empty">No hay cuentas para mostrar. Cargá la constructora o el estudio en los contactos para agruparlos acá.</div>';
+  } else if(consVista==='lista'){
+    html+=consListaTabla(lista, sinClasificar);
   } else {
     html+='<div class="cons-grid">'+lista.map(g=>{
       const tchips=[];
@@ -4541,6 +4591,7 @@ function renderConstructoras(){
 document.getElementById('cons-search').addEventListener('input', e=>{ consSearch=e.target.value; consFocus='all'; renderConstructoras(); });
 document.querySelectorAll('[data-consort]').forEach(b=>b.addEventListener('click',()=>{ document.querySelectorAll('[data-consort]').forEach(x=>x.classList.remove('active')); b.classList.add('active'); consSort=b.dataset.consort; renderConstructoras(); }));
 document.querySelectorAll('[data-conspivot]').forEach(b=>b.addEventListener('click',()=>{ consPivot=b.dataset.conspivot; consFocus='all'; renderConstructoras(); }));
+document.querySelectorAll('[data-consvista]').forEach(b=>b.addEventListener('click',()=>{ consVista=b.dataset.consvista; try{localStorage.setItem('rutaobra_vista_cons',consVista);}catch(_){} renderConstructoras(); }));
 document.querySelectorAll('[data-consfiltro]').forEach(b=>b.addEventListener('click',()=>{ const f=b.dataset.consfiltro; if(consFiltros.has(f)) consFiltros.delete(f); else consFiltros.add(f); b.classList.toggle('active'); consFocus='all'; renderConstructoras(); }));
 
 // ============================================================
