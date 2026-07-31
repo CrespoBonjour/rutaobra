@@ -122,23 +122,26 @@ main{flex:1;overflow:hidden;position:relative;z-index:1}
 
 /* ── GROUPS / FIELDS ── */
 .group{background:linear-gradient(165deg,var(--panel),var(--panel) 60%,var(--panel2));border:1px solid var(--line);border-radius:var(--r-md);padding:14px 14px 8px;margin-bottom:13px;position:relative;box-shadow:var(--shadow-sm)}
-/* En PC el formulario +Nuevo se acomoda en 2 columnas tipo "masonry" (sin huecos muertos)
-   y con todo más compacto para ver casi todos los campos sin scrollear. En móvil queda en 1. */
+/* En PC el formulario +Nuevo entra COMPLETO en pantalla, sin scroll (ni vertical ni horizontal).
+   Los grupos se balancean en 2 columnas dentro de .form-cols (altura automática, sin huecos ni
+   overflow lateral) y la vista se recorta a la pantalla. Todo compacto. En móvil queda en 1 columna
+   con scroll normal. */
 @media(min-width:900px){
-  #view-form.active{column-count:2;column-gap:14px;max-width:1040px;margin:0 auto;padding:12px 14px 88px}
-  #view-form .group{break-inside:avoid;-webkit-column-break-inside:avoid;margin:0 0 12px;padding:10px 12px 4px}
-  #view-form .group-label{font-size:9.5px;margin-bottom:7px;letter-spacing:.9px}
-  #view-form .field{margin-bottom:7px}
-  #view-form .field label{font-size:9px;margin-bottom:3px;letter-spacing:.3px}
-  #view-form .field input,#view-form .field textarea,#view-form .field select{padding:6px 9px;font-size:12.5px;border-width:1px;box-shadow:none}
-  #view-form .field textarea{min-height:38px}
-  #view-form .quick-chips{margin:0 0 6px;gap:5px}
-  #view-form .chip{font-size:11px;padding:5px 9px;border-width:1px}
-  #view-form .temp-chip{padding:7px 6px;font-size:11px;border-width:1.5px}
-  #view-form .temp-chip .icn{width:13px;height:13px}
-  #view-form .catalog-grid{gap:6px;margin-bottom:6px}
-  #view-form .catalog-item{font-size:11px;padding:6px 8px;border-width:1px}
-  #view-form .mini-prio{padding:5px 9px;font-size:11px}
+  #view-form.active{overflow:hidden;padding:8px 14px 50px}
+  #view-form .form-cols{column-count:2;column-gap:14px;max-width:1040px;margin:0 auto}
+  #view-form .form-cols .group{break-inside:avoid;-webkit-column-break-inside:avoid;margin:0 0 10px;padding:9px 12px 3px}
+  #view-form .group-label{font-size:9.5px;margin-bottom:6px;letter-spacing:.8px}
+  #view-form .field{margin-bottom:6px}
+  #view-form .field label{font-size:9px;margin-bottom:2px;letter-spacing:.3px}
+  #view-form .field input,#view-form .field textarea,#view-form .field select{padding:5px 9px;font-size:12px;border-width:1px;box-shadow:none}
+  #view-form .field textarea{min-height:32px}
+  #view-form .quick-chips{margin:0 0 5px;gap:5px}
+  #view-form .chip{font-size:10.5px;padding:4px 8px;border-width:1px}
+  #view-form .temp-chip{padding:6px 5px;font-size:10.5px;border-width:1.5px}
+  #view-form .temp-chip .icn{width:12px;height:12px}
+  #view-form .catalog-grid{gap:5px;margin-bottom:5px}
+  #view-form .catalog-item{font-size:10.5px;padding:5px 7px;border-width:1px}
+  #view-form .mini-prio{padding:4px 8px;font-size:10.5px}
 }
 .group::before{content:"";position:absolute;top:10px;left:-1px;bottom:10px;width:3px;background:linear-gradient(var(--acc-light),var(--acc-deep));border-radius:0 3px 3px 0;box-shadow:0 0 10px var(--acc-glow)}
 .group-label{font-size:11px;text-transform:uppercase;letter-spacing:1.3px;color:var(--ink-soft);font-weight:800;margin-bottom:11px;display:flex;align-items:center;gap:7px}
@@ -975,6 +978,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 
 <!-- FORM -->
 <section class="view active" id="view-form">
+  <div class="form-cols">
   <div class="group">
     <div class="group-label">Temperatura del contacto</div>
     <div class="temp-chips" id="temp-chips">
@@ -1083,6 +1087,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
       <div class="icon"><svg class="icn icn-lg" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div><div>Tocá para sacar o agregar fotos</div>
     </div>
     <input type="file" id="photo-input" accept="image/*" capture="environment" multiple>
+  </div>
   </div>
 </section>
 
