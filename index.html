@@ -642,6 +642,21 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .ls-table td{padding:9px 12px;border-bottom:1px solid var(--line-soft);color:var(--ink-soft);white-space:nowrap;font-variant-numeric:tabular-nums;max-width:220px;overflow:hidden;text-overflow:ellipsis}
 .ls-table tbody tr{cursor:pointer;transition:background .12s}
 .ls-table tbody tr:hover{background:var(--acc-dim)}
+/* Vista Lista en móvil: sin tabla ancha; cada obra es una fila apilada compacta y tocable. */
+@media (max-width:720px){
+  .ls-wrap{overflow:visible;max-height:none;border:none;background:transparent}
+  .ls-table{min-width:0}
+  .ls-table td{white-space:normal;max-width:none;padding:0}
+  .lsm-cell{display:block;padding:9px 12px}
+  .lsm-top{font-weight:800;font-size:13.5px;color:var(--ink);display:flex;gap:5px;align-items:baseline;line-height:1.25}
+  .lsm-top .ls-star{color:var(--prio)}
+  .lsm-sub{font-size:11.5px;color:var(--acc-light);margin-top:1px}
+  .lsm-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+  .lsm-chip{font-size:10px;font-weight:700;color:var(--ink-soft);background:var(--panel2);border:1px solid var(--line);border-radius:20px;padding:2px 8px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+  .lsm-chip i{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+  .lsm-chip.venc{color:var(--hot);border-color:var(--hot)}
+  .lsm-chip .ls-ok{color:var(--ok)}
+}
 .ls-est{font-weight:700;color:var(--ink)}
 .ls-pill{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:20px;background:var(--panel2);border:1px solid var(--line)}
 .ls-pill i{width:7px;height:7px;border-radius:50%;flex-shrink:0}
@@ -3935,7 +3950,8 @@ function renderLista(){
   });
   lsLastList=list;
   document.getElementById('ls-count').textContent=list.length+' contacto'+(list.length===1?'':'s');
-  head.innerHTML='<tr>'+LS_COLS.map(c=>'<th data-lskey="'+c.key+'"'+(c.key===lsSortKey?' class="sorted"':'')+'>'+c.label+(c.key===lsSortKey?(lsSortDir===1?' ▲':' ▼'):'')+'</th>').join('')+'</tr>';
+  const lsMovil = window.innerWidth <= 720; // en móvil no hay tabla ancha: filas apiladas compactas
+  head.innerHTML = lsMovil ? '' : '<tr>'+LS_COLS.map(c=>'<th data-lskey="'+c.key+'"'+(c.key===lsSortKey?' class="sorted"':'')+'>'+c.label+(c.key===lsSortKey?(lsSortDir===1?' ▲':' ▼'):'')+'</th>').join('')+'</tr>';
   if(!list.length){
     body.innerHTML='<tr><td colspan="'+LS_COLS.length+'" style="text-align:center;color:var(--muted);padding:26px;cursor:default">No hay contactos para mostrar.</td></tr>';
   } else {
@@ -3954,6 +3970,21 @@ function renderLista(){
       const catTotal=cs.sent.length+cs.queued.length;
       const catPillClass = catTotal===0 ? 'none' : (cs.sent.length===catTotal ? 'full' : 'part');
       const catPillTxt = catTotal===0 ? 'Sin pedidos' : (cs.sent.length+'/'+catTotal+' enviados');
+      if(lsMovil){
+        const etapa=e.estado?(ETAPA_CORTA[e.estado]||e.estado):'';
+        const m=[];
+        if(tm) m.push('<span class="lsm-chip"><i style="background:'+tm.color+'"></i>'+tm.label+'</span>');
+        m.push('<span class="lsm-chip">'+(e.contactado?'<span class="ls-ok">✓ Contactado</span>':'Sin contactar')+'</span>');
+        if(actsPend.length) m.push('<span class="lsm-chip'+(actsPend[0].fecha<hoyYMD?' venc':'')+'">🗓 '+actsPend.length+' act.</span>');
+        if(e.zona) m.push('<span class="lsm-chip">📍 '+esc(e.zona)+'</span>');
+        if(etapa) m.push('<span class="lsm-chip">'+esc(etapa)+'</span>');
+        if(catTotal) m.push('<span class="lsm-chip">📦 '+catPillTxt+'</span>');
+        return '<tr data-lsid="'+e.id+'"><td class="lsm-cell">'
+          +'<div class="lsm-top">'+(e.primordial?'<span class="ls-star">★</span> ':'')+esc(tituloFicha(e))+'</div>'
+          +(e.nombre?'<div class="lsm-sub">'+esc(e.nombre)+'</div>':'')
+          +'<div class="lsm-meta">'+m.join('')+'</div>'
+          +'</td></tr>';
+      }
       return '<tr data-lsid="'+e.id+'">'
         +'<td class="ls-est">'+(e.primordial?'<span style="color:var(--prio)" title="Obra primordial">★ </span>':'')+esc(tituloFicha(e))+'</td>'
         +'<td>'+esc(e.nombre||'—')+'</td>'
@@ -3983,6 +4014,9 @@ document.querySelectorAll('[data-lsbx]').forEach(b=>b.addEventListener('click',(
 document.querySelectorAll('[data-lstemp]').forEach(b=>b.addEventListener('click',()=>{ flTemp=b.dataset.lstemp; aplicarFiltros(); }));
 document.querySelectorAll('[data-lsact]').forEach(b=>b.addEventListener('click',()=>{ flAct=b.dataset.lsact; aplicarFiltros(); }));
 document.querySelectorAll('[data-lsprio]').forEach(b=>b.addEventListener('click',()=>{ flPrio = flPrio==='yes'?'all':'yes'; aplicarFiltros(); }));
+// Re-dibujar la Lista al rotar / cambiar tamaño (para alternar entre tabla y filas apiladas de móvil).
+let _lsResizeT;
+window.addEventListener('resize',()=>{ clearTimeout(_lsResizeT); _lsResizeT=setTimeout(()=>{ if(document.getElementById('view-lista').classList.contains('active')) renderLista(); },200); });
 
 // ============================================================
 // TAB AGENDA (calendario: visitas pautadas + actividades)
