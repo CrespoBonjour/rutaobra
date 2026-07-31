@@ -454,7 +454,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .persona-add-form input,.persona-add-form select{width:100%;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink);border-radius:7px;padding:9px 10px;font-size:13px;font-family:inherit}
 
 /* ===== Ficha de contacto unificada (pin-modal): 3 columnas, centrada, con edicion completa ===== */
-#pin-modal .pm-modal{max-width:1180px;padding:0;display:flex;flex-direction:column;max-height:90vh;overflow:hidden}
+#pin-modal .pm-modal{max-width:min(1640px,97vw);padding:0;display:flex;flex-direction:column;max-height:92vh;overflow:hidden}
 #pin-modal .modal-handle{margin-top:12px;flex-shrink:0}
 #pin-modal .pm-topbar,#pin-modal .modal-actions,#pin-modal .pm-tabs{flex-shrink:0}
 /* Barra superior fija (no scrollea): nombre, temperatura, estado, mini-stats */
@@ -473,7 +473,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .pm-tab.sel{background:var(--acc-dim);color:var(--acc-light);border-color:var(--acc-deep)}
 
 /* Zona central scrolleable: solo esto se mueve; la barra de arriba y los botones de abajo quedan fijos */
-.pm-cols{flex:1;overflow-y:auto;display:grid;grid-template-columns:250px 1fr 250px;gap:0;padding:10px 0}
+.pm-cols{flex:1;overflow-y:auto;display:grid;grid-template-columns:310px 1fr 310px;gap:0;padding:10px 0}
 .pm-col{padding:0 16px;display:flex;flex-direction:column;gap:7px;align-content:start}
 .pm-col-l{border-right:1px solid var(--line-soft)}
 .pm-col-r{border-left:1px solid var(--line-soft)}
@@ -500,7 +500,31 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .pm-col .obra-row,.pm-col .persona-row{padding:5px 8px;font-size:11px;margin-bottom:0}
 
 /* Notas: crece con el texto, con tope generoso (recien ahi scroll suave) */
-.pm-col #m-notas{min-height:42px;max-height:150px;resize:none;overflow-y:auto;line-height:1.4}
+.pm-col #m-notas{min-height:56px;max-height:380px;resize:none;overflow-y:auto;line-height:1.5}
+/* ===== Rediseño de la ficha (2026-07-31) ===== */
+#m-tipocli-chips{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+#m-tipocli-chips .chip{text-align:center}
+/* Acciones rápidas del contacto principal: WhatsApp / Email */
+.cc-quick{display:flex;gap:6px;align-items:center;margin-top:2px}
+.ico-btn{width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .12s var(--ease)}
+.ico-btn:active{transform:scale(.88)}
+.ico-btn svg{width:14px;height:14px;stroke-width:2;fill:none}
+.ico-btn.wa{background:#25d366}.ico-btn.wa svg{stroke:#fff}
+.ico-btn.em{background:var(--acc)}.ico-btn.em svg{stroke:#1a1300}
+.cc-quick .ico-lbl{font-size:10px;color:var(--muted)}
+/* Tarjeta de persona de contacto (varias por obra) */
+.pcard{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:6px 8px;display:flex;gap:8px;align-items:flex-start;margin-bottom:6px}
+.pcard-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(150deg,var(--acc-light),var(--acc-deep));color:#1a1300;font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pcard-body{flex:1;min-width:0}
+.pcard-name{font-size:12px;font-weight:800;color:var(--ink)}
+.pcard-cargo{font-size:10px;color:var(--muted)}
+.pcard-meta{font-size:10.5px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.pcard-acts{display:flex;gap:5px;flex-shrink:0;align-items:center}
+.pcard-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;line-height:1}
+.pcard-del:hover{color:var(--hot)}
+/* Marca de "subir a Bitrix" por comentario */
+.cmt-bx{display:inline-flex;align-items:center;gap:3px;float:right;margin-left:8px;font-size:8.5px;font-weight:800;border-radius:5px;padding:2px 6px;border:1px solid #e0b33d;background:rgba(224,179,61,.14);color:#e0b33d;cursor:default}
+.cmt-bx.done{border-color:var(--line);background:transparent;color:var(--muted)}
 
 /* Desplegable sutil: los valores se ven siempre; esto solo revela el formulario de "agregar" */
 .pm-addtoggle{align-self:flex-start;font-size:10.5px;font-weight:700;color:var(--acc);background:none;border:none;cursor:pointer;padding:1px 0;font-family:inherit;display:inline-flex;align-items:center;gap:4px;transition:color .15s var(--ease)}
@@ -1453,8 +1477,10 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
           </div>
         </div>
         <div class="field"><label>Nombre de la obra <span style="text-transform:none;font-weight:400;color:var(--muted)">(ej: Torre Trump; opcional)</span></label><input id="m-obra" type="text" placeholder="Nombre de la obra..."></div>
-        <div class="field"><label>Empresa constructora</label><input id="m-empresa" type="text" list="empresas-datalist" placeholder="Nombre de la empresa"></div>
-        <div class="field"><label>Estudio / Desarrolladora</label><input id="m-estudio" type="text" list="estudios-datalist" placeholder="Arquitectos o desarrolladora"></div>
+        <div class="row2">
+          <div class="field"><label>Constructora</label><input id="m-empresa" type="text" list="empresas-datalist" placeholder="Empresa"></div>
+          <div class="field"><label>Estudio / Desarrolladora</label><input id="m-estudio" type="text" list="estudios-datalist" placeholder="Estudio"></div>
+        </div>
         <div class="field"><label>Contacto en obra</label><input id="m-nombre" type="text" placeholder="Con quién hablaste"></div>
         <div class="field"><label>Cargo</label>
           <select id="m-cargo"><option value="">Seleccionar...</option><option>Jefe de obra</option><option>Capataz</option><option>Encargado de compras</option><option>Arquitecto / Director de obra</option><option>Electricista a cargo</option><option>Otro</option></select>
@@ -1470,6 +1496,11 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
           </div>
         </div>
         <div class="field"><label>Email</label><input id="m-email" type="email" placeholder="nombre@empresa.com" inputmode="email"></div>
+        <div class="cc-quick">
+          <button type="button" class="ico-btn wa" id="m-wa-btn" title="Enviar WhatsApp al contacto"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-12.5 7.3L3 21l2.2-5.5A8.4 8.4 0 1 1 21 11.5z"/></svg></button>
+          <button type="button" class="ico-btn em" id="m-email-btn" title="Copiar email y abrir webmail"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></button>
+          <span class="ico-lbl">WhatsApp · Email al contacto</span>
+        </div>
         <div id="m-dup-warn" class="dup-warn" style="display:none"></div>
         <div class="field"><label>Sitio web</label><input id="m-web" type="text" placeholder="www.empresa.com"></div>
         <div class="row2">
@@ -1492,14 +1523,15 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
           <button type="button" class="ct-int-savebtn" id="m-obra-add" style="background:var(--cold)"><svg class="icn" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Agregar obra en el mapa</button>
         </div>
         <div class="pm-divider"></div>
-        <div class="pm-sectitle">Otras personas de contacto</div>
+        <div class="pm-sectitle">Otros contactos de la obra</div>
         <div id="m-personas-list"></div>
-        <button type="button" class="pm-addtoggle" data-addtoggle="persona"><span class="chev">›</span> agregar persona</button>
+        <button type="button" class="pm-addtoggle" data-addtoggle="persona"><span class="chev">›</span> agregar contacto</button>
         <div class="pm-addbox" id="pm-add-persona">
           <div class="persona-add-form">
             <input type="text" id="m-persona-nombre" placeholder="Nombre">
             <select id="m-persona-cargo"><option value="">Cargo (opcional)...</option><option>Jefe de obra</option><option>Capataz</option><option>Encargado de compras</option><option>Arquitecto / Director de obra</option><option>Ingeniero residente</option><option>Electricista a cargo</option><option>Dueño / Desarrollador</option><option>Otro</option></select>
             <input type="tel" id="m-persona-telefono" inputmode="tel" placeholder="Teléfono (opcional)">
+            <input type="email" id="m-persona-email" inputmode="email" placeholder="Email (opcional)">
           </div>
           <button type="button" class="ct-int-savebtn" id="m-persona-add" style="background:var(--panel2);border:1.5px solid var(--line);color:var(--ink)">+ Agregar persona</button>
         </div>
@@ -1515,7 +1547,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
           <button type="button" class="ct-int-savebtn" id="m-int-save" style="width:auto;flex:0 0 auto;padding:0 14px">+</button>
         </div>
         <div class="ct-int-list" id="m-int-list"></div>
-        <div class="pm-sectitle">Actividades</div>
+        <div class="pm-sectitle">Actividades · historial <span style="text-transform:none;font-weight:400;color:var(--muted)">(lo que hiciste y lo agendado; queda en RutaObra)</span></div>
         <div class="pm-newact">
           <input type="text" id="m-act-text" placeholder="¿Qué hay que hacer?">
           <input type="date" id="m-act-fecha">
@@ -2511,22 +2543,56 @@ document.getElementById('m-tel-add').addEventListener('click', ()=>{
 document.getElementById('m-tel-new').addEventListener('keydown', (e)=>{
   if(e.key==='Enter'){ e.preventDefault(); document.getElementById('m-tel-add').click(); }
 });
+// Acciones rápidas del contacto principal: WhatsApp y Email (copia al portapapeles + abre webmail).
+document.getElementById('m-wa-btn').addEventListener('click', ()=>{
+  const tel=modalTelefonos[0]||document.getElementById('m-tel-new').value.trim();
+  const link=waLink(tel);
+  if(!link){ toast('Este contacto no tiene teléfono cargado', true); return; }
+  window.open(link,'_blank');
+});
+document.getElementById('m-email-btn').addEventListener('click', ()=>{
+  const email=document.getElementById('m-email').value.trim();
+  if(!email){ toast('Este contacto no tiene email cargado. Cargalo arriba.', true); return; }
+  copyAndOpenWebmail(email);
+});
 
+const WA_SVG='<svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-12.5 7.3L3 21l2.2-5.5A8.4 8.4 0 1 1 21 11.5z"/></svg>';
+const EM_SVG='<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>';
 function renderModalPersonas(){
   const wrap=document.getElementById('m-personas-list');
-  if(!modalPersonas.length){ wrap.innerHTML='<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Sin otras personas cargadas todavía.</div>'; return; }
-  wrap.innerHTML = modalPersonas.map((p,i)=>'<div class="persona-row"><span class="txt">'+ICONS.user+' '+esc(p.nombre||'')+(p.cargo?' · '+esc(p.cargo):'')+(p.telefono?' · '+esc(p.telefono):'')+'</span><button type="button" data-delpersona="'+i+'">'+ICONS.x+'</button></div>').join('');
+  if(!modalPersonas.length){ wrap.innerHTML='<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Sin otros contactos cargados.</div>'; return; }
+  wrap.innerHTML = modalPersonas.map((p,i)=>{
+    const waL=waLink(p.telefono);
+    return '<div class="pcard">'
+      +'<div class="pcard-av">'+esc(inicialesNombre(p.nombre||'?'))+'</div>'
+      +'<div class="pcard-body">'
+        +'<div class="pcard-name">'+esc(p.nombre||'')+'</div>'
+        +(p.cargo?'<div class="pcard-cargo">'+esc(p.cargo)+'</div>':'')
+        +(p.telefono?'<div class="pcard-meta">'+esc(p.telefono)+'</div>':'')
+        +(p.email?'<div class="pcard-meta">'+esc(p.email)+'</div>':'')
+      +'</div>'
+      +'<div class="pcard-acts">'
+        +(waL?'<button type="button" class="ico-btn wa" data-pwa="'+i+'" title="WhatsApp">'+WA_SVG+'</button>':'')
+        +(p.email?'<button type="button" class="ico-btn em" data-pem="'+i+'" title="Copiar email y abrir webmail">'+EM_SVG+'</button>':'')
+        +'<button type="button" class="pcard-del" data-delpersona="'+i+'" title="Eliminar">✕</button>'
+      +'</div>'
+    +'</div>';
+  }).join('');
   wrap.querySelectorAll('[data-delpersona]').forEach(b=>b.addEventListener('click', ()=>{ modalPersonas.splice(parseFloat(b.dataset.delpersona),1); renderModalPersonas(); }));
+  wrap.querySelectorAll('[data-pwa]').forEach(b=>b.addEventListener('click', ()=>{ const l=waLink(modalPersonas[parseFloat(b.dataset.pwa)].telefono); if(l) window.open(l,'_blank'); }));
+  wrap.querySelectorAll('[data-pem]').forEach(b=>b.addEventListener('click', ()=>{ const em=modalPersonas[parseFloat(b.dataset.pem)].email; if(em) copyAndOpenWebmail(em); }));
 }
 document.getElementById('m-persona-add').addEventListener('click', ()=>{
   const nombre=document.getElementById('m-persona-nombre').value.trim();
   const cargo=document.getElementById('m-persona-cargo').value;
   const telefono=document.getElementById('m-persona-telefono').value.trim();
+  const email=document.getElementById('m-persona-email').value.trim();
   if(!nombre){ toast('Escribí al menos un nombre', true); return; }
-  modalPersonas.push({nombre,cargo,telefono});
+  modalPersonas.push({nombre,cargo,telefono,email});
   document.getElementById('m-persona-nombre').value='';
   document.getElementById('m-persona-cargo').value='';
   document.getElementById('m-persona-telefono').value='';
+  document.getElementById('m-persona-email').value='';
   renderModalPersonas();
 });
 document.getElementById('modal-bitrix-chip').addEventListener('click',function(){modalBitrix=!modalBitrix;this.classList.toggle('selected',modalBitrix);});
@@ -2611,7 +2677,10 @@ function renderModalInteracciones(){
   // (marcado como contactado / pasado a Bitrix) y las actividades/visitas agendadas,
   // que ya tienen su propio historial abajo. No se toca modalInteracciones (se sigue guardando todo).
   const comentarios = modalInteracciones.filter(h=>!h.auto && !/^\[(Actividad|Visita) agendada\]/.test(h.texto||''));
-  wrap.innerHTML = comentarios.length ? comentarios.map(h=>'<div class="ct-int-item"><span class="m">'+esc(h.fecha)+'</span>'+esc(h.texto)+'</div>').join('') : '<div style="font-size:11px;color:var(--muted)">Sin comentarios registrados.</div>';
+  wrap.innerHTML = comentarios.length ? comentarios.map(h=>{
+    const badge = h.bitrix_synced ? '<span class="cmt-bx done">✓ En Bitrix</span>' : '<span class="cmt-bx" title="Todavía no está en Bitrix">▲ Subir</span>';
+    return '<div class="ct-int-item">'+badge+'<span class="m">'+esc(h.fecha)+'</span>'+esc(h.texto)+'</div>';
+  }).join('') : '<div style="font-size:11px;color:var(--muted)">Sin comentarios registrados.</div>';
 }
 document.getElementById('m-int-save').addEventListener('click', ()=>{
   const ta=document.getElementById('m-int-text');
@@ -2727,7 +2796,7 @@ function openPinModal(entry,newLocation){
   }
   document.querySelectorAll('#pm-tabs .pm-tab').forEach(t=>t.classList.toggle('sel', t.dataset.pane==='perfil'));
   document.querySelectorAll('.pm-pane').forEach(p=>p.classList.toggle('sel', p.dataset.pane==='perfil'));
-  ['m-obra','m-empresa','m-estudio','m-tipo','m-estado','m-nombre','m-cargo','m-email','m-proveedor','m-notas','m-direccion','m-zona','m-web','m-tel-new','m-persona-nombre','m-persona-cargo','m-persona-telefono'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['m-obra','m-empresa','m-estudio','m-tipo','m-estado','m-nombre','m-cargo','m-email','m-proveedor','m-notas','m-direccion','m-zona','m-web','m-tel-new','m-persona-nombre','m-persona-cargo','m-persona-telefono','m-persona-email'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.querySelectorAll('#m-tipocli-chips .chip').forEach(c=>c.classList.toggle('selected', c.dataset.val==='empresa'));modalTipoCli='empresa';
   document.querySelectorAll('#modal-temp-chips .temp-chip').forEach(x=>x.classList.remove('selected'));
   document.querySelectorAll('#modal-zona-chips .chip').forEach(x=>x.classList.remove('selected'));modalZonaSelected='';
@@ -2976,7 +3045,7 @@ function autoGrowNotes(){
   const el=document.getElementById('m-notas');
   if(!el) return;
   el.style.height='auto';
-  el.style.height=Math.min(el.scrollHeight, 170)+'px';
+  el.style.height=Math.min(el.scrollHeight, 380)+'px';
 }
 document.getElementById('m-notas').addEventListener('input', autoGrowNotes);
 
