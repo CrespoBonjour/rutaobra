@@ -2,6 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#8a6a4f">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1614,7 +1617,9 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <!-- Lógica pura (con tests en tests/logic.test.js). Debe cargar ANTES del script principal. -->
-<script src="lib/logic.js"></script>
+<!-- ?v= versiona la lógica para que el navegador nunca cargue una versión vieja desincronizada del HTML.
+     Al tocar lib/logic.js, subir este número. -->
+<script src="lib/logic.js?v=20260731a"></script>
 <script>
 // ============================================================
 // SUPABASE CONFIG
