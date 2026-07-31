@@ -122,6 +122,11 @@ main{flex:1;overflow:hidden;position:relative;z-index:1}
 
 /* ── GROUPS / FIELDS ── */
 .group{background:linear-gradient(165deg,var(--panel),var(--panel) 60%,var(--panel2));border:1px solid var(--line);border-radius:var(--r-md);padding:14px 14px 8px;margin-bottom:13px;position:relative;box-shadow:var(--shadow-sm)}
+/* En PC el formulario +Nuevo se muestra en 2 columnas para no scrollear tanto. En móvil queda en 1. */
+@media(min-width:900px){
+  #view-form.active{display:grid;grid-template-columns:1fr 1fr;gap:13px;align-items:start;max-width:1120px;margin:0 auto}
+  #view-form .group{margin-bottom:0}
+}
 .group::before{content:"";position:absolute;top:10px;left:-1px;bottom:10px;width:3px;background:linear-gradient(var(--acc-light),var(--acc-deep));border-radius:0 3px 3px 0;box-shadow:0 0 10px var(--acc-glow)}
 .group-label{font-size:11px;text-transform:uppercase;letter-spacing:1.3px;color:var(--ink-soft);font-weight:800;margin-bottom:11px;display:flex;align-items:center;gap:7px}
 .group-label::after{content:"";flex:1;height:1px;background:repeating-linear-gradient(90deg,var(--line) 0 4px,transparent 4px 7px)}
@@ -586,6 +591,10 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .ls-pill{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:20px;background:var(--panel2);border:1px solid var(--line)}
 .ls-pill i{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .ls-ok{color:var(--ok);font-weight:800}
+.ls-actcell{font-size:11.5px;color:var(--ink-soft);white-space:nowrap;font-variant-numeric:tabular-nums}
+.ls-actcell b{color:var(--acc);font-weight:800}
+.ls-actcell.venc b{color:var(--hot)}
+.ls-actcell .ls-star{color:var(--prio)}
 .ls-count{align-self:center;font-size:11px;color:var(--muted);font-weight:700;white-space:nowrap}
 .cat-pill-sm{font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;display:inline-block;white-space:nowrap}
 .cat-pill-sm.full{background:rgba(62,207,115,.14);color:#6fe39c}
@@ -1035,7 +1044,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
     </div>
     <div class="field"><label>Notas adicionales</label><textarea id="f-notas" placeholder="Detalles útiles para el seguimiento..."></textarea></div>
   </div>
-  <div class="group">
+  <div class="group" style="display:none">
     <div class="group-label">Fotos de la obra <span style="text-transform:none;font-weight:400;color:var(--muted)">(podés agregar varias: obra, cartel de obra...)</span></div>
     <div id="f-fotos-strip" class="fotos-strip"></div>
     <div class="photo-area" id="photo-area" onclick="document.getElementById('photo-input').click()">
@@ -3762,7 +3771,7 @@ const LS_COLS=[
   {key:'estado', label:'Etapa de obra'},
   {key:'temp', label:'Temp.'},
   {key:'contactado', label:'Contact.'},
-  {key:'user_name', label:'Vendedor'},
+  {key:'actividad', label:'Actividad'},
   {key:'proveedor', label:'Proveedor actual'},
   {key:'catalogos', label:'Catálogos'}
 ];
@@ -3778,6 +3787,7 @@ function lsVal(e,key){
   if(key==='ultima') return lsUltimaTs(e);
   if(key==='estado') return etapasConocidas().indexOf(e.estado);
   if(key==='catalogos'){ const cs=getCatalogStatus(e.id); return cs.sent.length; }
+  if(key==='actividad') return agendaStore.filter(a=>a.tipo==='actividad' && !a.completada && a.estudio_id===e.id).length;
   return (e[key]||'').toString().toLowerCase();
 }
 function renderLista(){
@@ -3805,8 +3815,17 @@ function renderLista(){
   if(!list.length){
     body.innerHTML='<tr><td colspan="'+LS_COLS.length+'" style="text-align:center;color:var(--muted);padding:26px;cursor:default">No hay contactos para mostrar.</td></tr>';
   } else {
+    const hoyYMD=fmtYMD(new Date());
     body.innerHTML=list.map(e=>{
       const tm=TEMP_META.find(t=>t.k===e.temp);
+      const actsPend=agendaStore.filter(a=>a.tipo==='actividad' && !a.completada && a.estudio_id===e.id).sort((a,b)=>(a.fecha+(a.hora||'')).localeCompare(b.fecha+(b.hora||'')));
+      let actCell='—';
+      if(actsPend.length){
+        const prox=actsPend[0];
+        const d=new Date(prox.fecha+'T00:00:00').toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit'});
+        const venc=prox.fecha<hoyYMD;
+        actCell='<span class="ls-actcell'+(venc?' venc':'')+'"><b>'+actsPend.length+'</b> · '+d+(actsPend.some(a=>a.primordial)?' <span class="ls-star">★</span>':'')+'</span>';
+      }
       const cs=getCatalogStatus(e.id);
       const catTotal=cs.sent.length+cs.queued.length;
       const catPillClass = catTotal===0 ? 'none' : (cs.sent.length===catTotal ? 'full' : 'part');
@@ -3818,7 +3837,7 @@ function renderLista(){
         +'<td>'+esc(e.estado?(ETAPA_CORTA[e.estado]||e.estado):'—')+'</td>'
         +'<td>'+(tm?'<span class="ls-pill"><i style="background:'+tm.color+'"></i>'+tm.label+'</span>':'—')+'</td>'
         +'<td>'+(e.contactado?'<span class="ls-ok">✓</span>':'—')+'</td>'
-        +'<td>'+esc(e.user_name||'—')+'</td>'
+        +'<td>'+actCell+'</td>'
         +'<td>'+esc(e.proveedor||'—')+'</td>'
         +'<td><span class="cat-pill-sm '+catPillClass+'">'+catPillTxt+'</span></td>'
         +'</tr>';
