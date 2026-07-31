@@ -458,8 +458,8 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .pm-tab.sel{background:var(--acc-dim);color:var(--acc-light);border-color:var(--acc-deep)}
 
 /* Zona central scrolleable: solo esto se mueve; la barra de arriba y los botones de abajo quedan fijos */
-.pm-cols{flex:1;overflow-y:auto;display:grid;grid-template-columns:250px 1fr 250px;gap:0;padding:14px 0}
-.pm-col{padding:0 18px;display:flex;flex-direction:column;gap:11px;align-content:start}
+.pm-cols{flex:1;overflow-y:auto;display:grid;grid-template-columns:250px 1fr 250px;gap:0;padding:10px 0}
+.pm-col{padding:0 16px;display:flex;flex-direction:column;gap:7px;align-content:start}
 .pm-col-l{border-right:1px solid var(--line-soft)}
 .pm-col-r{border-left:1px solid var(--line-soft)}
 .pm-divider{border-top:1px dashed var(--line);margin:3px 0 1px}
@@ -468,24 +468,24 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 /* Densidad: los campos reusan .field/.quick-chips/.catalog-grid tal cual (mismos ids y JS),
    pero mas livianos dentro de la ficha, con aire entre grupos para que no se sienta apretado. */
 .pm-col .field{margin-bottom:0}
-.pm-col .field label{font-size:9px;margin-bottom:3px;letter-spacing:.3px}
-.pm-col .field input,.pm-col .field select,.pm-col .field textarea{padding:8px 10px;font-size:12px;border-width:1px;box-shadow:none;max-width:100%}
+.pm-col .field label{font-size:9px;margin-bottom:2px;letter-spacing:.3px}
+.pm-col .field input,.pm-col .field select,.pm-col .field textarea{padding:5px 9px;font-size:12px;border-width:1px;box-shadow:none;max-width:100%}
 .pm-col .row2{gap:8px}
 .pm-col .catalog-grid{margin-bottom:0;gap:5px}
 .pm-col .catalog-item{font-size:10px;padding:5px 7px;border-width:1px;gap:5px}
 .pm-col .catalog-item .box{width:12px;height:12px}
 .pm-col .catalog-item.selected .box::after{font-size:8px}
 .pm-col .quick-chips{margin:0;gap:5px}
-.pm-col .quick-chips .chip{font-size:10.5px;padding:6px 10px;border-radius:7px;border-width:1px}
+.pm-col .quick-chips .chip{font-size:10.5px;padding:4px 9px;border-radius:7px;border-width:1px}
 /* Producto de interés ya ENVIADO (actividad completada): ✓ sobre el chip pintado */
 #m-productos-chips .chip.selected.envsent::after{content:"✓";margin-left:5px;font-weight:900;color:var(--ok)}
 .pm-col .ct-int-savebtn{padding:8px;font-size:10.5px}
 .pm-col .persona-add-form{gap:6px;margin-bottom:0}
-.pm-col .persona-add-form input,.pm-col .persona-add-form select{padding:7px 9px;font-size:12px}
-.pm-col .obra-row,.pm-col .persona-row{padding:6px 8px;font-size:11px;margin-bottom:0}
+.pm-col .persona-add-form input,.pm-col .persona-add-form select{padding:5px 9px;font-size:12px}
+.pm-col .obra-row,.pm-col .persona-row{padding:5px 8px;font-size:11px;margin-bottom:0}
 
 /* Notas: crece con el texto, con tope generoso (recien ahi scroll suave) */
-.pm-col #m-notas{min-height:54px;max-height:170px;resize:none;overflow-y:auto;line-height:1.45}
+.pm-col #m-notas{min-height:42px;max-height:150px;resize:none;overflow-y:auto;line-height:1.4}
 
 /* Desplegable sutil: los valores se ven siempre; esto solo revela el formulario de "agregar" */
 .pm-addtoggle{align-self:flex-start;font-size:10.5px;font-weight:700;color:var(--acc);background:none;border:none;cursor:pointer;padding:1px 0;font-family:inherit;display:inline-flex;align-items:center;gap:4px;transition:color .15s var(--ease)}
@@ -501,11 +501,11 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .pm-addbtn{flex:0 0 auto;padding:0 14px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}
 
 .pm-newrow{display:flex;gap:6px;align-items:stretch}
-.pm-newrow textarea{flex:1;min-height:36px;padding:8px 10px;font-size:12px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:7px;font-family:inherit;resize:none}
+.pm-newrow textarea{flex:1;min-height:30px;padding:5px 9px;font-size:12px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:7px;font-family:inherit;resize:none}
 .pm-newrow .ct-int-savebtn{align-self:stretch;display:flex;align-items:center}
 .pm-newact{display:flex;gap:6px;flex-wrap:wrap}
-.pm-newact input[type=text]{flex:1;min-width:120px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:8px 10px;font-size:12px;font-family:inherit}
-.pm-newact input[type=date],.pm-newact input[type=time]{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:8px;font-size:11px;font-family:inherit}
+.pm-newact input[type=text]{flex:1;min-width:120px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:5px 9px;font-size:12px;font-family:inherit}
+.pm-newact input[type=date],.pm-newact input[type=time]{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:5px 7px;font-size:11px;font-family:inherit}
 .pm-actlist{max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:5px}
 .act-item{display:flex;align-items:center;gap:7px;background:var(--panel2);border-radius:7px;padding:7px 9px;font-size:11px}
 .act-item input[type=checkbox]{accent-color:var(--acc);flex-shrink:0;width:15px;height:15px}
