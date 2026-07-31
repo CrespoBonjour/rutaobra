@@ -520,8 +520,14 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .pcard-cargo{font-size:10px;color:var(--muted)}
 .pcard-meta{font-size:10.5px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
 .pcard-acts{display:flex;gap:5px;flex-shrink:0;align-items:center}
-.pcard-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;line-height:1}
+.pcard-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;line-height:1;padding:0 2px}
 .pcard-del:hover{color:var(--hot)}
+/* Formulario inline para crear/editar un contacto */
+.pcard-edit{background:var(--panel2);border:1px solid var(--acc);border-radius:9px;padding:8px;display:flex;flex-direction:column;gap:5px;margin-bottom:6px}
+.pcard-edit .mc-in{width:100%;background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:5px 8px;font-size:12px;font-family:inherit}
+.mc-editbtns{display:flex;gap:6px;margin-top:2px}
+.mc-save{flex:1;background:var(--acc);color:#1a1300;border:none;border-radius:6px;padding:6px;font-weight:800;font-size:11px;cursor:pointer}
+.mc-cancel{background:var(--panel);border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:6px 10px;font-weight:700;font-size:11px;cursor:pointer}
 /* Marca de "subir a Bitrix" por comentario */
 .cmt-bx{display:inline-flex;align-items:center;gap:3px;float:right;margin-left:8px;font-size:8.5px;font-weight:800;border-radius:5px;padding:2px 6px;border:1px solid #e0b33d;background:rgba(224,179,61,.14);color:#e0b33d;cursor:default}
 .cmt-bx.done{border-color:var(--line);background:transparent;color:var(--muted)}
@@ -1481,26 +1487,10 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
           <div class="field"><label>Constructora</label><input id="m-empresa" type="text" list="empresas-datalist" placeholder="Empresa"></div>
           <div class="field"><label>Estudio / Desarrolladora</label><input id="m-estudio" type="text" list="estudios-datalist" placeholder="Estudio"></div>
         </div>
-        <div class="field"><label>Contacto en obra</label><input id="m-nombre" type="text" placeholder="Con quién hablaste"></div>
-        <div class="field"><label>Cargo</label>
-          <select id="m-cargo"><option value="">Seleccionar...</option><option>Jefe de obra</option><option>Capataz</option><option>Encargado de compras</option><option>Arquitecto / Director de obra</option><option>Electricista a cargo</option><option>Otro</option></select>
-        </div>
-        <div class="field"><label>Teléfono</label>
-          <div id="m-tel-list"></div>
-          <button type="button" class="pm-addtoggle" data-addtoggle="tel"><span class="chev">›</span> agregar teléfono</button>
-          <div class="pm-addbox" id="pm-add-tel">
-            <div class="pm-addrow">
-              <input type="tel" id="m-tel-new" inputmode="tel" placeholder="Nuevo número...">
-              <button type="button" class="pm-addbtn" id="m-tel-add">Agregar</button>
-            </div>
-          </div>
-        </div>
-        <div class="field"><label>Email</label><input id="m-email" type="email" placeholder="nombre@empresa.com" inputmode="email"></div>
-        <div class="cc-quick">
-          <button type="button" class="ico-btn wa" id="m-wa-btn" title="Enviar WhatsApp al contacto"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-12.5 7.3L3 21l2.2-5.5A8.4 8.4 0 1 1 21 11.5z"/></svg></button>
-          <button type="button" class="ico-btn em" id="m-email-btn" title="Copiar email y abrir webmail"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></button>
-          <span class="ico-lbl">WhatsApp · Email al contacto</span>
-        </div>
+        <div class="pm-divider"></div>
+        <div class="pm-sectitle">Contactos de la obra <span style="text-transform:none;font-weight:400;color:var(--muted)">(tocá ✎ para editar; 🟢 WhatsApp · 🟤 Email)</span></div>
+        <div id="m-contactos-list"></div>
+        <button type="button" class="pm-addtoggle" id="m-contacto-add-btn"><span class="chev">＋</span> agregar contacto</button>
         <div id="m-dup-warn" class="dup-warn" style="display:none"></div>
         <div class="field"><label>Sitio web</label><input id="m-web" type="text" placeholder="www.empresa.com"></div>
         <div class="row2">
@@ -1521,19 +1511,6 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
           </div>
           <div id="m-obras-list"></div>
           <button type="button" class="ct-int-savebtn" id="m-obra-add" style="background:var(--cold)"><svg class="icn" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Agregar obra en el mapa</button>
-        </div>
-        <div class="pm-divider"></div>
-        <div class="pm-sectitle">Otros contactos de la obra</div>
-        <div id="m-personas-list"></div>
-        <button type="button" class="pm-addtoggle" data-addtoggle="persona"><span class="chev">›</span> agregar contacto</button>
-        <div class="pm-addbox" id="pm-add-persona">
-          <div class="persona-add-form">
-            <input type="text" id="m-persona-nombre" placeholder="Nombre">
-            <select id="m-persona-cargo"><option value="">Cargo (opcional)...</option><option>Jefe de obra</option><option>Capataz</option><option>Encargado de compras</option><option>Arquitecto / Director de obra</option><option>Ingeniero residente</option><option>Electricista a cargo</option><option>Dueño / Desarrollador</option><option>Otro</option></select>
-            <input type="tel" id="m-persona-telefono" inputmode="tel" placeholder="Teléfono (opcional)">
-            <input type="email" id="m-persona-email" inputmode="email" placeholder="Email (opcional)">
-          </div>
-          <button type="button" class="ct-int-savebtn" id="m-persona-add" style="background:var(--panel2);border:1.5px solid var(--line);color:var(--ink)">+ Agregar persona</button>
         </div>
         <div class="pm-divider"></div>
         <div class="field"><label>Proveedor eléctrico actual</label><input id="m-proveedor" type="text" placeholder="Ej: Volta, Elecnor..."></div>
@@ -2523,78 +2500,67 @@ document.getElementById('m-obra-add').addEventListener('click', ()=>{
   openPinPicker();
 });
 
-let modalTelefonos=[];
-function renderModalTelefonos(){
-  const wrap=document.getElementById('m-tel-list');
-  if(!modalTelefonos.length){ wrap.innerHTML='<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Sin números cargados todavía.</div>'; return; }
-  wrap.innerHTML = modalTelefonos.map((t,i)=>'<div class="obra-row">'+ICONS.phone+'<input type="tel" inputmode="tel" class="pm-tel-edit" data-teledit="'+i+'" value="'+esc(t)+'"><button type="button" data-deltel="'+i+'">'+ICONS.x+'</button></div>').join('');
-  wrap.querySelectorAll('[data-teledit]').forEach(inp=>inp.addEventListener('input', ()=>{ modalTelefonos[parseFloat(inp.dataset.teledit)]=inp.value; checkDupModal(); }));
-  wrap.querySelectorAll('[data-deltel]').forEach(b=>b.addEventListener('click', ()=>{ modalTelefonos.splice(parseFloat(b.dataset.deltel),1); renderModalTelefonos(); checkDupModal(); }));
-}
-document.getElementById('m-tel-add').addEventListener('click', ()=>{
-  const input=document.getElementById('m-tel-new');
-  const val=input.value.trim();
-  if(!val) return;
-  parsePhones(val).forEach(p=>modalTelefonos.push(p));
-  input.value='';
-  renderModalTelefonos();
-  checkDupModal();
-});
-document.getElementById('m-tel-new').addEventListener('keydown', (e)=>{
-  if(e.key==='Enter'){ e.preventDefault(); document.getElementById('m-tel-add').click(); }
-});
-// Acciones rápidas del contacto principal: WhatsApp y Email (copia al portapapeles + abre webmail).
-document.getElementById('m-wa-btn').addEventListener('click', ()=>{
-  const tel=modalTelefonos[0]||document.getElementById('m-tel-new').value.trim();
-  const link=waLink(tel);
-  if(!link){ toast('Este contacto no tiene teléfono cargado', true); return; }
-  window.open(link,'_blank');
-});
-document.getElementById('m-email-btn').addEventListener('click', ()=>{
-  const email=document.getElementById('m-email').value.trim();
-  if(!email){ toast('Este contacto no tiene email cargado. Cargalo arriba.', true); return; }
-  copyAndOpenWebmail(email);
-});
-
+let modalTelefonos=[]; // (compat: ya no se usa en la ficha, los contactos van en modalContactos)
+// ===== Contactos de la obra: tarjetas editables unificadas =====
+// Cada contacto = {nombre,cargo,telefono,email}. El primero se guarda como contacto principal
+// (entry.nombre/cargo/telefono/email); el resto en entry.personas.
 const WA_SVG='<svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-12.5 7.3L3 21l2.2-5.5A8.4 8.4 0 1 1 21 11.5z"/></svg>';
 const EM_SVG='<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>';
-function renderModalPersonas(){
-  const wrap=document.getElementById('m-personas-list');
-  if(!modalPersonas.length){ wrap.innerHTML='<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Sin otros contactos cargados.</div>'; return; }
-  wrap.innerHTML = modalPersonas.map((p,i)=>{
-    const waL=waLink(p.telefono);
-    return '<div class="pcard">'
-      +'<div class="pcard-av">'+esc(inicialesNombre(p.nombre||'?'))+'</div>'
+const CARGO_OPTS=['Jefe de obra','Capataz','Encargado de compras','Arquitecto / Director de obra','Ingeniero residente','Electricista a cargo','Dueño / Desarrollador','Otro'];
+let modalContactos=[]; let modalContactoEdit=null; // índice en edición, 'new', o null
+function _cargoSel(sel){ const opts=CARGO_OPTS.slice(); if(sel && !opts.includes(sel)) opts.unshift(sel); return '<select class="mc-in mc-cargo"><option value="">Cargo (opcional)...</option>'+opts.map(c=>'<option'+(c===sel?' selected':'')+'>'+esc(c)+'</option>').join('')+'</select>'; }
+function _contactoEdit(c,key){
+  c=c||{};
+  return '<div class="pcard-edit" data-editcard="'+key+'">'
+    +'<input class="mc-in mc-nombre" placeholder="Nombre" value="'+esc(c.nombre||'')+'">'
+    +_cargoSel(c.cargo||'')
+    +'<input class="mc-in mc-tel" inputmode="tel" placeholder="Teléfono (uno o varios)" value="'+esc(c.telefono||'')+'">'
+    +'<input class="mc-in mc-email" inputmode="email" placeholder="Email (opcional)" value="'+esc(c.email||'')+'">'
+    +'<div class="mc-editbtns"><button type="button" class="mc-save">Guardar contacto</button><button type="button" class="mc-cancel">Cancelar</button></div>'
+    +'</div>';
+}
+function renderModalContactos(){
+  const wrap=document.getElementById('m-contactos-list'); if(!wrap) return;
+  let html='';
+  modalContactos.forEach((c,i)=>{
+    if(modalContactoEdit===i){ html+=_contactoEdit(c,i); return; }
+    const waL=waLink(c.telefono);
+    html+='<div class="pcard">'
+      +'<div class="pcard-av">'+esc(inicialesNombre(c.nombre||'?'))+'</div>'
       +'<div class="pcard-body">'
-        +'<div class="pcard-name">'+esc(p.nombre||'')+'</div>'
-        +(p.cargo?'<div class="pcard-cargo">'+esc(p.cargo)+'</div>':'')
-        +(p.telefono?'<div class="pcard-meta">'+esc(p.telefono)+'</div>':'')
-        +(p.email?'<div class="pcard-meta">'+esc(p.email)+'</div>':'')
+        +'<div class="pcard-name">'+esc(c.nombre||'(sin nombre)')+'</div>'
+        +(c.cargo?'<div class="pcard-cargo">'+esc(c.cargo)+'</div>':'')
+        +(c.telefono?'<div class="pcard-meta">'+ICONS.phone+' '+esc(c.telefono)+'</div>':'')
+        +(c.email?'<div class="pcard-meta">'+esc(c.email)+'</div>':'')
       +'</div>'
       +'<div class="pcard-acts">'
-        +(waL?'<button type="button" class="ico-btn wa" data-pwa="'+i+'" title="WhatsApp">'+WA_SVG+'</button>':'')
-        +(p.email?'<button type="button" class="ico-btn em" data-pem="'+i+'" title="Copiar email y abrir webmail">'+EM_SVG+'</button>':'')
-        +'<button type="button" class="pcard-del" data-delpersona="'+i+'" title="Eliminar">✕</button>'
+        +(waL?'<button type="button" class="ico-btn wa" data-cwa="'+i+'" title="WhatsApp">'+WA_SVG+'</button>':'')
+        +(c.email?'<button type="button" class="ico-btn em" data-cem="'+i+'" title="Copiar email y abrir webmail">'+EM_SVG+'</button>':'')
+        +'<button type="button" class="pcard-del" data-cedit="'+i+'" title="Editar">✎</button>'
+        +'<button type="button" class="pcard-del" data-cdel="'+i+'" title="Eliminar">✕</button>'
       +'</div>'
     +'</div>';
-  }).join('');
-  wrap.querySelectorAll('[data-delpersona]').forEach(b=>b.addEventListener('click', ()=>{ modalPersonas.splice(parseFloat(b.dataset.delpersona),1); renderModalPersonas(); }));
-  wrap.querySelectorAll('[data-pwa]').forEach(b=>b.addEventListener('click', ()=>{ const l=waLink(modalPersonas[parseFloat(b.dataset.pwa)].telefono); if(l) window.open(l,'_blank'); }));
-  wrap.querySelectorAll('[data-pem]').forEach(b=>b.addEventListener('click', ()=>{ const em=modalPersonas[parseFloat(b.dataset.pem)].email; if(em) copyAndOpenWebmail(em); }));
+  });
+  if(modalContactoEdit==='new') html+=_contactoEdit({},'new');
+  if(!html) html='<div style="font-size:11px;color:var(--muted);margin-bottom:4px">Sin contactos todavía. Tocá "＋ agregar contacto".</div>';
+  wrap.innerHTML=html;
+  wrap.querySelectorAll('[data-cwa]').forEach(b=>b.addEventListener('click',()=>{ const l=waLink(modalContactos[+b.dataset.cwa].telefono); if(l) window.open(l,'_blank'); }));
+  wrap.querySelectorAll('[data-cem]').forEach(b=>b.addEventListener('click',()=>{ const em=modalContactos[+b.dataset.cem].email; if(em) copyAndOpenWebmail(em); }));
+  wrap.querySelectorAll('[data-cedit]').forEach(b=>b.addEventListener('click',()=>{ modalContactoEdit=+b.dataset.cedit; renderModalContactos(); }));
+  wrap.querySelectorAll('[data-cdel]').forEach(b=>b.addEventListener('click',()=>{ modalContactos.splice(+b.dataset.cdel,1); modalContactoEdit=null; renderModalContactos(); checkDupModal(); }));
+  const ed=wrap.querySelector('[data-editcard]');
+  if(ed){
+    ed.querySelector('.mc-save').addEventListener('click',()=>{
+      const c={ nombre:ed.querySelector('.mc-nombre').value.trim(), cargo:ed.querySelector('.mc-cargo').value, telefono:ed.querySelector('.mc-tel').value.trim(), email:ed.querySelector('.mc-email').value.trim() };
+      if(!c.nombre && !c.telefono && !c.email){ toast('Cargá al menos el nombre o un dato de contacto', true); return; }
+      const key=ed.dataset.editcard;
+      if(key==='new') modalContactos.push(c); else modalContactos[+key]=c;
+      modalContactoEdit=null; renderModalContactos(); checkDupModal();
+    });
+    ed.querySelector('.mc-cancel').addEventListener('click',()=>{ modalContactoEdit=null; renderModalContactos(); });
+  }
 }
-document.getElementById('m-persona-add').addEventListener('click', ()=>{
-  const nombre=document.getElementById('m-persona-nombre').value.trim();
-  const cargo=document.getElementById('m-persona-cargo').value;
-  const telefono=document.getElementById('m-persona-telefono').value.trim();
-  const email=document.getElementById('m-persona-email').value.trim();
-  if(!nombre){ toast('Escribí al menos un nombre', true); return; }
-  modalPersonas.push({nombre,cargo,telefono,email});
-  document.getElementById('m-persona-nombre').value='';
-  document.getElementById('m-persona-cargo').value='';
-  document.getElementById('m-persona-telefono').value='';
-  document.getElementById('m-persona-email').value='';
-  renderModalPersonas();
-});
+document.getElementById('m-contacto-add-btn').addEventListener('click',()=>{ modalContactoEdit='new'; renderModalContactos(); setTimeout(()=>{ const el=document.querySelector('#m-contactos-list .mc-nombre'); if(el) el.focus(); },30); });
 document.getElementById('modal-bitrix-chip').addEventListener('click',function(){modalBitrix=!modalBitrix;this.classList.toggle('selected',modalBitrix);});
 
 async function enviarABitrix(item, status, reintento){
@@ -2809,11 +2775,13 @@ function openPinModal(entry,newLocation){
   modalContactado=!!(entry&&entry.contactado);modalBitrix=!!(entry&&entry.bitrix);modalPrimordial=!!(entry&&entry.primordial);
   modalInteracciones=entry&&Array.isArray(entry.interacciones)?entry.interacciones.slice():[];
   modalObras=entry&&Array.isArray(entry.obras)?entry.obras.slice():[];
-  modalPersonas=entry&&Array.isArray(entry.personas)?entry.personas.slice():[];
-  modalTelefonos=entry?parsePhones(entry.telefono):[];
+  // Contactos unificados: el principal (entry.nombre/…) primero, después las personas.
+  modalContactos=[];
+  if(entry && (entry.nombre||entry.cargo||entry.telefono||entry.email)) modalContactos.push({nombre:entry.nombre||'',cargo:entry.cargo||'',telefono:entry.telefono||'',email:entry.email||''});
+  (entry&&Array.isArray(entry.personas)?entry.personas:[]).forEach(p=>modalContactos.push({nombre:p.nombre||'',cargo:p.cargo||'',telefono:p.telefono||'',email:p.email||''}));
+  modalContactoEdit=null;
   renderModalObras();
-  renderModalPersonas();
-  renderModalTelefonos();
+  renderModalContactos();
   checkDupModal();
   document.getElementById('modal-contactado-chip').classList.toggle('selected',modalContactado);
   document.getElementById('modal-bitrix-chip').classList.toggle('selected',modalBitrix);
@@ -2829,8 +2797,6 @@ function openPinModal(entry,newLocation){
     { const tv=['empresa','oficina','administracion','particular'].includes(entry.tipo_cliente)?entry.tipo_cliente:'empresa'; document.querySelectorAll('#m-tipocli-chips .chip').forEach(c=>c.classList.toggle('selected', c.dataset.val===tv)); modalTipoCli=tv; }
     document.getElementById('m-empresa').value=entry.empresa||'';document.getElementById('m-estudio').value=entry.estudio||'';
     document.getElementById('m-tipo').value=entry.tipo||'';document.getElementById('m-estado').value=entry.estado||'';
-    document.getElementById('m-nombre').value=entry.nombre||'';document.getElementById('m-cargo').value=entry.cargo||'';
-    document.getElementById('m-email').value=entry.email||'';
     document.getElementById('m-proveedor').value=entry.proveedor||'';
     document.getElementById('m-notas').value=entry.notas||'';
     document.getElementById('m-direccion').value=entry.direccion||'';
@@ -2938,7 +2904,7 @@ async function aplicarInteresProductos(contactId, nuevos, quitados){
 
 document.getElementById('modal-save').addEventListener('click',async()=>{
   const empresa=document.getElementById('m-empresa').value.trim();
-  if(!empresa && !document.getElementById('m-obra').value.trim() && !document.getElementById('m-estudio').value.trim() && !document.getElementById('m-nombre').value.trim()){
+  if(!empresa && !document.getElementById('m-obra').value.trim() && !document.getElementById('m-estudio').value.trim() && !modalContactos.length){
     const mo=document.getElementById('m-obra'); mo.style.borderColor='#ff4d4d'; setTimeout(()=>mo.style.borderColor='',1400);
     toast('Cargá al menos un dato: nombre de obra, constructora, estudio o persona.', true); return;
   }
@@ -2951,9 +2917,8 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
       item.temp=modalTempSelected;item.empresa=empresa;item.estudio=document.getElementById('m-estudio').value.trim();
       item.obra=document.getElementById('m-obra').value.trim();item.tipo_cliente=modalTipoCli;
       item.tipo=document.getElementById('m-tipo').value;item.estado=document.getElementById('m-estado').value;
-      item.nombre=document.getElementById('m-nombre').value.trim();item.cargo=document.getElementById('m-cargo').value;
-      item.email=document.getElementById('m-email').value.trim();
-      item.telefono=joinPhones(modalTelefonos);item.proveedor=document.getElementById('m-proveedor').value.trim();
+      { const c0=modalContactos[0]||{}; item.nombre=c0.nombre||'';item.cargo=c0.cargo||'';item.email=c0.email||'';item.telefono=c0.telefono||''; }
+      item.proveedor=document.getElementById('m-proveedor').value.trim();
       item.tamano_obra=modalTamano||null;item.fecha_instalacion=document.getElementById('m-instalacion').value||null;
       item.notas=document.getElementById('m-notas').value.trim();
       item.direccion=direccion;item.zona=zona;item.web=document.getElementById('m-web').value.trim();
@@ -2976,7 +2941,7 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
       }
       item.interacciones=modalInteracciones;
       item.obras=modalObras;
-      item.personas=modalPersonas;
+      item.personas=modalContactos.slice(1);
       const okSave=await saveEntry(item);
       if(!okSave) return;
       toast('Actualizado ✓');
@@ -2995,8 +2960,8 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
       source:'map',temp:modalTempSelected,empresa,estudio:document.getElementById('m-estudio').value.trim(),
       obra:document.getElementById('m-obra').value.trim(),tipo_cliente:modalTipoCli,
       tipo:document.getElementById('m-tipo').value,estado:document.getElementById('m-estado').value,
-      nombre:document.getElementById('m-nombre').value.trim(),cargo:document.getElementById('m-cargo').value,
-      telefono:joinPhones(modalTelefonos),email:document.getElementById('m-email').value.trim(),direccion,zona,web:document.getElementById('m-web').value.trim(),
+      nombre:(modalContactos[0]||{}).nombre||'',cargo:(modalContactos[0]||{}).cargo||'',
+      telefono:(modalContactos[0]||{}).telefono||'',email:(modalContactos[0]||{}).email||'',direccion,zona,web:document.getElementById('m-web').value.trim(),
       proveedor:document.getElementById('m-proveedor').value.trim(),followup:'',
       tamano_obra:modalTamano||null,fecha_instalacion:document.getElementById('m-instalacion').value||null,
       catalogos:Array.from(modalCatalogosSelected),notas:document.getElementById('m-notas').value.trim(),photo:modalFotos[0]||null,fotos:modalFotos.slice(),
@@ -3007,7 +2972,7 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
       primordial:modalPrimordial,
       interacciones:modalInteracciones,
       obras:modalObras,
-      personas:modalPersonas
+      personas:modalContactos.slice(1)
     };
     const okSave=await saveEntry(entry);
     if(!okSave) return;
@@ -3327,11 +3292,8 @@ function checkDupForm(){
 }
 function checkDupModal(){
   if(editingId){ hideDupWarn('m-dup-warn'); return; } // solo al crear uno nuevo, no al editar
-  renderDupWarn('m-dup-warn', {
-    email:(document.getElementById('m-email')||{}).value,
-    nombre:(document.getElementById('m-nombre')||{}).value,
-    telefono:joinPhones(modalTelefonos)
-  }, null);
+  const c0=modalContactos[0]||{};
+  renderDupWarn('m-dup-warn', { email:c0.email||'', nombre:c0.nombre||'', telefono:c0.telefono||'' }, null);
 }
 ['f-nombre','f-telefono','f-email'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('input', checkDupForm); });
 ['m-nombre','m-email'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('input', checkDupModal); });
