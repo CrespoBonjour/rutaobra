@@ -122,10 +122,23 @@ main{flex:1;overflow:hidden;position:relative;z-index:1}
 
 /* ── GROUPS / FIELDS ── */
 .group{background:linear-gradient(165deg,var(--panel),var(--panel) 60%,var(--panel2));border:1px solid var(--line);border-radius:var(--r-md);padding:14px 14px 8px;margin-bottom:13px;position:relative;box-shadow:var(--shadow-sm)}
-/* En PC el formulario +Nuevo se muestra en 2 columnas para no scrollear tanto. En móvil queda en 1. */
+/* En PC el formulario +Nuevo se acomoda en 2 columnas tipo "masonry" (sin huecos muertos)
+   y con todo más compacto para ver casi todos los campos sin scrollear. En móvil queda en 1. */
 @media(min-width:900px){
-  #view-form.active{display:grid;grid-template-columns:1fr 1fr;gap:13px;align-items:start;max-width:1120px;margin:0 auto}
-  #view-form .group{margin-bottom:0}
+  #view-form.active{column-count:2;column-gap:14px;max-width:1040px;margin:0 auto;padding:12px 14px 88px}
+  #view-form .group{break-inside:avoid;-webkit-column-break-inside:avoid;margin:0 0 12px;padding:10px 12px 4px}
+  #view-form .group-label{font-size:9.5px;margin-bottom:7px;letter-spacing:.9px}
+  #view-form .field{margin-bottom:7px}
+  #view-form .field label{font-size:9px;margin-bottom:3px;letter-spacing:.3px}
+  #view-form .field input,#view-form .field textarea,#view-form .field select{padding:6px 9px;font-size:12.5px;border-width:1px;box-shadow:none}
+  #view-form .field textarea{min-height:38px}
+  #view-form .quick-chips{margin:0 0 6px;gap:5px}
+  #view-form .chip{font-size:11px;padding:5px 9px;border-width:1px}
+  #view-form .temp-chip{padding:7px 6px;font-size:11px;border-width:1.5px}
+  #view-form .temp-chip .icn{width:13px;height:13px}
+  #view-form .catalog-grid{gap:6px;margin-bottom:6px}
+  #view-form .catalog-item{font-size:11px;padding:6px 8px;border-width:1px}
+  #view-form .mini-prio{padding:5px 9px;font-size:11px}
 }
 .group::before{content:"";position:absolute;top:10px;left:-1px;bottom:10px;width:3px;background:linear-gradient(var(--acc-light),var(--acc-deep));border-radius:0 3px 3px 0;box-shadow:0 0 10px var(--acc-glow)}
 .group-label{font-size:11px;text-transform:uppercase;letter-spacing:1.3px;color:var(--ink-soft);font-weight:800;margin-bottom:11px;display:flex;align-items:center;gap:7px}
@@ -439,6 +452,8 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .pm-col .catalog-item.selected .box::after{font-size:8px}
 .pm-col .quick-chips{margin:0;gap:5px}
 .pm-col .quick-chips .chip{font-size:10.5px;padding:6px 10px;border-radius:7px;border-width:1px}
+/* Producto de interés ya ENVIADO (actividad completada): ✓ sobre el chip pintado */
+#m-productos-chips .chip.selected.envsent::after{content:"✓";margin-left:5px;font-weight:900;color:var(--ok)}
 .pm-col .ct-int-savebtn{padding:8px;font-size:10.5px}
 .pm-col .persona-add-form{gap:6px;margin-bottom:0}
 .pm-col .persona-add-form input,.pm-col .persona-add-form select{padding:7px 9px;font-size:12px}
@@ -1472,7 +1487,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
           <div id="m-bitrix-status" style="font-size:11px;color:var(--muted);margin-top:5px"></div>
         </div>
         <div class="pm-divider"></div>
-        <div class="pm-sectitle">Catálogos a enviar <span style="text-transform:none;font-weight:400;color:var(--muted)">(agenda un envío para mañana 10:00)</span></div>
+        <div class="pm-sectitle">Productos que le interesan <span style="text-transform:none;font-weight:400;color:var(--muted)">(pintado = interés; ✓ = ya enviado. Despintá si no lo enviaste)</span></div>
         <div class="quick-chips" id="m-productos-chips"></div>
         <div class="pm-divider"></div>
         <div class="pm-sectitle">Materiales entregados</div>
@@ -1981,6 +1996,7 @@ let modalTempSelected='',mPhotoDataUrl=null,modalFotos=[],editingId=null;
 let modalContactado=false,modalBitrix=false,modalPrimordial=false,modalInteracciones=[];
 let modalZonaSelected='',modalCatalogosSelected=new Set(),modalTamano='',modalTipoCli='empresa';
 let modalProductosInteresSelected=new Set();
+let modalProductosInicial=new Set(); // productos que YA tenían actividad al abrir la ficha (para diferenciar altas/bajas)
 let pickedLatLng=null,pickedAddress='',pickerMap=null,geocodeTimeout=null,pendingNewLatLng=null;
 let modalObras=[],pickingObraMode=false;
 let pickingFormMode=false,formPickedLatLng=null;
@@ -2653,7 +2669,7 @@ function openPinModal(entry,newLocation){
   document.querySelectorAll('#m-tamano-chips .chip').forEach(x=>x.classList.remove('selected'));modalTamano='';
   document.getElementById('m-instalacion').value='';
   document.querySelectorAll('#modal-catalog-grid .catalog-item').forEach(x=>x.classList.remove('selected'));modalCatalogosSelected=new Set();
-  modalProductosInteresSelected=new Set();renderProductosChips();
+  modalProductosInteresSelected=new Set();modalProductosInicial=new Set();renderProductosChips();
   poblarEtapasDatalist(); poblarEmpresasEstudios();
   modalTempSelected='';modalFotos=[];renderModalFotos();
   modalContactado=!!(entry&&entry.contactado);modalBitrix=!!(entry&&entry.bitrix);modalPrimordial=!!(entry&&entry.primordial);
@@ -2687,6 +2703,14 @@ function openPinModal(entry,newLocation){
     document.getElementById('m-web').value=entry.web||'';
     if(entry.zona){const zc=document.querySelector('#modal-zona-chips .chip[data-val="'+entry.zona+'"]');if(zc){zc.classList.add('selected');modalZonaSelected=entry.zona;}else{document.getElementById('m-zona').value=entry.zona;}}
     if(Array.isArray(entry.catalogos)){entry.catalogos.forEach(v=>{modalCatalogosSelected.add(v);const ci=document.querySelector('#modal-catalog-grid .catalog-item[data-val="'+v+'"]');if(ci)ci.classList.add('selected');});}
+    // Pintar los productos de interés según las actividades de envío ya generadas (pendientes O completadas).
+    // Es el "pantallazo" del interés del cliente. La marca ✓ indica que esa actividad ya se completó (enviado).
+    { const cs=getCatalogStatus(entry.id); const interes=new Set([...cs.sent, ...cs.queued]);
+      document.querySelectorAll('#m-productos-chips .chip').forEach(ch=>{
+        if(interes.has(ch.dataset.val)){ ch.classList.add('selected'); modalProductosInteresSelected.add(ch.dataset.val); if(cs.sent.includes(ch.dataset.val)) ch.classList.add('envsent'); }
+      });
+      modalProductosInicial=new Set(modalProductosInteresSelected);
+    }
     if(entry.temp){const c=document.querySelector('#modal-temp-chips .temp-chip[data-val="'+entry.temp+'"]');if(c){c.classList.add('selected');modalTempSelected=entry.temp;}}
     if(entry.tamano_obra){const tc=document.querySelector('#m-tamano-chips .chip[data-val="'+entry.tamano_obra+'"]');if(tc){tc.classList.add('selected');modalTamano=entry.tamano_obra;}}
     document.getElementById('m-instalacion').value=entry.fecha_instalacion||'';
@@ -2754,6 +2778,30 @@ document.getElementById('modal-del-pin').addEventListener('click',async()=>{if(!
   document.addEventListener('mouseup', onUp);
 })();
 
+// Ajusta el interés de productos de un contacto: crea la actividad de envío para los NUEVOS,
+// y para los QUITADOS los saca de las actividades existentes (borra la pendiente si queda vacía;
+// a la completada le quita el producto para que deje de contar en el Panel, conservando el registro).
+async function aplicarInteresProductos(contactId, nuevos, quitados){
+  if(nuevos.length){
+    await crearActividadAgenda({fecha:fechaAutoTrabajo(), hora:'10:00', tipo:'actividad', texto:'Enviar información: '+nuevos.join(', '), estudioId:contactId, productos:nuevos.join(', ')});
+  }
+  if(quitados.length){
+    const qset=new Set(quitados);
+    const afectadas=agendaStore.filter(a=>a.tipo==='actividad' && a.estudio_id===contactId && a.productos);
+    for(const a of afectadas){
+      const prods=String(a.productos).split(',').map(s=>s.trim()).filter(Boolean);
+      const restan=prods.filter(p=>!qset.has(p));
+      if(restan.length===prods.length) continue;
+      if(!restan.length && !a.completada){
+        try{ await sbDelete('agenda', a.id, currentUser.token); agendaStore=agendaStore.filter(x=>x.id!==a.id); }catch(_){}
+      } else {
+        a.productos = restan.length ? restan.join(', ') : null;
+        try{ await sbUpsert('agenda', {...a, user_id:currentUser.id, user_email:currentUser.email, user_name:currentUser.name}, currentUser.token); }catch(_){}
+      }
+    }
+  }
+}
+
 document.getElementById('modal-save').addEventListener('click',async()=>{
   const empresa=document.getElementById('m-empresa').value.trim();
   if(!empresa && !document.getElementById('m-obra').value.trim() && !document.getElementById('m-estudio').value.trim() && !document.getElementById('m-nombre').value.trim()){
@@ -2798,10 +2846,12 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
       const okSave=await saveEntry(item);
       if(!okSave) return;
       toast('Actualizado ✓');
-      if(productosElegidosModal.length){
-        const fechaManana=fechaAutoTrabajo();
-        const res=await crearActividadAgenda({fecha:fechaManana, hora:'10:00', tipo:'actividad', texto:'Enviar información: '+productosElegidosModal.join(', '), estudioId:item.id, productos:productosElegidosModal.join(', ')});
-        if(res.ok) toast('Actividad agendada para mañana 10:00 ✓'); else toast(res.msg, true);
+      // Interés de productos: crear envío para los nuevos, quitar los despintados de las actividades.
+      const nuevos=productosElegidosModal.filter(p=>!modalProductosInicial.has(p));
+      const quitados=Array.from(modalProductosInicial).filter(p=>!modalProductosInteresSelected.has(p));
+      if(nuevos.length || quitados.length){
+        await aplicarInteresProductos(item.id, nuevos, quitados);
+        if(nuevos.length) toast('Envío de catálogos agendado ✓');
       }
     }
   }else{
@@ -2830,14 +2880,13 @@ document.getElementById('modal-save').addEventListener('click',async()=>{
     toast('Pin guardado ✓');
     resetMapContactFilter();
     if(productosElegidosModal.length){
-      const fechaManana=fechaAutoTrabajo();
-      const res=await crearActividadAgenda({fecha:fechaManana, hora:'10:00', tipo:'actividad', texto:'Enviar información: '+productosElegidosModal.join(', '), estudioId:entry.id, productos:productosElegidosModal.join(', ')});
-      if(res.ok) toast('Actividad agendada para mañana 10:00 ✓'); else toast(res.msg, true);
+      await aplicarInteresProductos(entry.id, productosElegidosModal, []);
+      toast('Envío de catálogos agendado ✓');
     }
   }
   buildMapContactFilter();refreshMapMarkers();renderList();if(document.getElementById('view-contactos').classList.contains('active'))renderContactos();
   document.getElementById('pin-modal').classList.remove('show');editingId=null;pendingNewLatLng=null;
-  modalProductosInteresSelected=new Set();
+  modalProductosInteresSelected=new Set();modalProductosInicial=new Set();
 });
 
 document.querySelectorAll('#pm-tabs .pm-tab').forEach(t=>{
